@@ -1002,8 +1002,40 @@ function switchTabByName(id) {
 }
 
 function playAudio(btn) {
-  btn.textContent='⏸';
-  setTimeout(()=>btn.textContent='▶',2000);
+  if (!window.speechSynthesis) {
+    alert('ขออภัย — browser ของคุณไม่รองรับ Text-to-Speech ลอง Chrome หรือ Edge นะครับ');
+    return;
+  }
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    document.querySelectorAll('.play-btn').forEach(b => { b.textContent='▶'; b.style.background='var(--rain)'; });
+    return;
+  }
+  const label = btn.closest('.audio-sim').querySelector('.audio-label').textContent;
+  const text = label.replace(/^"|"$/g, '');
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.88;
+  utter.pitch = 1;
+
+  const setVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    const en = voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('female'))
+            || voices.find(v => v.lang === 'en-US')
+            || voices.find(v => v.lang.startsWith('en'));
+    if (en) utter.voice = en;
+    btn.textContent = '⏸';
+    btn.style.background = 'var(--leaf)';
+    utter.onend = () => { btn.textContent = '▶'; btn.style.background = 'var(--rain)'; };
+    utter.onerror = () => { btn.textContent = '▶'; btn.style.background = 'var(--rain)'; };
+    window.speechSynthesis.speak(utter);
+  };
+
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = setVoice;
+  } else {
+    setVoice();
+  }
 }
 
 function showResults() {
