@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEIC Mock Exam — Kittisap S.</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky:#e8f4fd; --sky-mid:#c5e3f7; --sky-deep:#7ec8e3;
+  --rain:#4a90d9; --rain-dark:#2c6fad;
+  --leaf:#52b788; --leaf-dark:#2d6a4f;
+  --sun:#f9c74f; --gold:#f4a429;
+  --cloud:#ffffff;
+  --r1:#ff6b6b;--r2:#ffa07a;--r3:#f9c74f;--r4:#52b788;--r5:#4a90d9;--r6:#9b72cf;
+  --text:#1a2e3b; --text-mid:#3d5a6e; --muted:#7a9ab0;
+  --surface:rgba(255,255,255,0.85); --border:rgba(126,200,227,0.3);
+  --shadow:rgba(74,144,217,0.12);
+  --correct:#52b788; --wrong:#ff6b6b; --unanswered:#f9c74f;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(180deg,#d4eef9 0%,#e8f4fd 40%,#f0f8e8 100%);color:var(--text);min-height:100vh}
+
+/* NAV */
+nav{background:rgba(232,244,253,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:16px 40px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Instrument Serif',serif;font-size:1.2rem;color:var(--rain);text-decoration:none}
+.nav-logo span{color:var(--gold)}
+.nav-back{font-size:0.82rem;font-weight:500;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
+.nav-back:hover{color:var(--rain)}
+
+/* HERO */
+.page-hero{padding:60px 40px 40px;text-align:center;position:relative;overflow:hidden}
+.page-hero-title{font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,5vw,3.5rem);color:var(--text);line-height:1.1;margin-bottom:12px}
+.page-hero-title em{color:var(--rain);font-style:italic}
+.page-hero-sub{font-size:1rem;color:var(--text-mid);font-weight:300;max-width:540px;margin:0 auto 32px;line-height:1.7}
+.rainbow-bar{height:3px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4),var(--r5),var(--r6));opacity:.5;margin:0}
+
+/* SCORE HUD */
+.score-hud{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;padding:24px 40px;background:rgba(255,255,255,0.5);border-bottom:1px solid var(--border)}
+.hud-card{background:white;border:1px solid var(--border);border-radius:16px;padding:14px 24px;text-align:center;min-width:120px;box-shadow:0 2px 12px var(--shadow)}
+.hud-label{font-size:0.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.hud-val{font-size:1.6rem;font-weight:700;color:var(--text)}
+.hud-val.rain{color:var(--rain)}
+.hud-val.leaf{color:var(--leaf)}
+.hud-val.gold{color:var(--gold)}
+.hud-val.red{color:var(--r1)}
+
+/* SECTION TABS */
+.tabs{display:flex;gap:8px;padding:24px 40px 0;overflow-x:auto}
+.tab-btn{padding:10px 22px;border-radius:100px;border:1px solid var(--border);background:rgba(255,255,255,.7);font-size:.82rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.tab-btn.active{background:var(--rain);color:white;border-color:var(--rain);box-shadow:0 4px 16px rgba(74,144,217,.3)}
+.tab-btn:hover:not(.active){background:white;color:var(--rain);border-color:var(--rain)}
+
+/* MAIN */
+.main{padding:32px 40px 80px;max-width:900px;margin:0 auto}
+
+/* SECTION PANEL */
+.section-panel{display:none}
+.section-panel.active{display:block}
+
+.section-header{margin-bottom:28px}
+.section-title-sm{font-family:'Instrument Serif',serif;font-size:1.5rem;color:var(--text);margin-bottom:6px}
+.section-desc{font-size:.88rem;color:var(--muted);font-weight:300;line-height:1.6}
+.part-badge{display:inline-block;background:rgba(74,144,217,.1);color:var(--rain);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;margin-bottom:12px;border:1px solid rgba(74,144,217,.2)}
+
+/* QUESTION CARD */
+.q-card{background:white;border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:20px;box-shadow:0 2px 16px var(--shadow);transition:box-shadow .2s}
+.q-card:hover{box-shadow:0 4px 24px rgba(74,144,217,.15)}
+.q-num{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.q-text{font-size:.95rem;color:var(--text);line-height:1.7;margin-bottom:18px;font-weight:400}
+.q-context{background:rgba(74,144,217,.05);border-left:3px solid var(--rain);padding:14px 16px;border-radius:0 10px 10px 0;margin-bottom:18px;font-size:.88rem;color:var(--text-mid);line-height:1.7;font-style:italic}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .2s;font-size:.88rem;color:var(--text-mid);background:rgba(255,255,255,.7)}
+.opt:hover:not(.locked){background:rgba(74,144,217,.06);border-color:var(--rain);color:var(--rain)}
+.opt.selected{background:rgba(74,144,217,.08);border-color:var(--rain);color:var(--rain)}
+.opt.correct{background:rgba(82,183,136,.1);border-color:var(--leaf);color:var(--leaf-dark)}
+.opt.wrong{background:rgba(255,107,107,.08);border-color:var(--r1);color:#c0392b}
+.opt.missed{background:rgba(82,183,136,.06);border-color:var(--leaf);color:var(--leaf-dark);opacity:.8}
+.opt-letter{font-weight:700;font-size:.8rem;min-width:22px;padding-top:1px}
+.opt-text{line-height:1.5}
+.q-explain{margin-top:14px;padding:12px 16px;background:rgba(82,183,136,.07);border-radius:10px;font-size:.82rem;color:var(--leaf-dark);line-height:1.6;display:none}
+.q-explain.show{display:block}
+.q-explain strong{font-weight:600}
+
+/* AUDIO SIM */
+.audio-sim{display:flex;align-items:center;gap:12px;background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.2);border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.play-btn{width:36px;height:36px;border-radius:50%;background:var(--rain);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:.9rem;flex-shrink:0;transition:transform .2s}
+.play-btn:hover{transform:scale(1.1)}
+.audio-label{font-size:.8rem;color:var(--text-mid);font-weight:500}
+.audio-note{font-size:.72rem;color:var(--muted);margin-top:2px}
+
+/* IMAGE PLACEHOLDER */
+.img-placeholder{background:linear-gradient(135deg,var(--sky-mid),var(--sky-deep));border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;color:white;font-size:.85rem;font-weight:500}
+
+/* NAV BTNS */
+.q-nav{display:flex;gap:12px;justify-content:flex-end;margin-top:32px}
+.btn-nav{padding:12px 28px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .25s;border:1px solid var(--border)}
+.btn-primary{background:linear-gradient(135deg,var(--rain),var(--sky-deep));color:white;border-color:var(--rain);box-shadow:0 4px 16px rgba(74,144,217,.25)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(74,144,217,.35)}
+.btn-ghost{background:rgba(255,255,255,.8);color:var(--text-mid)}
+.btn-ghost:hover{background:white;color:var(--rain);border-color:var(--rain)}
+.btn-check{background:linear-gradient(135deg,var(--leaf),var(--leaf-dark));color:white;border-color:var(--leaf);box-shadow:0 4px 16px rgba(82,183,136,.25)}
+.btn-check:hover{transform:translateY(-2px)}
+
+/* PROGRESS */
+.progress-bar{height:4px;background:rgba(126,200,227,.2);border-radius:2px;overflow:hidden;margin-bottom:28px}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--rain),var(--leaf));transition:width .5s ease}
+
+/* RESULTS PAGE */
+.results-wrap{display:none;padding:40px 0}
+.results-wrap.show{display:block}
+.score-circle{width:180px;height:180px;margin:0 auto 32px;position:relative}
+.score-circle svg{width:100%;height:100%}
+.score-circle-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-big{font-family:'Instrument Serif',serif;font-size:2.8rem;color:var(--text);line-height:1}
+.score-max{font-size:.75rem;color:var(--muted);font-weight:500}
+.result-verdict{text-align:center;margin-bottom:32px}
+.verdict-title{font-family:'Instrument Serif',serif;font-size:1.8rem;color:var(--text);margin-bottom:8px}
+.verdict-sub{font-size:.92rem;color:var(--text-mid);font-weight:300;line-height:1.6;max-width:480px;margin:0 auto}
+.result-bands{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px}
+.band-card{background:white;border:1px solid var(--border);border-radius:16px;padding:20px;text-align:center;box-shadow:0 2px 10px var(--shadow)}
+.band-part{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.band-score{font-size:2rem;font-weight:700;color:var(--rain);margin-bottom:4px}
+.band-range{font-size:.75rem;color:var(--muted)}
+.advice-cards{display:flex;flex-direction:column;gap:14px;margin-bottom:32px}
+.advice-card{background:white;border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 2px 10px var(--shadow)}
+.advice-icon{font-size:1.5rem;flex-shrink:0;margin-top:2px}
+.advice-title{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px}
+.advice-text{font-size:.82rem;color:var(--text-mid);line-height:1.6;font-weight:300}
+.retake-btn{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+
+/* INTRO */
+.intro-card{background:white;border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 4px 20px var(--shadow);margin-bottom:24px}
+.intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.intro-item{background:rgba(74,144,217,.05);border:1px solid rgba(74,144,217,.15);border-radius:12px;padding:16px;text-align:center}
+.intro-item-num{font-size:1.6rem;font-weight:700;color:var(--rain);margin-bottom:4px}
+.intro-item-label{font-size:.78rem;color:var(--muted);font-weight:500}
+.level-note{background:rgba(82,183,136,.07);border:1px solid rgba(82,183,136,.2);border-radius:12px;padding:14px 16px;font-size:.84rem;color:var(--leaf-dark);line-height:1.6;margin-top:16px}
+
+@media(max-width:640px){
+  nav,
+  .page-hero,.score-hud,.tabs,.main{padding-left:20px;padding-right:20px}
+  .result-bands{grid-template-columns:1fr}
+  .intro-grid{grid-template-columns:1fr 1fr}
+  .score-hud{gap:10px}
+  .hud-card{padding:10px 14px;min-width:90px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">ks<span>.</span>qa</a>
+  <a href="index.html" class="nav-back">← Back to Portfolio</a>
+</nav>
+
+<div class="page-hero">
+  <div class="part-badge">TOEIC Mock Exam 2024 Format</div>
+  <h1 class="page-hero-title">Test Your <em>English</em><br>Before the Real Thing</h1>
+  <p class="page-hero-sub">ข้อสอบ TOEIC จำลองตาม format ล่าสุด ครบทั้ง Listening และ Reading พร้อมประเมินคะแนนและคำแนะนำ</p>
+</div>
+<div class="rainbow-bar"></div>
+
+<!-- SCORE HUD -->
+<div class="score-hud">
+  <div class="hud-card"><div class="hud-label">Estimated Score</div><div class="hud-val rain" id="hudTotal">—</div></div>
+  <div class="hud-card"><div class="hud-label">Listening</div><div class="hud-val leaf" id="hudL">—</div></div>
+  <div class="hud-card"><div class="hud-label">Reading</div><div class="hud-val gold" id="hudR">—</div></div>
+  <div class="hud-card"><div class="hud-label">Answered</div><div class="hud-val" id="hudAns">0 / 40</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('intro',this)">📋 Overview</button>
+  <button class="tab-btn" onclick="switchTab('p1',this)">Part 1 — Photos</button>
+  <button class="tab-btn" onclick="switchTab('p2',this)">Part 2 — Q&A</button>
+  <button class="tab-btn" onclick="switchTab('p3',this)">Part 3 — Conversations</button>
+  <button class="tab-btn" onclick="switchTab('p5',this)">Part 5 — Grammar</button>
+  <button class="tab-btn" onclick="switchTab('p6',this)">Part 6 — Fill-in</button>
+  <button class="tab-btn" onclick="switchTab('p7',this)">Part 7 — Reading</button>
+  <button class="tab-btn" onclick="switchTab('results',this)" id="resultsTab">📊 Results</button>
+</div>
+
+<div class="main">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <!-- INTRO -->
+  <div id="panel-intro" class="section-panel active">
+    <div class="intro-card">
+      <div class="part-badge">2024 TOEIC Format</div>
+      <h2 style="font-family:'Instrument Serif',serif;font-size:1.6rem;margin-bottom:12px">รู้จัก TOEIC Mock นี้</h2>
+      <p style="font-size:.9rem;color:var(--text-mid);line-height:1.75;font-weight:300">ข้อสอบนี้จำลองโครงสร้าง TOEIC Listening &amp; Reading ล่าสุด (2024) โดยย่อให้เหมาะกับการฝึกซ้อม มี <strong>40 ข้อ</strong> ครอบคลุมทุก Part สำคัญ พร้อมเฉลยและคำอธิบาย</p>
+      <div class="intro-grid">
+        <div class="intro-item"><div class="intro-item-num">40</div><div class="intro-item-label">ข้อทั้งหมด</div></div>
+        <div class="intro-item"><div class="intro-item-num">990</div><div class="intro-item-label">คะแนนสูงสุด</div></div>
+        <div class="intro-item"><div class="intro-item-num">7</div><div class="intro-item-label">Parts</div></div>
+        <div class="intro-item"><div class="intro-item-num">~30</div><div class="intro-item-label">นาทีโดยประมาณ</div></div>
+      </div>
+      <div class="level-note">
+        💡 <strong>เกณฑ์คะแนน TOEIC:</strong> 10–250 = Beginner · 255–400 = Elementary · 405–600 = Intermediate · 605–780 = Upper-Intermediate · 785–900 = Advanced · 905–990 = Proficient
+      </div>
+    </div>
+    <div class="intro-card" style="background:rgba(74,144,217,.04)">
+      <h3 style="font-size:1rem;font-weight:600;margin-bottom:12px;color:var(--text)">โครงสร้างข้อสอบ</h3>
+      <table style="width:100%;font-size:.84rem;border-collapse:collapse">
+        <tr style="border-bottom:1px solid var(--border)">
+          <th style="text-align:left;padding:8px 0;color:var(--muted);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase">Part</th>
+          <th style="text-align:left;padding:8px 0;color:var(--muted);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase">ประเภท</th>
+          <th style="text-align:center;padding:8px 0;color:var(--muted);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase">ข้อ (จริง)</th>
+          <th style="text-align:center;padding:8px 0;color:var(--muted);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase">ข้อ (Mock)</th>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(126,200,227,.15)"><td style="padding:9px 0;color:var(--text)">1</td><td style="padding:9px 0;color:var(--text-mid)">Photographs</td><td style="text-align:center;color:var(--rain);font-weight:600">6</td><td style="text-align:center;color:var(--rain);font-weight:600">3</td></tr>
+        <tr style="border-bottom:1px solid rgba(126,200,227,.15)"><td style="padding:9px 0;color:var(--text)">2</td><td style="padding:9px 0;color:var(--text-mid)">Question-Response</td><td style="text-align:center;color:var(--rain);font-weight:600">25</td><td style="text-align:center;color:var(--rain);font-weight:600">5</td></tr>
+        <tr style="border-bottom:1px solid rgba(126,200,227,.15)"><td style="padding:9px 0;color:var(--text)">3</td><td style="padding:9px 0;color:var(--text-mid)">Short Conversations</td><td style="text-align:center;color:var(--rain);font-weight:600">39</td><td style="text-align:center;color:var(--rain);font-weight:600">6</td></tr>
+        <tr style="border-bottom:1px solid rgba(126,200,227,.15)"><td style="padding:9px 0;color:var(--text)">5</td><td style="padding:9px 0;color:var(--text-mid)">Incomplete Sentences</td><td style="text-align:center;color:var(--gold);font-weight:600">40</td><td style="text-align:center;color:var(--gold);font-weight:600">10</td></tr>
+        <tr style="border-bottom:1px solid rgba(126,200,227,.15)"><td style="padding:9px 0;color:var(--text)">6</td><td style="padding:9px 0;color:var(--text-mid)">Text Completion</td><td style="text-align:center;color:var(--gold);font-weight:600">16</td><td style="text-align:center;color:var(--gold);font-weight:600">4</td></tr>
+        <tr><td style="padding:9px 0;color:var(--text)">7</td><td style="padding:9px 0;color:var(--text-mid)">Reading Comprehension</td><td style="text-align:center;color:var(--gold);font-weight:600">54</td><td style="text-align:center;color:var(--gold);font-weight:600">12</td></tr>
+      </table>
+    </div>
+    <div class="q-nav">
+      <button class="btn-nav btn-primary" onclick="switchTabByName('p1')">เริ่มทำข้อสอบ ☁️</button>
+    </div>
+  </div>
+
+  <!-- PART 1 — PHOTOGRAPHS -->
+  <div id="panel-p1" class="section-panel">
+    <div class="section-header">
+      <div class="part-badge">Listening — Part 1</div>
+      <h2 class="section-title-sm">Photographs (3 ข้อ)</h2>
+      <p class="section-desc">ดูภาพแล้วเลือกคำบรรยายที่ถูกต้องที่สุด ในข้อสอบจริงจะมีเสียงอ่าน A–D ให้เลือก</p>
+    </div>
+
+    <div class="q-card" data-q="1" data-part="L">
+      <div class="q-num">Question 1 of 40</div>
+      <div class="img-placeholder">🏢 [Photo: A man is standing at a reception desk in an office lobby. He is talking to a woman behind the counter. There are plants and chairs visible.]</div>
+      <p class="q-text">Look at the photo and choose the statement that best describes what you see.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,1,'A')"><span class="opt-letter">A</span><span class="opt-text">The man is sitting at a desk and reading documents.</span></div>
+        <div class="opt" onclick="selectOpt(this,1,'B')"><span class="opt-letter">B</span><span class="opt-text">A man is speaking with a woman at a reception counter.</span></div>
+        <div class="opt" onclick="selectOpt(this,1,'C')"><span class="opt-letter">C</span><span class="opt-text">Two women are arranging plants near the entrance.</span></div>
+        <div class="opt" onclick="selectOpt(this,1,'D')"><span class="opt-letter">D</span><span class="opt-text">The lobby is empty and the lights are off.</span></div>
+      </div>
+      <div class="q-explain" id="exp1"><strong>Correct: B</strong> — The photo shows a man talking with a woman at the reception desk. A is wrong (he is standing, not sitting). C is wrong (the women aren't arranging plants). D is wrong (the lobby is not empty).</div>
+    </div>
+
+    <div class="q-card" data-q="2" data-part="L">
+      <div class="q-num">Question 2 of 40</div>
+      <div class="img-placeholder">🍽️ [Photo: A restaurant scene — waitstaff is setting a round table with white tablecloths. Wine glasses and cutlery are being placed. No guests are present yet.]</div>
+      <p class="q-text">Choose the statement that best describes the photo.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,2,'A')"><span class="opt-letter">A</span><span class="opt-text">Guests are enjoying a meal at a restaurant.</span></div>
+        <div class="opt" onclick="selectOpt(this,2,'B')"><span class="opt-letter">B</span><span class="opt-text">A waiter is taking an order from a customer.</span></div>
+        <div class="opt" onclick="selectOpt(this,2,'C')"><span class="opt-letter">C</span><span class="opt-text">A table is being set with glasses and cutlery.</span></div>
+        <div class="opt" onclick="selectOpt(this,2,'D')"><span class="opt-letter">D</span><span class="opt-text">Food is being served on a tray.</span></div>
+      </div>
+      <div class="q-explain" id="exp2"><strong>Correct: C</strong> — The table is being prepared (set) before guests arrive. A and B require guests, which are absent. D describes serving food, not setting a table.</div>
+    </div>
+
+    <div class="q-card" data-q="3" data-part="L">
+      <div class="q-num">Question 3 of 40</div>
+      <div class="img-placeholder">🏭 [Photo: A warehouse with workers in safety vests operating forklifts and moving boxes on pallets. Shelving racks line both sides of the aisle.]</div>
+      <p class="q-text">Choose the statement that best describes the photo.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,3,'A')"><span class="opt-letter">A</span><span class="opt-text">Workers are loading boxes onto a delivery truck outside.</span></div>
+        <div class="opt" onclick="selectOpt(this,3,'B')"><span class="opt-letter">B</span><span class="opt-text">The warehouse shelves are completely empty.</span></div>
+        <div class="opt" onclick="selectOpt(this,3,'C')"><span class="opt-letter">C</span><span class="opt-text">Workers in safety vests are moving goods with forklifts inside a warehouse.</span></div>
+        <div class="opt" onclick="selectOpt(this,3,'D')"><span class="opt-letter">D</span><span class="opt-text">A single worker is painting the walls of the storage room.</span></div>
+      </div>
+      <div class="q-explain" id="exp3"><strong>Correct: C</strong> — The photo depicts workers using forklifts in a warehouse with racks. A (outside truck) and D (painting) are not shown. B is wrong because shelves contain goods.</div>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-nav btn-ghost" onclick="switchTabByName('intro')">← Previous</button>
+      <button class="btn-nav btn-check" onclick="checkSection('p1',['B','C','C'])">Check Answers</button>
+      <button class="btn-nav btn-primary" onclick="switchTabByName('p2')">Next Part →</button>
+    </div>
+  </div>
+
+  <!-- PART 2 — Q&A -->
+  <div id="panel-p2" class="section-panel">
+    <div class="section-header">
+      <div class="part-badge">Listening — Part 2</div>
+      <h2 class="section-title-sm">Question–Response (5 ข้อ)</h2>
+      <p class="section-desc">ฟังคำถามแล้วเลือกคำตอบที่เหมาะสมที่สุด ในข้อสอบจริงจะมีเสียงอ่านทั้งคำถามและตัวเลือก</p>
+    </div>
+
+    <div class="q-card" data-q="4" data-part="L">
+      <div class="q-num">Question 4 of 40</div>
+      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label">"When does the project deadline end?"</div><div class="audio-note">In the real test, you would hear this sentence only once.</div></div></div>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,4,'A')"><span class="opt-letter">A</span><span class="opt-text">It's on the third floor.</span></div>
+        <div class="opt" onclick="selectOpt(this,4,'B')"><span class="opt-letter">B</span><span class="opt-text">By the end of next Friday.</span></div>
+        <div class="opt" onclick="selectOpt(this,4,'C')"><span class="opt-letter">C</span><span class="opt-text">The manager approved it.</span></div>
+      </div>
+      <div class="q-explain" id="exp4"><strong>Correct: B</strong> — "By the end of next Friday" answers "when" directly. A answers "where", C is unrelated to timing.</div>
+    </div>
+
+    <div class="q-card" data-q="5" data-part="L">
+      <div class="q-num">Question 5 of 40</div>
+      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label">"Would you like to join us for the team lunch?"</div><div class="audio-note">In the real test, you would hear this sentence only once.</div></div></div>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,5,'A')"><span class="opt-letter">A</span><span class="opt-text">Sure, I'd love to. What time?</span></div>
+        <div class="opt" onclick="selectOpt(this,5,'B')"><span class="opt-letter">B</span><span class="opt-text">The report is due tomorrow.</span></div>
+        <div class="opt" onclick="selectOpt(this,5,'C')"><span class="opt-letter">C</span><span class="opt-text">It's in the conference room.</span></div>
+      </div>
+      <div class="q-explain" id="exp5"><strong>Correct: A</strong> — A natural reply to an invitation. B and C are completely unrelated responses.</div>
+    </div>
+
+    <div class="q-card" data-q="6" data-part="L">
+      <div class="q-num">Question 6 of 40</div>
+      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label">"Who is presenting at the conference tomorrow?"</div><div class="audio-note">In the real test, you would hear this sentence only once.</div></div></div>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,6,'A')"><span class="opt-letter">A</span><span class="opt-text">At nine o'clock in the morning.</span></div>
+        <div class="opt" onclick="selectOpt(this,6,'B')"><span class="opt-letter">B</span><span class="opt-text">Dr. Chen from the R&D department.</span></div>
+        <div class="opt" onclick="selectOpt(this,6,'C')"><span class="opt-letter">C</span><span class="opt-text">The conference hall on the second floor.</span></div>
+      </div>
+      <div class="q-explain" id="exp6"><strong>Correct: B</strong> — "Who" asks for a person → B names a person. A answers "when", C answers "where".</div>
+    </div>
+
+    <div class="q-card" data-q="7" data-part="L">
+      <div class="q-num">Question 7 of 40</div>
+      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label">"Have the new computers been installed yet?"</div><div class="audio-note">In the real test, you would hear this sentence only once.</div></div></div>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,7,'A')"><span class="opt-letter">A</span><span class="opt-text">No, the technician is coming this afternoon.</span></div>
+        <div class="opt" onclick="selectOpt(this,7,'B')"><span class="opt-letter">B</span><span class="opt-text">The computers are very expensive.</span></div>
+        <div class="opt" onclick="selectOpt(this,7,'C')"><span class="opt-letter">C</span><span class="opt-text">I prefer laptops to desktops.</span></div>
+      </div>
+      <div class="q-explain" id="exp7"><strong>Correct: A</strong> — A directly answers a yes/no question about installation status. B and C don't address whether installation happened.</div>
+    </div>
+
+    <div class="q-card" data-q="8" data-part="L">
+      <div class="q-num">Question 8 of 40</div>
+      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label">"Why was the meeting postponed?"</div><div class="audio-note">In the real test, you would hear this sentence only once.</div></div></div>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,8,'A')"><span class="opt-letter">A</span><span class="opt-text">It will be held in room 204.</span></div>
+        <div class="opt" onclick="selectOpt(this,8,'B')"><span class="opt-letter">B</span><span class="opt-text">Several key members were traveling abroad.</span></div>
+        <div class="opt" onclick="selectOpt(this,8,'C')"><span class="opt-letter">C</span><span class="opt-text">The meeting lasted about two hours.</span></div>
+      </div>
+      <div class="q-explain" id="exp8"><strong>Correct: B</strong> — "Why" needs a reason. B provides a reason (members were traveling). A answers "where", C answers "how long".</div>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-nav btn-ghost" onclick="switchTabByName('p1')">← Previous</button>
+      <button class="btn-nav btn-check" onclick="checkSection('p2',['B','A','B','A','B'])">Check Answers</button>
+      <button class="btn-nav btn-primary" onclick="switchTabByName('p3')">Next Part →</button>
+    </div>
+  </div>
+
+  <!-- PART 3 — CONVERSATIONS -->
+  <div id="panel-p3" class="section-panel">
+    <div class="section-header">
+      <div class="part-badge">Listening — Part 3</div>
+      <h2 class="section-title-sm">Short Conversations (6 ข้อ / 2 บทสนทนา)</h2>
+      <p class="section-desc">อ่านบทสนทนา แล้วตอบคำถาม 3 ข้อต่อบทสนทนา</p>
+    </div>
+
+    <div style="background:rgba(74,144,217,.05);border:1px solid rgba(74,144,217,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--rain);margin-bottom:12px">Conversation 1 — Questions 9–11</div>
+      <div class="q-context">
+        <strong>M:</strong> Hi Sarah, I heard we're getting a new quality management system next month.<br>
+        <strong>W:</strong> Yes, the IT department confirmed it on Tuesday. It'll replace the current one completely.<br>
+        <strong>M:</strong> I hope there'll be proper training before we switch over. Last time we had no preparation at all.<br>
+        <strong>W:</strong> Don't worry — they've already scheduled three training sessions in late October.
+      </div>
+    </div>
+
+    <div class="q-card" data-q="9" data-part="L">
+      <div class="q-num">Question 9 of 40</div>
+      <p class="q-text">What are the speakers mainly discussing?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,9,'A')"><span class="opt-letter">A</span><span class="opt-text">A new employee joining the team</span></div>
+        <div class="opt" onclick="selectOpt(this,9,'B')"><span class="opt-letter">B</span><span class="opt-text">An upcoming software system change</span></div>
+        <div class="opt" onclick="selectOpt(this,9,'C')"><span class="opt-letter">C</span><span class="opt-text">A problem with the current IT department</span></div>
+        <div class="opt" onclick="selectOpt(this,9,'D')"><span class="opt-letter">D</span><span class="opt-text">The company's financial performance</span></div>
+      </div>
+      <div class="q-explain" id="exp9"><strong>Correct: B</strong> — Both speakers discuss a new quality management system replacing the old one. There's no mention of a new employee, IT problems, or finances.</div>
+    </div>
+
+    <div class="q-card" data-q="10" data-part="L">
+      <div class="q-num">Question 10 of 40</div>
+      <p class="q-text">What does the man express concern about?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,10,'A')"><span class="opt-letter">A</span><span class="opt-text">The system cost</span></div>
+        <div class="opt" onclick="selectOpt(this,10,'B')"><span class="opt-letter">B</span><span class="opt-text">Lack of adequate training</span></div>
+        <div class="opt" onclick="selectOpt(this,10,'C')"><span class="opt-letter">C</span><span class="opt-text">The system launch date</span></div>
+        <div class="opt" onclick="selectOpt(this,10,'D')"><span class="opt-letter">D</span><span class="opt-text">The number of staff involved</span></div>
+      </div>
+      <div class="q-explain" id="exp10"><strong>Correct: B</strong> — The man says "I hope there'll be proper training… Last time we had no preparation at all." This clearly shows concern about training.</div>
+    </div>
+
+    <div class="q-card" data-q="11" data-part="L">
+      <div class="q-num">Question 11 of 40</div>
+      <p class="q-text">When are the training sessions scheduled?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,11,'A')"><span class="opt-letter">A</span><span class="opt-text">Early October</span></div>
+        <div class="opt" onclick="selectOpt(this,11,'B')"><span class="opt-letter">B</span><span class="opt-text">Next Tuesday</span></div>
+        <div class="opt" onclick="selectOpt(this,11,'C')"><span class="opt-letter">C</span><span class="opt-text">Late October</span></div>
+        <div class="opt" onclick="selectOpt(this,11,'D')"><span class="opt-letter">D</span><span class="opt-text">Next month's first week</span></div>
+      </div>
+      <div class="q-explain" id="exp11"><strong>Correct: C</strong> — The woman explicitly says "they've already scheduled three training sessions in <em>late October</em>."</div>
+    </div>
+
+    <div style="background:rgba(82,183,136,.05);border:1px solid rgba(82,183,136,.2);border-radius:14px;padding:20px;margin-bottom:20px;margin-top:28px">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--leaf-dark);margin-bottom:12px">Conversation 2 — Questions 12–14</div>
+      <div class="q-context">
+        <strong>W:</strong> I'm calling about the job posting for a software tester position. Is it still available?<br>
+        <strong>M:</strong> Yes, absolutely. We're accepting applications until this Friday.<br>
+        <strong>W:</strong> Great. Could you tell me more about the role? Specifically, whether it involves automation testing?<br>
+        <strong>M:</strong> Yes, about 70% of the work involves writing automated test scripts. We primarily use Selenium and Cypress.
+      </div>
+    </div>
+
+    <div class="q-card" data-q="12" data-part="L">
+      <div class="q-num">Question 12 of 40</div>
+      <p class="q-text">What is the purpose of the woman's call?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,12,'A')"><span class="opt-letter">A</span><span class="opt-text">To schedule an interview</span></div>
+        <div class="opt" onclick="selectOpt(this,12,'B')"><span class="opt-letter">B</span><span class="opt-text">To inquire about a job opening</span></div>
+        <div class="opt" onclick="selectOpt(this,12,'C')"><span class="opt-letter">C</span><span class="opt-text">To submit her completed application</span></div>
+        <div class="opt" onclick="selectOpt(this,12,'D')"><span class="opt-letter">D</span><span class="opt-text">To report a technical problem</span></div>
+      </div>
+      <div class="q-explain" id="exp12"><strong>Correct: B</strong> — She asks "Is it still available?" showing she wants information about the job opening, not to schedule, submit, or report anything.</div>
+    </div>
+
+    <div class="q-card" data-q="13" data-part="L">
+      <div class="q-num">Question 13 of 40</div>
+      <p class="q-text">What does the woman specifically ask about?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,13,'A')"><span class="opt-letter">A</span><span class="opt-text">The salary range</span></div>
+        <div class="opt" onclick="selectOpt(this,13,'B')"><span class="opt-letter">B</span><span class="opt-text">The team size</span></div>
+        <div class="opt" onclick="selectOpt(this,13,'C')"><span class="opt-letter">C</span><span class="opt-text">Whether automation testing is involved</span></div>
+        <div class="opt" onclick="selectOpt(this,13,'D')"><span class="opt-letter">D</span><span class="opt-text">The location of the office</span></div>
+      </div>
+      <div class="q-explain" id="exp13"><strong>Correct: C</strong> — She asks "whether it involves automation testing" — this is word-for-word from the conversation.</div>
+    </div>
+
+    <div class="q-card" data-q="14" data-part="L">
+      <div class="q-num">Question 14 of 40</div>
+      <p class="q-text">What tools are mentioned for the position?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,14,'A')"><span class="opt-letter">A</span><span class="opt-text">Jira and TestRail</span></div>
+        <div class="opt" onclick="selectOpt(this,14,'B')"><span class="opt-letter">B</span><span class="opt-text">Selenium and Cypress</span></div>
+        <div class="opt" onclick="selectOpt(this,14,'C')"><span class="opt-letter">C</span><span class="opt-text">Postman and k6</span></div>
+        <div class="opt" onclick="selectOpt(this,14,'D')"><span class="opt-letter">D</span><span class="opt-text">Jenkins and GitHub Actions</span></div>
+      </div>
+      <div class="q-explain" id="exp14"><strong>Correct: B</strong> — The man says "We primarily use Selenium and Cypress."</div>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-nav btn-ghost" onclick="switchTabByName('p2')">← Previous</button>
+      <button class="btn-nav btn-check" onclick="checkSection('p3',['B','B','C','B','C','B'])">Check Answers</button>
+      <button class="btn-nav btn-primary" onclick="switchTabByName('p5')">Next Part →</button>
+    </div>
+  </div>
+
+  <!-- PART 5 — GRAMMAR -->
+  <div id="panel-p5" class="section-panel">
+    <div class="section-header">
+      <div class="part-badge">Reading — Part 5</div>
+      <h2 class="section-title-sm">Incomplete Sentences (10 ข้อ)</h2>
+      <p class="section-desc">เลือกคำหรือวลีที่เหมาะสมที่สุดเพื่อเติมประโยคให้สมบูรณ์</p>
+    </div>
+
+    <div class="q-card" data-q="15" data-part="R">
+      <div class="q-num">Question 15 of 40</div>
+      <p class="q-text">The marketing team _______ the new campaign strategy at yesterday's meeting.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,15,'A')"><span class="opt-letter">A</span><span class="opt-text">presents</span></div>
+        <div class="opt" onclick="selectOpt(this,15,'B')"><span class="opt-letter">B</span><span class="opt-text">presented</span></div>
+        <div class="opt" onclick="selectOpt(this,15,'C')"><span class="opt-letter">C</span><span class="opt-text">will present</span></div>
+        <div class="opt" onclick="selectOpt(this,15,'D')"><span class="opt-letter">D</span><span class="opt-text">presenting</span></div>
+      </div>
+      <div class="q-explain" id="exp15"><strong>Correct: B</strong> — "yesterday's meeting" = past time marker → simple past tense "presented" is required.</div>
+    </div>
+
+    <div class="q-card" data-q="16" data-part="R">
+      <div class="q-num">Question 16 of 40</div>
+      <p class="q-text">All employees are required to submit their expense reports _______ the 15th of each month.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,16,'A')"><span class="opt-letter">A</span><span class="opt-text">until</span></div>
+        <div class="opt" onclick="selectOpt(this,16,'B')"><span class="opt-letter">B</span><span class="opt-text">during</span></div>
+        <div class="opt" onclick="selectOpt(this,16,'C')"><span class="opt-letter">C</span><span class="opt-text">by</span></div>
+        <div class="opt" onclick="selectOpt(this,16,'D')"><span class="opt-letter">D</span><span class="opt-text">since</span></div>
+      </div>
+      <div class="q-explain" id="exp16"><strong>Correct: C</strong> — "by" = no later than a deadline. "Until" implies continuous action. "During" and "since" don't fit deadline usage.</div>
+    </div>
+
+    <div class="q-card" data-q="17" data-part="R">
+      <div class="q-num">Question 17 of 40</div>
+      <p class="q-text">The proposal _______ by the board before the end of the quarter.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,17,'A')"><span class="opt-letter">A</span><span class="opt-text">will approve</span></div>
+        <div class="opt" onclick="selectOpt(this,17,'B')"><span class="opt-letter">B</span><span class="opt-text">has approved</span></div>
+        <div class="opt" onclick="selectOpt(this,17,'C')"><span class="opt-letter">C</span><span class="opt-text">must be approved</span></div>
+        <div class="opt" onclick="selectOpt(this,17,'D')"><span class="opt-letter">D</span><span class="opt-text">approves</span></div>
+      </div>
+      <div class="q-explain" id="exp17"><strong>Correct: C</strong> — "The proposal" is the object of approval → passive voice needed. "must be approved" = passive modal, fitting the deadline context.</div>
+    </div>
+
+    <div class="q-card" data-q="18" data-part="R">
+      <div class="q-num">Question 18 of 40</div>
+      <p class="q-text">Mr. Tanaka is responsible _______ overseeing the quality assurance process.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,18,'A')"><span class="opt-letter">A</span><span class="opt-text">to</span></div>
+        <div class="opt" onclick="selectOpt(this,18,'B')"><span class="opt-letter">B</span><span class="opt-text">for</span></div>
+        <div class="opt" onclick="selectOpt(this,18,'C')"><span class="opt-letter">C</span><span class="opt-text">in</span></div>
+        <div class="opt" onclick="selectOpt(this,18,'D')"><span class="opt-letter">D</span><span class="opt-text">at</span></div>
+      </div>
+      <div class="q-explain" id="exp18"><strong>Correct: B</strong> — Fixed collocation: "responsible FOR" doing something. This is a standard preposition that must be memorized.</div>
+    </div>
+
+    <div class="q-card" data-q="19" data-part="R">
+      <div class="q-num">Question 19 of 40</div>
+      <p class="q-text">The software update _______ significant improvements to the user interface.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,19,'A')"><span class="opt-letter">A</span><span class="opt-text">including</span></div>
+        <div class="opt" onclick="selectOpt(this,19,'B')"><span class="opt-letter">B</span><span class="opt-text">include</span></div>
+        <div class="opt" onclick="selectOpt(this,19,'C')"><span class="opt-letter">C</span><span class="opt-text">includes</span></div>
+        <div class="opt" onclick="selectOpt(this,19,'D')"><span class="opt-letter">D</span><span class="opt-text">to include</span></div>
+      </div>
+      <div class="q-explain" id="exp19"><strong>Correct: C</strong> — "The software update" = third-person singular subject → verb needs "s" → "includes".</div>
+    </div>
+
+    <div class="q-card" data-q="20" data-part="R">
+      <div class="q-num">Question 20 of 40</div>
+      <p class="q-text">_______ the meeting ran overtime, all agenda items were covered.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,20,'A')"><span class="opt-letter">A</span><span class="opt-text">Because</span></div>
+        <div class="opt" onclick="selectOpt(this,20,'B')"><span class="opt-letter">B</span><span class="opt-text">Although</span></div>
+        <div class="opt" onclick="selectOpt(this,20,'C')"><span class="opt-letter">C</span><span class="opt-text">Since</span></div>
+        <div class="opt" onclick="selectOpt(this,20,'D')"><span class="opt-letter">D</span><span class="opt-text">Unless</span></div>
+      </div>
+      <div class="q-explain" id="exp20"><strong>Correct: B</strong> — "Although" introduces a contrast (ran overtime BUT items were covered). "Because/Since" would cause a logical contradiction. "Unless" implies a condition.</div>
+    </div>
+
+    <div class="q-card" data-q="21" data-part="R">
+      <div class="q-num">Question 21 of 40</div>
+      <p class="q-text">She has worked in the testing field _______ over ten years.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,21,'A')"><span class="opt-letter">A</span><span class="opt-text">since</span></div>
+        <div class="opt" onclick="selectOpt(this,21,'B')"><span class="opt-letter">B</span><span class="opt-text">during</span></div>
+        <div class="opt" onclick="selectOpt(this,21,'C')"><span class="opt-letter">C</span><span class="opt-text">for</span></div>
+        <div class="opt" onclick="selectOpt(this,21,'D')"><span class="opt-letter">D</span><span class="opt-text">at</span></div>
+      </div>
+      <div class="q-explain" id="exp21"><strong>Correct: C</strong> — "For" is used with a duration/length of time ("ten years"). "Since" is used with a point in time ("since 2010").</div>
+    </div>
+
+    <div class="q-card" data-q="22" data-part="R">
+      <div class="q-num">Question 22 of 40</div>
+      <p class="q-text">The _______ report showed a 15% reduction in bug rates after the new process was implemented.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,22,'A')"><span class="opt-letter">A</span><span class="opt-text">month</span></div>
+        <div class="opt" onclick="selectOpt(this,22,'B')"><span class="opt-letter">B</span><span class="opt-text">monthly</span></div>
+        <div class="opt" onclick="selectOpt(this,22,'C')"><span class="opt-letter">C</span><span class="opt-text">months</span></div>
+        <div class="opt" onclick="selectOpt(this,22,'D')"><span class="opt-letter">D</span><span class="opt-text">monthful</span></div>
+      </div>
+      <div class="q-explain" id="exp22"><strong>Correct: B</strong> — An adjective is needed before "report" → "monthly" (adjective). "Month/months" are nouns, "monthful" is not a real word.</div>
+    </div>
+
+    <div class="q-card" data-q="23" data-part="R">
+      <div class="q-num">Question 23 of 40</div>
+      <p class="q-text">Customers are encouraged to contact customer service _______ they experience any issues.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,23,'A')"><span class="opt-letter">A</span><span class="opt-text">whenever</span></div>
+        <div class="opt" onclick="selectOpt(this,23,'B')"><span class="opt-letter">B</span><span class="opt-text">wherever</span></div>
+        <div class="opt" onclick="selectOpt(this,23,'C')"><span class="opt-letter">C</span><span class="opt-text">whatever</span></div>
+        <div class="opt" onclick="selectOpt(this,23,'D')"><span class="opt-letter">D</span><span class="opt-text">however</span></div>
+      </div>
+      <div class="q-explain" id="exp23"><strong>Correct: A</strong> — "Whenever" = at any time that (temporal conjunction). "Wherever" = place, "whatever" = thing, "however" = manner — none fit a time-condition context.</div>
+    </div>
+
+    <div class="q-card" data-q="24" data-part="R">
+      <div class="q-num">Question 24 of 40</div>
+      <p class="q-text">The _______ of the new testing framework exceeded everyone's expectations.</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,24,'A')"><span class="opt-letter">A</span><span class="opt-text">effective</span></div>
+        <div class="opt" onclick="selectOpt(this,24,'B')"><span class="opt-letter">B</span><span class="opt-text">effectively</span></div>
+        <div class="opt" onclick="selectOpt(this,24,'C')"><span class="opt-letter">C</span><span class="opt-text">effectiveness</span></div>
+        <div class="opt" onclick="selectOpt(this,24,'D')"><span class="opt-letter">D</span><span class="opt-text">effecting</span></div>
+      </div>
+      <div class="q-explain" id="exp24"><strong>Correct: C</strong> — The blank is the subject of the sentence → needs a noun. "effectiveness" (noun). "effective" = adjective, "effectively" = adverb.</div>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-nav btn-ghost" onclick="switchTabByName('p3')">← Previous</button>
+      <button class="btn-nav btn-check" onclick="checkSection('p5',['B','C','C','B','C','B','C','B','A','C'])">Check Answers</button>
+      <button class="btn-nav btn-primary" onclick="switchTabByName('p6')">Next Part →</button>
+    </div>
+  </div>
+
+  <!-- PART 6 -->
+  <div id="panel-p6" class="section-panel">
+    <div class="section-header">
+      <div class="part-badge">Reading — Part 6</div>
+      <h2 class="section-title-sm">Text Completion (4 ข้อ)</h2>
+      <p class="section-desc">อ่านข้อความแล้วเลือกคำหรือวลีที่เหมาะสมที่สุดเพื่อเติมช่องว่าง</p>
+    </div>
+
+    <div class="q-context" style="margin-bottom:20px">
+      <strong>Memo — To:</strong> All Staff / <strong>From:</strong> HR Department / <strong>Re:</strong> Annual Performance Reviews<br><br>
+      This is a reminder that annual performance reviews will begin on November 1st. All managers are <strong>(Q25)</strong> _______ to schedule one-on-one meetings with their team members by October 25th. Please ensure that self-evaluation forms have been completed and <strong>(Q26)</strong> _______ to your direct supervisor before the review date. Employees who <strong>(Q27)</strong> _______ to submit their forms on time may face delays in processing their reviews. <strong>(Q28)</strong> _______, the HR department will be available to answer questions every Thursday from 2–4 PM.
+    </div>
+
+    <div class="q-card" data-q="25" data-part="R">
+      <div class="q-num">Question 25 of 40</div>
+      <p class="q-text">Select the best word for blank (Q25).</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,25,'A')"><span class="opt-letter">A</span><span class="opt-text">asked</span></div>
+        <div class="opt" onclick="selectOpt(this,25,'B')"><span class="opt-letter">B</span><span class="opt-text">ask</span></div>
+        <div class="opt" onclick="selectOpt(this,25,'C')"><span class="opt-letter">C</span><span class="opt-text">asking</span></div>
+        <div class="opt" onclick="selectOpt(this,25,'D')"><span class="opt-letter">D</span><span class="opt-text">to ask</span></div>
+      </div>
+      <div class="q-explain" id="exp25"><strong>Correct: A</strong> — "are asked" = passive voice (be + past participle). "are asking" would also work grammatically but means something different. "are asked to" = requested to.</div>
+    </div>
+
+    <div class="q-card" data-q="26" data-part="R">
+      <div class="q-num">Question 26 of 40</div>
+      <p class="q-text">Select the best word for blank (Q26).</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,26,'A')"><span class="opt-letter">A</span><span class="opt-text">submit</span></div>
+        <div class="opt" onclick="selectOpt(this,26,'B')"><span class="opt-letter">B</span><span class="opt-text">submitted</span></div>
+        <div class="opt" onclick="selectOpt(this,26,'C')"><span class="opt-letter">C</span><span class="opt-text">submitting</span></div>
+        <div class="opt" onclick="selectOpt(this,26,'D')"><span class="opt-letter">D</span><span class="opt-text">submission</span></div>
+      </div>
+      <div class="q-explain" id="exp26"><strong>Correct: B</strong> — "have been completed and submitted" = parallel passive structure (both past participles after "have been").</div>
+    </div>
+
+    <div class="q-card" data-q="27" data-part="R">
+      <div class="q-num">Question 27 of 40</div>
+      <p class="q-text">Select the best word for blank (Q27).</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,27,'A')"><span class="opt-letter">A</span><span class="opt-text">fail</span></div>
+        <div class="opt" onclick="selectOpt(this,27,'B')"><span class="opt-letter">B</span><span class="opt-text">failed</span></div>
+        <div class="opt" onclick="selectOpt(this,27,'C')"><span class="opt-letter">C</span><span class="opt-text">failing</span></div>
+        <div class="opt" onclick="selectOpt(this,27,'D')"><span class="opt-letter">D</span><span class="opt-text">to fail</span></div>
+      </div>
+      <div class="q-explain" id="exp27"><strong>Correct: A</strong> — "Employees who fail to submit" = present tense relative clause describing a general condition/policy.</div>
+    </div>
+
+    <div class="q-card" data-q="28" data-part="R">
+      <div class="q-num">Question 28 of 40</div>
+      <p class="q-text">Select the best word for blank (Q28).</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,28,'A')"><span class="opt-letter">A</span><span class="opt-text">However</span></div>
+        <div class="opt" onclick="selectOpt(this,28,'B')"><span class="opt-letter">B</span><span class="opt-text">Therefore</span></div>
+        <div class="opt" onclick="selectOpt(this,28,'C')"><span class="opt-letter">C</span><span class="opt-text">In addition</span></div>
+        <div class="opt" onclick="selectOpt(this,28,'D')"><span class="opt-letter">D</span><span class="opt-text">As a result</span></div>
+      </div>
+      <div class="q-explain" id="exp28"><strong>Correct: C</strong> — "In addition" adds supplementary information (HR availability). The previous sentences give instructions; this adds another piece of helpful info.</div>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-nav btn-ghost" onclick="switchTabByName('p5')">← Previous</button>
+      <button class="btn-nav btn-check" onclick="checkSection('p6',['A','B','A','C'])">Check Answers</button>
+      <button class="btn-nav btn-primary" onclick="switchTabByName('p7')">Next Part →</button>
+    </div>
+  </div>
+
+  <!-- PART 7 -->
+  <div id="panel-p7" class="section-panel">
+    <div class="section-header">
+      <div class="part-badge">Reading — Part 7</div>
+      <h2 class="section-title-sm">Reading Comprehension (12 ข้อ)</h2>
+      <p class="section-desc">อ่านข้อความ email / announcement / article แล้วตอบคำถาม</p>
+    </div>
+
+    <div class="q-context" style="margin-bottom:20px">
+      <strong>Email</strong><br>
+      <strong>From:</strong> jessica.moore@techsolutions.com<br>
+      <strong>To:</strong> allstaff@techsolutions.com<br>
+      <strong>Subject:</strong> Office Renovation — Temporary Workspace Changes<br><br>
+      Dear colleagues,<br><br>
+      I am writing to inform you of upcoming changes to our workspace. Starting Monday, October 14th, the third and fourth floors will be closed for renovation. This project is expected to last approximately three weeks.<br><br>
+      During this period, affected staff will be relocated to the co-working spaces on the first floor. Please note that desk assignments will be communicated by your direct managers by end of day Friday. Employees who need to access files stored on the third or fourth floor must request assistance from the facilities team at least 48 hours in advance.<br><br>
+      We apologize for any inconvenience and appreciate your cooperation. A catered lunch will be provided on October 14th to thank you for your flexibility.<br><br>
+      Best regards,<br>Jessica Moore, Office Operations Manager
+    </div>
+
+    <div class="q-card" data-q="29" data-part="R">
+      <div class="q-num">Question 29 of 40</div>
+      <p class="q-text">Why was the email sent?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,29,'A')"><span class="opt-letter">A</span><span class="opt-text">To announce a new office policy</span></div>
+        <div class="opt" onclick="selectOpt(this,29,'B')"><span class="opt-letter">B</span><span class="opt-text">To inform staff about workspace changes due to renovation</span></div>
+        <div class="opt" onclick="selectOpt(this,29,'C')"><span class="opt-letter">C</span><span class="opt-text">To invite employees to a lunch event</span></div>
+        <div class="opt" onclick="selectOpt(this,29,'D')"><span class="opt-letter">D</span><span class="opt-text">To introduce a new facilities manager</span></div>
+      </div>
+      <div class="q-explain" id="exp29"><strong>Correct: B</strong> — The subject line says "Office Renovation — Temporary Workspace Changes" and the email's first sentence confirms: informing about workspace changes due to renovation.</div>
+    </div>
+
+    <div class="q-card" data-q="30" data-part="R">
+      <div class="q-num">Question 30 of 40</div>
+      <p class="q-text">How long will the renovation last?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,30,'A')"><span class="opt-letter">A</span><span class="opt-text">One week</span></div>
+        <div class="opt" onclick="selectOpt(this,30,'B')"><span class="opt-letter">B</span><span class="opt-text">Two weeks</span></div>
+        <div class="opt" onclick="selectOpt(this,30,'C')"><span class="opt-letter">C</span><span class="opt-text">Three weeks</span></div>
+        <div class="opt" onclick="selectOpt(this,30,'D')"><span class="opt-letter">D</span><span class="opt-text">One month</span></div>
+      </div>
+      <div class="q-explain" id="exp30"><strong>Correct: C</strong> — "This project is expected to last approximately three weeks." is stated directly in the second paragraph.</div>
+    </div>
+
+    <div class="q-card" data-q="31" data-part="R">
+      <div class="q-num">Question 31 of 40</div>
+      <p class="q-text">Where will affected employees work during the renovation?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,31,'A')"><span class="opt-letter">A</span><span class="opt-text">From home</span></div>
+        <div class="opt" onclick="selectOpt(this,31,'B')"><span class="opt-letter">B</span><span class="opt-text">Co-working spaces on the first floor</span></div>
+        <div class="opt" onclick="selectOpt(this,31,'C')"><span class="opt-letter">C</span><span class="opt-text">A nearby office building</span></div>
+        <div class="opt" onclick="selectOpt(this,31,'D')"><span class="opt-letter">D</span><span class="opt-text">The second floor conference rooms</span></div>
+      </div>
+      <div class="q-explain" id="exp31"><strong>Correct: B</strong> — "affected staff will be relocated to the co-working spaces on the first floor."</div>
+    </div>
+
+    <div class="q-card" data-q="32" data-part="R">
+      <div class="q-num">Question 32 of 40</div>
+      <p class="q-text">What must employees do to access files from the closed floors?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,32,'A')"><span class="opt-letter">A</span><span class="opt-text">Email Jessica Moore directly</span></div>
+        <div class="opt" onclick="selectOpt(this,32,'B')"><span class="opt-letter">B</span><span class="opt-text">Request assistance 48 hours in advance from the facilities team</span></div>
+        <div class="opt" onclick="selectOpt(this,32,'C')"><span class="opt-letter">C</span><span class="opt-text">Wait until the renovation is complete</span></div>
+        <div class="opt" onclick="selectOpt(this,32,'D')"><span class="opt-letter">D</span><span class="opt-text">Ask their direct manager for a key</span></div>
+      </div>
+      <div class="q-explain" id="exp32"><strong>Correct: B</strong> — "must request assistance from the facilities team at least 48 hours in advance." — exact wording from the email.</div>
+    </div>
+
+    <div style="background:rgba(74,144,217,.05);border:1px solid rgba(74,144,217,.2);border-radius:14px;padding:20px;margin:28px 0 20px">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--rain);margin-bottom:12px">Article — Questions 33–36</div>
+      <div class="q-context">
+        <strong>The Rise of AI in Software Testing</strong><br><br>
+        Artificial intelligence is rapidly transforming the field of software quality assurance. Traditional manual testing, while still valuable, is increasingly being supplemented by AI-powered tools that can identify bugs, predict failure points, and generate test cases automatically.<br><br>
+        According to a 2024 industry report, companies that adopted AI-assisted testing reduced their defect escape rate by an average of 32%. Furthermore, test execution time dropped by nearly 45% in organizations using machine learning-based regression test selection.<br><br>
+        However, experts caution that AI tools are not a replacement for skilled QA engineers. Human testers bring creativity, contextual judgment, and an understanding of user experience that current AI systems cannot fully replicate. The consensus in the industry is that the future of QA lies in a hybrid approach — combining AI efficiency with human insight.
+      </div>
+    </div>
+
+    <div class="q-card" data-q="33" data-part="R">
+      <div class="q-num">Question 33 of 40</div>
+      <p class="q-text">What is the main topic of the article?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,33,'A')"><span class="opt-letter">A</span><span class="opt-text">The decline of manual testing</span></div>
+        <div class="opt" onclick="selectOpt(this,33,'B')"><span class="opt-letter">B</span><span class="opt-text">How AI is changing software quality assurance</span></div>
+        <div class="opt" onclick="selectOpt(this,33,'C')"><span class="opt-letter">C</span><span class="opt-text">The dangers of relying too much on technology</span></div>
+        <div class="opt" onclick="selectOpt(this,33,'D')"><span class="opt-letter">D</span><span class="opt-text">A comparison of AI testing tools on the market</span></div>
+      </div>
+      <div class="q-explain" id="exp33"><strong>Correct: B</strong> — The title and entire article discuss AI's role in transforming QA. A is too narrow; C and D are not the focus.</div>
+    </div>
+
+    <div class="q-card" data-q="34" data-part="R">
+      <div class="q-num">Question 34 of 40</div>
+      <p class="q-text">By how much did AI-assisted testing reduce defect escape rates, according to the report?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,34,'A')"><span class="opt-letter">A</span><span class="opt-text">25%</span></div>
+        <div class="opt" onclick="selectOpt(this,34,'B')"><span class="opt-letter">B</span><span class="opt-text">32%</span></div>
+        <div class="opt" onclick="selectOpt(this,34,'C')"><span class="opt-letter">C</span><span class="opt-text">45%</span></div>
+        <div class="opt" onclick="selectOpt(this,34,'D')"><span class="opt-letter">D</span><span class="opt-text">50%</span></div>
+      </div>
+      <div class="q-explain" id="exp34"><strong>Correct: B</strong> — "reduced their defect escape rate by an average of 32%." (Note: 45% is for test execution time reduction — a common distractor.)</div>
+    </div>
+
+    <div class="q-card" data-q="35" data-part="R">
+      <div class="q-num">Question 35 of 40</div>
+      <p class="q-text">What do experts say about AI tools replacing QA engineers?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,35,'A')"><span class="opt-letter">A</span><span class="opt-text">AI will completely replace QA engineers within five years</span></div>
+        <div class="opt" onclick="selectOpt(this,35,'B')"><span class="opt-letter">B</span><span class="opt-text">AI tools are currently superior to human testers in every way</span></div>
+        <div class="opt" onclick="selectOpt(this,35,'C')"><span class="opt-letter">C</span><span class="opt-text">AI cannot fully replace skilled QA engineers due to human qualities</span></div>
+        <div class="opt" onclick="selectOpt(this,35,'D')"><span class="opt-letter">D</span><span class="opt-text">Companies should stop investing in AI testing tools</span></div>
+      </div>
+      <div class="q-explain" id="exp35"><strong>Correct: C</strong> — "AI tools are not a replacement for skilled QA engineers. Human testers bring creativity, contextual judgment… that current AI systems cannot fully replicate."</div>
+    </div>
+
+    <div class="q-card" data-q="36" data-part="R">
+      <div class="q-num">Question 36 of 40</div>
+      <p class="q-text">What approach does the industry consider the future of QA?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,36,'A')"><span class="opt-letter">A</span><span class="opt-text">Fully automated AI testing with no human involvement</span></div>
+        <div class="opt" onclick="selectOpt(this,36,'B')"><span class="opt-letter">B</span><span class="opt-text">A hybrid approach combining AI efficiency with human insight</span></div>
+        <div class="opt" onclick="selectOpt(this,36,'C')"><span class="opt-letter">C</span><span class="opt-text">Returning to traditional manual testing methods</span></div>
+        <div class="opt" onclick="selectOpt(this,36,'D')"><span class="opt-letter">D</span><span class="opt-text">Outsourcing all QA work to offshore teams</span></div>
+      </div>
+      <div class="q-explain" id="exp36"><strong>Correct: B</strong> — Last sentence: "the future of QA lies in a hybrid approach — combining AI efficiency with human insight." — stated explicitly.</div>
+    </div>
+
+    <div style="background:rgba(249,199,79,.07);border:1px solid rgba(249,199,79,.3);border-radius:14px;padding:20px;margin:28px 0 20px">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Advertisement — Questions 37–40</div>
+      <div class="q-context">
+        <strong>REGISTER NOW — QA Summit 2024</strong><br>
+        Bangkok | November 22–23, 2024<br><br>
+        Join over 500 quality assurance professionals for two days of workshops, keynote presentations, and networking opportunities. This year's theme: <em>"Quality Without Compromise."</em><br><br>
+        Highlights include:<br>
+        • Keynote by Dr. Alice Fong, Author of "Zero Defect Culture"<br>
+        • Hands-on workshop: AI-powered test automation with Cypress<br>
+        • Panel discussion: QA career paths in the age of AI<br><br>
+        <strong>Early bird registration (before Oct 31):</strong> ฿3,500<br>
+        <strong>Standard registration:</strong> ฿5,000<br>
+        <strong>Group discount:</strong> 15% off for groups of 5 or more<br><br>
+        Visit <u>qasummit2024.th</u> or email info@qasummit2024.th
+      </div>
+    </div>
+
+    <div class="q-card" data-q="37" data-part="R">
+      <div class="q-num">Question 37 of 40</div>
+      <p class="q-text">Where and when will QA Summit 2024 be held?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,37,'A')"><span class="opt-letter">A</span><span class="opt-text">Singapore, October 22–23</span></div>
+        <div class="opt" onclick="selectOpt(this,37,'B')"><span class="opt-letter">B</span><span class="opt-text">Bangkok, November 22–23</span></div>
+        <div class="opt" onclick="selectOpt(this,37,'C')"><span class="opt-letter">C</span><span class="opt-text">Bangkok, October 31</span></div>
+        <div class="opt" onclick="selectOpt(this,37,'D')"><span class="opt-letter">D</span><span class="opt-text">Tokyo, November 22–23</span></div>
+      </div>
+      <div class="q-explain" id="exp37"><strong>Correct: B</strong> — "Bangkok | November 22–23, 2024" stated clearly at the top. Oct 31 is the early bird deadline, not the event date.</div>
+    </div>
+
+    <div class="q-card" data-q="38" data-part="R">
+      <div class="q-num">Question 38 of 40</div>
+      <p class="q-text">What is the early bird registration fee?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,38,'A')"><span class="opt-letter">A</span><span class="opt-text">฿3,500</span></div>
+        <div class="opt" onclick="selectOpt(this,38,'B')"><span class="opt-letter">B</span><span class="opt-text">฿5,000</span></div>
+        <div class="opt" onclick="selectOpt(this,38,'C')"><span class="opt-letter">C</span><span class="opt-text">฿4,250</span></div>
+        <div class="opt" onclick="selectOpt(this,38,'D')"><span class="opt-letter">D</span><span class="opt-text">฿4,750</span></div>
+      </div>
+      <div class="q-explain" id="exp38"><strong>Correct: A</strong> — "Early bird registration (before Oct 31): ฿3,500" — B is the standard fee, C and D are distractors.</div>
+    </div>
+
+    <div class="q-card" data-q="39" data-part="R">
+      <div class="q-num">Question 39 of 40</div>
+      <p class="q-text">How much discount do groups of 5 or more receive?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,39,'A')"><span class="opt-letter">A</span><span class="opt-text">10%</span></div>
+        <div class="opt" onclick="selectOpt(this,39,'B')"><span class="opt-letter">B</span><span class="opt-text">15%</span></div>
+        <div class="opt" onclick="selectOpt(this,39,'C')"><span class="opt-letter">C</span><span class="opt-text">20%</span></div>
+        <div class="opt" onclick="selectOpt(this,39,'D')"><span class="opt-letter">D</span><span class="opt-text">25%</span></div>
+      </div>
+      <div class="q-explain" id="exp39"><strong>Correct: B</strong> — "15% off for groups of 5 or more." — stated directly.</div>
+    </div>
+
+    <div class="q-card" data-q="40" data-part="R">
+      <div class="q-num">Question 40 of 40</div>
+      <p class="q-text">Which of the following is NOT listed as a highlight of the summit?</p>
+      <div class="options">
+        <div class="opt" onclick="selectOpt(this,40,'A')"><span class="opt-letter">A</span><span class="opt-text">A keynote by Dr. Alice Fong</span></div>
+        <div class="opt" onclick="selectOpt(this,40,'B')"><span class="opt-letter">B</span><span class="opt-text">A workshop on AI-powered test automation</span></div>
+        <div class="opt" onclick="selectOpt(this,40,'C')"><span class="opt-letter">C</span><span class="opt-text">A live product demo of new testing software</span></div>
+        <div class="opt" onclick="selectOpt(this,40,'D')"><span class="opt-letter">D</span><span class="opt-text">A panel discussion on QA career paths</span></div>
+      </div>
+      <div class="q-explain" id="exp40"><strong>Correct: C</strong> — The ad lists keynote (A), workshop (B), and panel discussion (D) as highlights. A "live product demo" is NOT mentioned anywhere.</div>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-nav btn-ghost" onclick="switchTabByName('p6')">← Previous</button>
+      <button class="btn-nav btn-check" onclick="checkSection('p7',['B','C','B','B','B','B','C','B','B','C','B','C'])">Check Answers</button>
+      <button class="btn-nav btn-primary" onclick="showResults()">See My Results 🌈</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="panel-results" class="section-panel">
+    <div class="results-wrap" id="resultsWrap">
+      <div class="score-circle">
+        <svg viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="80" fill="none" stroke="rgba(126,200,227,0.2)" stroke-width="12"/>
+          <circle cx="90" cy="90" r="80" fill="none" stroke="url(#scoreGrad)" stroke-width="12"
+            stroke-linecap="round" stroke-dasharray="502" id="scoreArc"
+            stroke-dashoffset="502" transform="rotate(-90 90 90)"/>
+          <defs>
+            <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#4a90d9"/>
+              <stop offset="100%" stop-color="#52b788"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="score-circle-text">
+          <div class="score-big" id="resultTotal">—</div>
+          <div class="score-max">/ 990</div>
+        </div>
+      </div>
+
+      <div class="result-verdict">
+        <div class="verdict-title" id="verdictTitle">—</div>
+        <div class="verdict-sub" id="verdictSub">—</div>
+      </div>
+
+      <div class="result-bands">
+        <div class="band-card">
+          <div class="band-part">☁️ Listening</div>
+          <div class="band-score" id="resultL">—</div>
+          <div class="band-range">out of 495</div>
+        </div>
+        <div class="band-card">
+          <div class="band-part">📖 Reading</div>
+          <div class="band-score" id="resultR">—</div>
+          <div class="band-range">out of 495</div>
+        </div>
+      </div>
+
+      <h3 style="font-family:'Instrument Serif',serif;font-size:1.2rem;margin-bottom:16px;color:var(--text)">คำแนะนำสำหรับคุณ</h3>
+      <div class="advice-cards" id="adviceCards"></div>
+
+      <div class="retake-btn">
+        <button class="btn-nav btn-primary" onclick="retakeExam()">ทำใหม่อีกครั้ง 🔄</button>
+        <a href="index.html" class="btn-nav btn-ghost" style="text-decoration:none;display:inline-block;padding:12px 28px">Back to Portfolio</a>
+      </div>
+    </div>
+
+    <div id="noResultsMsg" style="text-align:center;padding:60px 20px;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:16px">☁️</div>
+      <p style="font-size:.95rem;font-weight:500">ทำข้อสอบให้ครบก่อนนะครับ แล้วกลับมาดูผลที่นี่</p>
+      <button class="btn-nav btn-primary" style="margin-top:20px" onclick="switchTabByName('p1')">เริ่มทำข้อสอบ →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const answers = {};
+const correctMap = {
+  1:'B',2:'C',3:'C',
+  4:'B',5:'A',6:'B',7:'A',8:'B',
+  9:'B',10:'B',11:'C',12:'B',13:'C',14:'B',
+  15:'B',16:'C',17:'C',18:'B',19:'C',20:'B',21:'C',22:'B',23:'A',24:'C',
+  25:'A',26:'B',27:'A',28:'C',
+  29:'B',30:'C',31:'B',32:'B',33:'B',34:'B',35:'C',36:'B',37:'B',38:'A',39:'B',40:'C'
+};
+const partMap = {
+  1:'L',2:'L',3:'L',4:'L',5:'L',6:'L',7:'L',8:'L',9:'L',10:'L',11:'L',12:'L',13:'L',14:'L',
+  15:'R',16:'R',17:'R',18:'R',19:'R',20:'R',21:'R',22:'R',23:'R',24:'R',
+  25:'R',26:'R',27:'R',28:'R',
+  29:'R',30:'R',31:'R',32:'R',33:'R',34:'R',35:'R',36:'R',37:'R',38:'R',39:'R',40:'R'
+};
+
+let checked = {};
+
+function selectOpt(el, qNum, letter) {
+  if (checked[qNum]) return;
+  const card = el.closest('.q-card');
+  card.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[qNum] = letter;
+  updateHud();
+}
+
+function updateHud() {
+  const total = Object.keys(answers).length;
+  document.getElementById('hudAns').textContent = total + ' / 40';
+  const lCorrect = Object.keys(answers).filter(q => partMap[q]==='L' && answers[q]===correctMap[q]).length;
+  const rCorrect = Object.keys(answers).filter(q => partMap[q]==='R' && answers[q]===correctMap[q]).length;
+  const lTotal = Object.keys(partMap).filter(q=>partMap[q]==='L').length;
+  const rTotal = Object.keys(partMap).filter(q=>partMap[q]==='R').length;
+  const lScore = Math.round((lCorrect/lTotal)*495);
+  const rScore = Math.round((rCorrect/rTotal)*495);
+  if(total>0){
+    document.getElementById('hudL').textContent = lScore;
+    document.getElementById('hudR').textContent = rScore;
+    document.getElementById('hudTotal').textContent = lScore+rScore;
+  }
+  const prog = Math.round((total/40)*100);
+  document.getElementById('progressFill').style.width = prog+'%';
+}
+
+function checkSection(panelId, correctArr) {
+  const panel = document.getElementById('panel-'+panelId);
+  const cards = panel.querySelectorAll('.q-card');
+  cards.forEach((card, i) => {
+    const qNum = parseInt(card.dataset.q);
+    const correct = correctMap[qNum];
+    checked[qNum] = true;
+    card.querySelectorAll('.opt').forEach(opt => {
+      opt.classList.add('locked');
+      const letter = opt.querySelector('.opt-letter').textContent.trim();
+      if (letter === correct) opt.classList.add('correct');
+      else if (answers[qNum] === letter) opt.classList.add('wrong');
+    });
+    const exp = document.getElementById('exp'+qNum);
+    if(exp) exp.classList.add('show');
+  });
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='results') renderResults();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function switchTabByName(id) {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const map = {intro:0,p1:1,p2:2,p3:3,p5:4,p6:5,p7:6,results:7};
+  if(map[id]!==undefined) switchTab(id, tabs[map[id]]);
+}
+
+function playAudio(btn) {
+  btn.textContent='⏸';
+  setTimeout(()=>btn.textContent='▶',2000);
+}
+
+function showResults() {
+  switchTabByName('results');
+}
+
+function renderResults() {
+  const lQs = Object.keys(partMap).filter(q=>partMap[q]==='L');
+  const rQs = Object.keys(partMap).filter(q=>partMap[q]==='R');
+  const lCorrect = lQs.filter(q=>answers[q]===correctMap[q]).length;
+  const rCorrect = rQs.filter(q=>answers[q]===correctMap[q]).length;
+  const lScore = Math.round((lCorrect/lQs.length)*495);
+  const rScore = Math.round((rCorrect/rQs.length)*495);
+  const total = lScore + rScore;
+
+  if(Object.keys(answers).length < 10) {
+    document.getElementById('resultsWrap').style.display='none';
+    document.getElementById('noResultsMsg').style.display='block';
+    return;
+  }
+  document.getElementById('resultsWrap').style.display='block';
+  document.getElementById('noResultsMsg').style.display='none';
+
+  document.getElementById('resultTotal').textContent = total;
+  document.getElementById('resultL').textContent = lScore;
+  document.getElementById('resultR').textContent = rScore;
+
+  const arc = document.getElementById('scoreArc');
+  const pct = total/990;
+  setTimeout(()=>{ arc.style.transition='stroke-dashoffset 1.5s ease'; arc.style.strokeDashoffset = 502-(502*pct); },200);
+
+  let level,title,sub;
+  if(total>=785){level='Proficient/Advanced';title='🌈 ยอดเยี่ยมมาก!';sub='คะแนนของคุณอยู่ในระดับ Advanced–Proficient พร้อมสอบ TOEIC จริงได้เลย!';}
+  else if(total>=605){level='Upper-Intermediate';title='☀️ ดีมาก! เกือบถึงแล้ว';sub='คะแนนอยู่ในระดับ Upper-Intermediate ฝึกเพิ่มอีกนิดก็พร้อมสอบ';}
+  else if(total>=405){level='Intermediate';title='🌤️ อยู่ในระดับดี';sub='คะแนนระดับ Intermediate แนะนำให้ฝึกเพิ่มอีกสัก 2–3 เดือนก่อนสอบ';}
+  else if(total>=255){level='Elementary';title='🌧️ ยังต้องฝึกต่อ';sub='อยู่ระดับ Elementary ยังมีเวลาพัฒนา! แนะนำให้เรียนคอร์สก่อนสอบจริง';}
+  else{level='Beginner';title='☁️ เพิ่งเริ่มต้น';sub='คะแนนระดับ Beginner แนะนำให้เรียน Grammar และ Vocabulary พื้นฐานก่อน';}
+
+  document.getElementById('verdictTitle').textContent = title;
+  document.getElementById('verdictSub').textContent = sub + ' (ระดับ: '+level+')';
+
+  const advices = [];
+  if(lScore < rScore*0.9) advices.push({icon:'🎧',title:'เน้นฝึก Listening',text:'คะแนน Listening ของคุณต่ำกว่า Reading แนะนำให้ฟัง podcast ภาษาอังกฤษทุกวัน เช่น BBC, CNN 10 หรือ TOEIC-specific listening practice'});
+  if(rScore < lScore*0.9) advices.push({icon:'📖',title:'เน้นฝึก Reading',text:'คะแนน Reading ต่ำกว่า Listening ลองฝึกอ่าน articles ภาษาอังกฤษทุกวัน และฝึก Grammar โดยเฉพาะ prepositions, tenses, และ word forms'});
+  if(total>=785) advices.push({icon:'🚀',title:'พร้อมสอบจริงแล้ว!',text:'คะแนนของคุณสูงมาก สามารถสมัครสอบ TOEIC จริงได้เลย! ลองทำ full mock test (200 ข้อ) อีกครั้งเพื่อความมั่นใจ'});
+  else if(total>=605) advices.push({icon:'📅',title:'เตรียมสอบได้ในอีก 1–2 เดือน',text:'ฝึกทำ mock test 2–3 ครั้งต่อสัปดาห์ เน้น vocabulary เฉพาะทาง business English และ review grammar ที่ผิดบ่อย'});
+  else advices.push({icon:'📚',title:'แนะนำเรียนเพิ่มก่อนสอบ',text:'ลองคอร์ส TOEIC preparation ออนไลน์ เช่น Mavis, Enconcept, หรือ EF English ฝึก Vocabulary 20 คำ/วัน และ Grammar structure พื้นฐาน'});
+  advices.push({icon:'💡',title:'เคล็ดลับ TOEIC',text:'ในข้อสอบจริง Listening ต้องจดบันทึก keywords ระหว่างฟัง Reading ต้องบริหารเวลาดี — ไม่ติดข้อยาก ข้ามแล้วค่อยกลับมา'});
+
+  document.getElementById('adviceCards').innerHTML = advices.map(a=>`
+    <div class="advice-card">
+      <div class="advice-icon">${a.icon}</div>
+      <div><div class="advice-title">${a.title}</div><div class="advice-text">${a.text}</div></div>
+    </div>`).join('');
+}
+
+function retakeExam() {
+  Object.keys(answers).forEach(k=>delete answers[k]);
+  Object.keys(checked).forEach(k=>delete checked[k]);
+  document.querySelectorAll('.opt').forEach(o=>{ o.className='opt'; });
+  document.querySelectorAll('.q-explain').forEach(e=>e.classList.remove('show'));
+  document.getElementById('hudTotal').textContent='—';
+  document.getElementById('hudL').textContent='—';
+  document.getElementById('hudR').textContent='—';
+  document.getElementById('hudAns').textContent='0 / 40';
+  document.getElementById('progressFill').style.width='0%';
+  switchTabByName('intro');
+}
+
+document.getElementById('noResultsMsg').style.display='none';
+</script>
+</body>
+</html>
