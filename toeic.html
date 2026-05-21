@@ -296,7 +296,7 @@ nav{background:rgba(232,244,253,0.85);backdrop-filter:blur(20px);border-bottom:1
 
     <div class="q-card" data-q="4" data-part="L">
       <div class="q-num">Question 4 of 40</div>
-      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label" style="color:var(--muted);font-style:italic">Press ▶ to listen — hear the question once</div></div></div>
+      <div class="audio-sim" data-text="When does the project deadline end?"><button class="play-btn" onclick="playAudio(this)">&#9654;</button><div><div class="audio-label" style="color:var(--muted);font-style:italic;font-size:.78rem">&#128266; กด &#9654; เพื่อฟังคำถาม — ได้ยินครั้งเดียว</div></div></div></div>
       <div class="options">
         <div class="opt" onclick="selectOpt(this,4,'A')"><span class="opt-letter">A</span><span class="opt-text">It's on the third floor.</span></div>
         <div class="opt" onclick="selectOpt(this,4,'B')"><span class="opt-letter">B</span><span class="opt-text">By the end of next Friday.</span></div>
@@ -307,7 +307,7 @@ nav{background:rgba(232,244,253,0.85);backdrop-filter:blur(20px);border-bottom:1
 
     <div class="q-card" data-q="5" data-part="L">
       <div class="q-num">Question 5 of 40</div>
-      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label" style="color:var(--muted);font-style:italic">Press ▶ to listen — hear the question once</div></div></div>
+      <div class="audio-sim" data-text="Would you like to join us for the team lunch?"><button class="play-btn" onclick="playAudio(this)">&#9654;</button><div><div class="audio-label" style="color:var(--muted);font-style:italic;font-size:.78rem">&#128266; กด &#9654; เพื่อฟังคำถาม — ได้ยินครั้งเดียว</div></div></div></div>
       <div class="options">
         <div class="opt" onclick="selectOpt(this,5,'A')"><span class="opt-letter">A</span><span class="opt-text">Sure, I'd love to. What time?</span></div>
         <div class="opt" onclick="selectOpt(this,5,'B')"><span class="opt-letter">B</span><span class="opt-text">The report is due tomorrow.</span></div>
@@ -318,7 +318,7 @@ nav{background:rgba(232,244,253,0.85);backdrop-filter:blur(20px);border-bottom:1
 
     <div class="q-card" data-q="6" data-part="L">
       <div class="q-num">Question 6 of 40</div>
-      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label" style="color:var(--muted);font-style:italic">Press ▶ to listen — hear the question once</div></div></div>
+      <div class="audio-sim" data-text="Who is presenting at the conference tomorrow?"><button class="play-btn" onclick="playAudio(this)">&#9654;</button><div><div class="audio-label" style="color:var(--muted);font-style:italic;font-size:.78rem">&#128266; กด &#9654; เพื่อฟังคำถาม — ได้ยินครั้งเดียว</div></div></div></div>
       <div class="options">
         <div class="opt" onclick="selectOpt(this,6,'A')"><span class="opt-letter">A</span><span class="opt-text">At nine o'clock in the morning.</span></div>
         <div class="opt" onclick="selectOpt(this,6,'B')"><span class="opt-letter">B</span><span class="opt-text">Dr. Chen from the R&D department.</span></div>
@@ -329,7 +329,7 @@ nav{background:rgba(232,244,253,0.85);backdrop-filter:blur(20px);border-bottom:1
 
     <div class="q-card" data-q="7" data-part="L">
       <div class="q-num">Question 7 of 40</div>
-      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label" style="color:var(--muted);font-style:italic">Press ▶ to listen — hear the question once</div></div></div>
+      <div class="audio-sim" data-text="Have the new computers been installed yet?"><button class="play-btn" onclick="playAudio(this)">&#9654;</button><div><div class="audio-label" style="color:var(--muted);font-style:italic;font-size:.78rem">&#128266; กด &#9654; เพื่อฟังคำถาม — ได้ยินครั้งเดียว</div></div></div></div>
       <div class="options">
         <div class="opt" onclick="selectOpt(this,7,'A')"><span class="opt-letter">A</span><span class="opt-text">No, the technician is coming this afternoon.</span></div>
         <div class="opt" onclick="selectOpt(this,7,'B')"><span class="opt-letter">B</span><span class="opt-text">The computers are very expensive.</span></div>
@@ -340,7 +340,7 @@ nav{background:rgba(232,244,253,0.85);backdrop-filter:blur(20px);border-bottom:1
 
     <div class="q-card" data-q="8" data-part="L">
       <div class="q-num">Question 8 of 40</div>
-      <div class="audio-sim"><button class="play-btn" onclick="playAudio(this)">▶</button><div><div class="audio-label" style="color:var(--muted);font-style:italic">Press ▶ to listen — hear the question once</div></div></div>
+      <div class="audio-sim" data-text="Why was the meeting postponed?"><button class="play-btn" onclick="playAudio(this)">&#9654;</button><div><div class="audio-label" style="color:var(--muted);font-style:italic;font-size:.78rem">&#128266; กด &#9654; เพื่อฟังคำถาม — ได้ยินครั้งเดียว</div></div></div></div>
       <div class="options">
         <div class="opt" onclick="selectOpt(this,8,'A')"><span class="opt-letter">A</span><span class="opt-text">It will be held in room 204.</span></div>
         <div class="opt" onclick="selectOpt(this,8,'B')"><span class="opt-letter">B</span><span class="opt-text">Several key members were traveling abroad.</span></div>
@@ -1011,8 +1011,8 @@ function playAudio(btn) {
     document.querySelectorAll('.play-btn').forEach(b => { b.textContent='▶'; b.style.background='var(--rain)'; });
     return;
   }
-  const label = btn.closest('.audio-sim').querySelector('.audio-label').textContent;
-  const text = label.replace(/^"|"$/g, '');
+  const sim = btn.closest('.audio-sim');
+  const text = sim.dataset.text || sim.querySelector('.audio-label').textContent.replace(/^"|"$/g, '');
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'en-US';
   utter.rate = 0.88;
