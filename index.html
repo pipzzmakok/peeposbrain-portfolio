@@ -170,7 +170,7 @@
   #hero {
     min-height: 100vh;
     display: flex; align-items: center;
-    padding: 120px 48px 260px;
+    padding: 120px 48px clamp(180px,28vw,300px);
     position: relative; overflow: hidden;
   }
     50%      { opacity: 1;   transform: scale(1.03) rotate(2deg); }
@@ -506,28 +506,10 @@
   }
 
   /* Animations */
-  /* Soft shimmer glow top-right */
-  .hero-glow {
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 420px; height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle,
-      rgba(255,245,160,0.55) 0%,
-      rgba(255,220,80,0.28) 35%,
-      rgba(255,190,40,0.10) 60%,
-      transparent 75%);
-    animation: glowShimmer 3.8s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes glowShimmer {
-    0%   { opacity: 0.55; transform: scale(1);    filter: blur(18px); }
     40%  { opacity: 0.90; transform: scale(1.06); filter: blur(14px); }
     70%  { opacity: 0.60; transform: scale(1.02); filter: blur(20px); }
     100% { opacity: 0.55; transform: scale(1);    filter: blur(18px); }
   }
-  @keyframes sunFloat {
-    0%,100% { transform: translateY(0) rotate(-4deg); }
     50%      { transform: translateY(-10px) rotate(4deg); }
   }
   @keyframes fadeSlideUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
@@ -579,46 +561,6 @@
 </nav>
 
 <section id="hero">
-  <div class="hero-glow"></div>
-  <!-- Cute Sun top-right -->
-  <div style="position:absolute;top:80px;right:80px;z-index:3;animation:sunFloat 5s ease-in-out infinite">
-    <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Rays -->
-      <g opacity="0.85">
-        <line x1="55" y1="4"  x2="55" y2="16" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-        <line x1="55" y1="94" x2="55" y2="106" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-        <line x1="4"  y1="55" x2="16" y2="55" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-        <line x1="94" y1="55" x2="106" y2="55" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-        <line x1="18" y1="18" x2="27" y2="27" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-        <line x1="83" y1="83" x2="92" y2="92" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-        <line x1="92" y1="18" x2="83" y2="27" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-        <line x1="18" y1="92" x2="27" y2="83" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
-      </g>
-      <!-- Sun body glow -->
-      <circle cx="55" cy="55" r="28" fill="#fde97a" opacity="0.4"/>
-      <!-- Sun body -->
-      <circle cx="55" cy="55" r="22" fill="#f9d84a"/>
-      <circle cx="55" cy="55" r="22" fill="url(#sunGrad)"/>
-      <defs>
-        <radialGradient id="sunGrad" cx="40%" cy="35%" r="65%">
-          <stop offset="0%" stop-color="#fff8a0"/>
-          <stop offset="100%" stop-color="#f0b800"/>
-        </radialGradient>
-      </defs>
-      <!-- Cute face -->
-      <!-- Eyes -->
-      <circle cx="47" cy="51" r="3.2" fill="#c07000"/>
-      <circle cx="63" cy="51" r="3.2" fill="#c07000"/>
-      <!-- Eye shine -->
-      <circle cx="48.5" cy="49.5" r="1.2" fill="white"/>
-      <circle cx="64.5" cy="49.5" r="1.2" fill="white"/>
-      <!-- Smile -->
-      <path d="M46 59 Q55 67 64 59" stroke="#c07000" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-      <!-- Rosy cheeks -->
-      <circle cx="42" cy="57" r="4" fill="#ffb347" opacity="0.45"/>
-      <circle cx="68" cy="57" r="4" fill="#ffb347" opacity="0.45"/>
-    </svg>
-  </div>
   <div class="hero-content">
     <div class="rainbow-dots">
       <div class="rdot"></div><div class="rdot"></div><div class="rdot"></div>
@@ -637,25 +579,26 @@
     </div>
   </div>
   <!-- Rainbow + Clouds inside hero — behind text content -->
-  <div style="position:absolute;bottom:0;left:0;right:0;height:500px;z-index:1;pointer-events:none;overflow:hidden">
-    <!-- Rainbow arc -->
-    <div style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
-      width:130%;height:600px;border-radius:50%;
-      border-top:20px solid rgba(232,80,80,0.42);
+  <div style="position:absolute;bottom:0;left:0;right:0;height:clamp(220px,35vw,480px);z-index:1;pointer-events:none;overflow:hidden">
+    <!-- Rainbow arc — scales with viewport -->
+    <div style="position:absolute;bottom:clamp(40px,8vw,100px);left:50%;transform:translateX(-50%);
+      width:140%;height:clamp(300px,60vw,700px);border-radius:50%;
+      border-top:clamp(10px,1.4vw,22px) solid rgba(232,80,80,0.42);
       box-shadow:
-        0 -16px 0 rgba(240,130,60,0.38),
-        0 -32px 0 rgba(240,200,40,0.38),
-        0 -48px 0 rgba(80,190,130,0.35),
-        0 -64px 0 rgba(60,160,220,0.35),
-        0 -80px 0 rgba(140,80,210,0.30);
+        0 clamp(-8px,-1.1vw,-18px) 0 rgba(240,130,60,0.38),
+        0 clamp(-16px,-2.2vw,-36px) 0 rgba(240,200,40,0.38),
+        0 clamp(-24px,-3.3vw,-54px) 0 rgba(80,190,130,0.35),
+        0 clamp(-32px,-4.4vw,-72px) 0 rgba(60,160,220,0.35),
+        0 clamp(-40px,-5.5vw,-90px) 0 rgba(140,80,210,0.30);
     "></div>
-    <!-- Clouds SVG covering bottom half of rainbow -->
-    <svg viewBox="0 0 1440 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
-      style="position:absolute;bottom:0;left:0;width:100%;height:320px">
+    <!-- Clouds SVG — xMidYMax meet keeps clouds anchored to bottom, scales naturally -->
+    <svg viewBox="0 0 1440 320" preserveAspectRatio="xMidYMax meet"
+      xmlns="http://www.w3.org/2000/svg"
+      style="position:absolute;bottom:0;left:0;width:100%;height:100%">
       <defs>
         <linearGradient id="cloudFadeHero" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="white" stop-opacity="0"/>
-          <stop offset="60%" stop-color="white" stop-opacity="0.9"/>
+          <stop offset="0%"   stop-color="white" stop-opacity="0"/>
+          <stop offset="55%"  stop-color="white" stop-opacity="0.85"/>
           <stop offset="100%" stop-color="white" stop-opacity="1"/>
         </linearGradient>
       </defs>
@@ -670,7 +613,7 @@
                C1172,151 1230,174 1340,178 C1400,181 1435,196 1460,205
                L1460,320 L-20,320 Z"
         fill="white" opacity="0.85"/>
-      <!-- Big fluffy bumps -->
+      <!-- Fluffy bumps — fewer on mobile via SVG scaling -->
       <ellipse cx="110"  cy="220" rx="120" ry="80"  fill="white" opacity="0.88"/>
       <ellipse cx="235"  cy="192" rx="140" ry="95"  fill="white" opacity="0.95"/>
       <ellipse cx="365"  cy="170" rx="125" ry="90"  fill="white" opacity="0.92"/>
@@ -681,10 +624,11 @@
       <ellipse cx="1015" cy="142" rx="140" ry="98"  fill="white" opacity="0.94"/>
       <ellipse cx="1155" cy="158" rx="125" ry="88"  fill="white" opacity="0.90"/>
       <ellipse cx="1285" cy="176" rx="115" ry="82"  fill="white" opacity="0.87"/>
-      <ellipse cx="1400" cy="200" rx="95"  cy="70"  fill="white" opacity="0.84"/>
-      <!-- Solid white floor + fade overlay -->
-      <rect x="-20" y="250" width="1480" height="70" fill="white"/>
-      <rect x="-20" y="0" width="1480" height="260" fill="url(#cloudFadeHero)"/>
+      <ellipse cx="1400" cy="200" rx="95"  ry="70"  fill="white" opacity="0.84"/>
+      <!-- Solid white floor -->
+      <rect x="-20" y="268" width="1480" height="52" fill="white"/>
+      <!-- Fade overlay from transparent → white -->
+      <rect x="-20" y="0" width="1480" height="320" fill="url(#cloudFadeHero)"/>
     </svg>
   </div>
 
