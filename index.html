@@ -170,7 +170,7 @@
   #hero {
     min-height: 100vh;
     display: flex; align-items: center;
-    padding: 120px 48px 80px;
+    padding: 120px 48px 260px;
     position: relative; overflow: hidden;
   }
     50%      { opacity: 1;   transform: scale(1.03) rotate(2deg); }
@@ -298,7 +298,7 @@
   }
 
   /* About */
-  #about { background: rgba(140,200,235,0.45); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+  #about { background: linear-gradient(180deg, white 0%, rgba(140,200,235,0.5) 120px); padding-top: 60px; border-bottom: 1px solid var(--border); }
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1100px; margin: 0 auto; }
   .avatar-wrap { position: relative; }
   .avatar-frame {
@@ -636,62 +636,63 @@
       <a href="#contact" class="btn btn-ghost">Let's Talk ☁️</a>
     </div>
   </div>
+  <!-- Rainbow + Clouds inside hero — behind text content -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:500px;z-index:1;pointer-events:none;overflow:hidden">
+    <!-- Rainbow arc -->
+    <div style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+      width:130%;height:600px;border-radius:50%;
+      border-top:20px solid rgba(232,80,80,0.42);
+      box-shadow:
+        0 -16px 0 rgba(240,130,60,0.38),
+        0 -32px 0 rgba(240,200,40,0.38),
+        0 -48px 0 rgba(80,190,130,0.35),
+        0 -64px 0 rgba(60,160,220,0.35),
+        0 -80px 0 rgba(140,80,210,0.30);
+    "></div>
+    <!-- Clouds SVG covering bottom half of rainbow -->
+    <svg viewBox="0 0 1440 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
+      style="position:absolute;bottom:0;left:0;width:100%;height:320px">
+      <defs>
+        <linearGradient id="cloudFadeHero" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="white" stop-opacity="0"/>
+          <stop offset="60%" stop-color="white" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="white" stop-opacity="1"/>
+        </linearGradient>
+      </defs>
+      <!-- Back haze -->
+      <path d="M-20,240 C80,225 180,195 300,188 C400,182 460,165 580,160
+               C680,156 740,172 860,168 C960,164 1020,148 1140,144
+               C1240,140 1320,162 1420,168 L1440,320 L-20,320 Z"
+        fill="#c8eaf8" opacity="0.55"/>
+      <!-- Main cloud body -->
+      <path d="M-20,268 C60,255 140,222 260,210 C355,200 410,180 530,174
+               C628,169 685,188 805,183 C900,179 958,160 1075,155
+               C1172,151 1230,174 1340,178 C1400,181 1435,196 1460,205
+               L1460,320 L-20,320 Z"
+        fill="white" opacity="0.85"/>
+      <!-- Big fluffy bumps -->
+      <ellipse cx="110"  cy="220" rx="120" ry="80"  fill="white" opacity="0.88"/>
+      <ellipse cx="235"  cy="192" rx="140" ry="95"  fill="white" opacity="0.95"/>
+      <ellipse cx="365"  cy="170" rx="125" ry="90"  fill="white" opacity="0.92"/>
+      <ellipse cx="490"  cy="200" rx="105" ry="75"  fill="white" opacity="0.85"/>
+      <ellipse cx="615"  cy="155" rx="148" ry="100" fill="white" opacity="0.96"/>
+      <ellipse cx="758"  cy="138" rx="135" ry="96"  fill="white" opacity="0.93"/>
+      <ellipse cx="885"  cy="165" rx="118" ry="84"  fill="white" opacity="0.88"/>
+      <ellipse cx="1015" cy="142" rx="140" ry="98"  fill="white" opacity="0.94"/>
+      <ellipse cx="1155" cy="158" rx="125" ry="88"  fill="white" opacity="0.90"/>
+      <ellipse cx="1285" cy="176" rx="115" ry="82"  fill="white" opacity="0.87"/>
+      <ellipse cx="1400" cy="200" rx="95"  cy="70"  fill="white" opacity="0.84"/>
+      <!-- Solid white floor + fade overlay -->
+      <rect x="-20" y="250" width="1480" height="70" fill="white"/>
+      <rect x="-20" y="0" width="1480" height="260" fill="url(#cloudFadeHero)"/>
+    </svg>
+  </div>
+
   <div class="hero-scroll">
     <div class="scroll-line"></div>
     scroll down
   </div>
 </section>
-
-<!-- Cloud + Rainbow transition -->
-<div style="position:relative;overflow:visible;height:420px;margin-top:-320px;z-index:10;pointer-events:none">
-  <!-- Rainbow arc — half visible above clouds -->
-  <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:130%;height:600px;border-radius:50%;
-    border-top:20px solid rgba(232,80,80,0.42);
-    box-shadow:
-      0 -16px 0 rgba(240,130,60,0.38),
-      0 -32px 0 rgba(240,200,40,0.38),
-      0 -48px 0 rgba(80,190,130,0.35),
-      0 -64px 0 rgba(60,160,220,0.35),
-      0 -80px 0 rgba(140,80,210,0.30);
-  "></div>
-  <!-- Clouds — cover bottom half of rainbow, rise up to surname level -->
-  <svg viewBox="0 0 1440 420" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
-    style="position:absolute;bottom:0;left:0;width:100%;height:420px">
-    <!-- Back haze layer -->
-    <path d="M-20,320 C80,300 160,260 280,250 C380,242 430,220 540,215
-             C640,210 690,230 800,225 C900,220 950,200 1060,196
-             C1160,192 1220,215 1320,220 C1380,223 1420,240 1460,248
-             L1460,420 L-20,420 Z"
-      fill="#c8eaf8" opacity="0.6"/>
-    <!-- Mid cloud layer -->
-    <path d="M-20,360 C60,350 120,310 220,295 C300,282 350,260 460,252
-             C560,245 610,265 720,260 C820,255 870,232 980,228
-             C1080,224 1130,248 1240,252 C1330,256 1400,278 1460,285
-             L1460,420 L-20,420 Z"
-      fill="white" opacity="0.82"/>
-    <!-- Big fluffy bumps — very tall, reaching up to ~y=80 (surname level) -->
-    <ellipse cx="120"  cy="270" rx="130" ry="90"  fill="white" opacity="0.88"/>
-    <ellipse cx="240"  cy="230" rx="150" ry="110" fill="white" opacity="0.95"/>
-    <ellipse cx="370"  cy="200" rx="130" ry="105" fill="white" opacity="0.92"/>
-    <ellipse cx="490"  cy="235" rx="110" ry="85"  fill="white" opacity="0.85"/>
-    <ellipse cx="620"  cy="185" rx="155" ry="115" fill="white" opacity="0.96"/>
-    <ellipse cx="760"  cy="165" rx="140" ry="108" fill="white" opacity="0.93"/>
-    <ellipse cx="890"  cy="195" rx="125" ry="95"  fill="white" opacity="0.88"/>
-    <ellipse cx="1020" cy="170" rx="145" ry="112" fill="white" opacity="0.94"/>
-    <ellipse cx="1160" cy="190" rx="130" ry="100" fill="white" opacity="0.90"/>
-    <ellipse cx="1300" cy="210" rx="120" ry="88"  fill="white" opacity="0.87"/>
-    <ellipse cx="1420" cy="240" rx="100" ry="80"  fill="white" opacity="0.84"/>
-    <!-- Gradient fade base: white fading to transparent -->
-    <defs>
-      <linearGradient id="cloudFade" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"   stop-color="white" stop-opacity="1"/>
-        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <rect x="-20" y="260" width="1480" height="160" fill="url(#cloudFade)"/>
-  </svg>
-</div>
-<div style="height:80px;background:linear-gradient(to bottom, white 0%, rgba(140,200,235,0.45) 100%);margin-top:-2px;"></div>
 
 <section id="about">
   <div class="about-grid">
