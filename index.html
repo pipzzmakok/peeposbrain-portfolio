@@ -8,28 +8,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --sky:       #e8f4fd;
-    --sky-mid:   #c5e3f7;
-    --sky-deep:  #7ec8e3;
+    --sky:       #5ecff0;
+    --sky-mid:   #82d8f5;
+    --sky-deep:  #2bb8e8;
     --cloud:     #ffffff;
-    --sun:       #f9c74f;
-    --gold:      #f4a429;
-    --leaf:      #52b788;
-    --leaf-dark: #2d6a4f;
-    --rain:      #4a90d9;
-    --rainbow-1: #ff6b6b;
-    --rainbow-2: #ffa07a;
-    --rainbow-3: #f9c74f;
-    --rainbow-4: #52b788;
-    --rainbow-5: #4a90d9;
-    --rainbow-6: #9b72cf;
-    --text:      #1a2e3b;
-    --text-mid:  #3d5a6e;
-    --muted:     #7a9ab0;
-    --surface:   rgba(255,255,255,0.7);
-    --surface2:  rgba(255,255,255,0.5);
-    --border:    rgba(126,200,227,0.25);
-    --shadow:    rgba(74,144,217,0.12);
+    --sun:       #f9d84a;
+    --gold:      #e8a800;
+    --leaf:      #38b07a;
+    --leaf-dark: #1d6644;
+    --rain:      #1a8fd4;
+    --rainbow-1: #e83030;
+    --rainbow-2: #f07030;
+    --rainbow-3: #e8b800;
+    --rainbow-4: #38b07a;
+    --rainbow-5: #1a8fd4;
+    --rainbow-6: #7c44c0;
+    --text:      #0d2030;
+    --text-mid:  #1a4060;
+    --muted:     #3a6888;
+    --surface:   rgba(255,255,255,0.72);
+    --surface2:  rgba(210,238,252,0.65);
+    --border:    rgba(30,160,210,0.28);
+    --shadow:    rgba(26,143,212,0.14);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,9 +47,9 @@
     content: '';
     position: fixed; inset: 0;
     background:
-      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(249,199,79,0.15) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 80% 100%, rgba(82,183,136,0.1) 0%, transparent 50%),
-      linear-gradient(180deg, #d4eef9 0%, #e8f4fd 40%, #f0f8e8 100%);
+      radial-gradient(ellipse 70% 40% at 15% 5%, rgba(255,220,50,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 60% at 85% 90%, rgba(56,176,122,0.14) 0%, transparent 50%),
+      linear-gradient(180deg, #1aa8d8 0%, #42c4ec 30%, #7ad8f8 60%, #d0f0ff 100%);
     pointer-events: none;
     z-index: -2;
   }
@@ -112,7 +112,7 @@
   .rain-container {
     position: fixed; inset: 0;
     pointer-events: none; z-index: -1;
-    overflow: hidden; opacity: 0.18;
+    overflow: hidden; opacity: 0.28;
   }
   .raindrop {
     position: absolute;
@@ -149,7 +149,7 @@
   .nav-links a {
     font-size: 0.82rem;
     font-weight: 500;
-    color: var(--muted);
+    color: rgba(255,255,255,0.75);
     text-decoration: none;
     letter-spacing: 0.02em;
     transition: color 0.2s;
@@ -163,7 +163,7 @@
     border-radius: 1px;
     transition: width 0.25s;
   }
-  .nav-links a:hover { color: var(--text); }
+  .nav-links a:hover { color: #fff; }
   .nav-links a:hover::after { width: 100%; }
 
   /* Hero */
@@ -173,41 +173,8 @@
     padding: 120px 48px 80px;
     position: relative; overflow: hidden;
   }
-
-  /* Rainbow arc */
-  .rainbow-arc {
-    position: absolute;
-    right: -100px; top: -60px;
-    width: 700px; height: 700px;
-    border-radius: 50%;
-    border: 28px solid transparent;
-    border-top: 28px solid rgba(255,107,107,0.2);
-    border-right: 28px solid rgba(255,160,122,0.2);
-    box-shadow:
-      inset 0 0 0 24px rgba(249,199,79,0.12),
-      inset 0 0 0 48px rgba(82,183,136,0.1),
-      inset 0 0 0 72px rgba(74,144,217,0.08),
-      inset 0 0 0 96px rgba(155,114,207,0.06);
-    animation: rainbowPulse 6s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes rainbowPulse {
-    0%,100% { opacity: 0.8; transform: scale(1) rotate(0deg); }
     50%      { opacity: 1;   transform: scale(1.03) rotate(2deg); }
   }
-
-  /* Sun glow */
-  .sun-glow {
-    position: absolute;
-    top: -80px; right: 120px;
-    width: 240px; height: 240px;
-    background: radial-gradient(circle, rgba(249,199,79,0.5) 0%, rgba(244,164,41,0.2) 40%, transparent 70%);
-    border-radius: 50%;
-    animation: sunPulse 4s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes sunPulse {
-    0%,100% { transform: scale(1); opacity: 0.8; }
     50%      { transform: scale(1.08); opacity: 1; }
   }
 
@@ -331,7 +298,7 @@
   }
 
   /* About */
-  #about { background: rgba(255,255,255,0.4); backdrop-filter: blur(8px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  #about { background: rgba(140,200,235,0.45); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1100px; margin: 0 auto; }
   .avatar-wrap { position: relative; }
   .avatar-frame {
@@ -384,9 +351,9 @@
   #skills { background: transparent; }
   .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; max-width: 1100px; margin: 0 auto; }
   .skill-card {
-    background: var(--surface);
+    background: rgba(200,232,250,0.82);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.6);
     border-radius: 20px; padding: 28px;
     transition: all 0.3s;
     box-shadow: 0 4px 20px var(--shadow);
@@ -405,12 +372,12 @@
   .skill-fill { height: 100%; border-radius: 3px; width: 0; transition: width 1.2s cubic-bezier(0.16,1,0.3,1); background: var(--bar-color, var(--rain)); }
 
   /* Portfolio */
-  #portfolio { background: rgba(255,255,255,0.4); backdrop-filter: blur(8px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  #portfolio { background: rgba(120,185,220,0.4); backdrop-filter: blur(8px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
   .portfolio-grid { display: grid; grid-template-columns: repeat(12,1fr); gap: 18px; max-width: 1100px; margin: 0 auto; }
   .port-card {
-    background: white;
+    background: rgba(220,240,255,0.92);
     border-radius: 20px; overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.9);
+    border: 1px solid rgba(255,255,255,0.7);
     box-shadow: 0 4px 24px var(--shadow);
     transition: all 0.35s; cursor: none;
   }
@@ -492,7 +459,7 @@
   .btn-ig:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,39,67,0.35); }
 
   /* Contact */
-  #contact { background: rgba(255,255,255,0.4); backdrop-filter: blur(8px); border-top: 1px solid var(--border); }
+  #contact { background: rgba(120,185,220,0.4); backdrop-filter: blur(8px); border-top: 1px solid var(--border); }
   .contact-container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
   .contact-links { display: flex; flex-direction: column; gap: 12px; }
   .contact-link {
@@ -534,10 +501,35 @@
     background: linear-gradient(90deg,
       var(--rainbow-1), var(--rainbow-2), var(--rainbow-3),
       var(--rainbow-4), var(--rainbow-5), var(--rainbow-6));
-    opacity: 0.5;
+    opacity: 0.85;
+    height: 4px;
   }
 
   /* Animations */
+  /* Soft shimmer glow top-right */
+  .hero-glow {
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(255,245,160,0.55) 0%,
+      rgba(255,220,80,0.28) 35%,
+      rgba(255,190,40,0.10) 60%,
+      transparent 75%);
+    animation: glowShimmer 3.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes glowShimmer {
+    0%   { opacity: 0.55; transform: scale(1);    filter: blur(18px); }
+    40%  { opacity: 0.90; transform: scale(1.06); filter: blur(14px); }
+    70%  { opacity: 0.60; transform: scale(1.02); filter: blur(20px); }
+    100% { opacity: 0.55; transform: scale(1);    filter: blur(18px); }
+  }
+  @keyframes sunFloat {
+    0%,100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(-10px) rotate(4deg); }
+  }
   @keyframes fadeSlideUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
   @keyframes fadeSlideDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
 
@@ -556,7 +548,6 @@
     .contact-container { grid-template-columns:1fr; gap:40px; }
     body { cursor:auto; }
     .cursor,.cursor-ring { display:none; }
-    .rainbow-arc { display:none; }
   }
 </style>
 </head>
@@ -581,14 +572,53 @@
     <li><a href="#about">About</a></li>
     <li><a href="#skills">Skills</a></li>
     <li><a href="#portfolio">Work</a></li>
+    <li><a href="#features">Features</a></li>
     <li><a href="#instagram">Gallery</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
 </nav>
 
 <section id="hero">
-  <div class="rainbow-arc"></div>
-  <div class="sun-glow"></div>
+  <div class="hero-glow"></div>
+  <!-- Cute Sun top-right -->
+  <div style="position:absolute;top:80px;right:80px;z-index:3;animation:sunFloat 5s ease-in-out infinite">
+    <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Rays -->
+      <g opacity="0.85">
+        <line x1="55" y1="4"  x2="55" y2="16" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+        <line x1="55" y1="94" x2="55" y2="106" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+        <line x1="4"  y1="55" x2="16" y2="55" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+        <line x1="94" y1="55" x2="106" y2="55" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+        <line x1="18" y1="18" x2="27" y2="27" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+        <line x1="83" y1="83" x2="92" y2="92" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+        <line x1="92" y1="18" x2="83" y2="27" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+        <line x1="18" y1="92" x2="27" y2="83" stroke="#f9d84a" stroke-width="4" stroke-linecap="round"/>
+      </g>
+      <!-- Sun body glow -->
+      <circle cx="55" cy="55" r="28" fill="#fde97a" opacity="0.4"/>
+      <!-- Sun body -->
+      <circle cx="55" cy="55" r="22" fill="#f9d84a"/>
+      <circle cx="55" cy="55" r="22" fill="url(#sunGrad)"/>
+      <defs>
+        <radialGradient id="sunGrad" cx="40%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#fff8a0"/>
+          <stop offset="100%" stop-color="#f0b800"/>
+        </radialGradient>
+      </defs>
+      <!-- Cute face -->
+      <!-- Eyes -->
+      <circle cx="47" cy="51" r="3.2" fill="#c07000"/>
+      <circle cx="63" cy="51" r="3.2" fill="#c07000"/>
+      <!-- Eye shine -->
+      <circle cx="48.5" cy="49.5" r="1.2" fill="white"/>
+      <circle cx="64.5" cy="49.5" r="1.2" fill="white"/>
+      <!-- Smile -->
+      <path d="M46 59 Q55 67 64 59" stroke="#c07000" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <!-- Rosy cheeks -->
+      <circle cx="42" cy="57" r="4" fill="#ffb347" opacity="0.45"/>
+      <circle cx="68" cy="57" r="4" fill="#ffb347" opacity="0.45"/>
+    </svg>
+  </div>
   <div class="hero-content">
     <div class="rainbow-dots">
       <div class="rdot"></div><div class="rdot"></div><div class="rdot"></div>
@@ -612,7 +642,56 @@
   </div>
 </section>
 
-<div class="rainbow-bar"></div>
+<!-- Cloud + Rainbow transition -->
+<div style="position:relative;overflow:visible;height:420px;margin-top:-320px;z-index:10;pointer-events:none">
+  <!-- Rainbow arc — half visible above clouds -->
+  <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:130%;height:600px;border-radius:50%;
+    border-top:20px solid rgba(232,80,80,0.42);
+    box-shadow:
+      0 -16px 0 rgba(240,130,60,0.38),
+      0 -32px 0 rgba(240,200,40,0.38),
+      0 -48px 0 rgba(80,190,130,0.35),
+      0 -64px 0 rgba(60,160,220,0.35),
+      0 -80px 0 rgba(140,80,210,0.30);
+  "></div>
+  <!-- Clouds — cover bottom half of rainbow, rise up to surname level -->
+  <svg viewBox="0 0 1440 420" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
+    style="position:absolute;bottom:0;left:0;width:100%;height:420px">
+    <!-- Back haze layer -->
+    <path d="M-20,320 C80,300 160,260 280,250 C380,242 430,220 540,215
+             C640,210 690,230 800,225 C900,220 950,200 1060,196
+             C1160,192 1220,215 1320,220 C1380,223 1420,240 1460,248
+             L1460,420 L-20,420 Z"
+      fill="#c8eaf8" opacity="0.6"/>
+    <!-- Mid cloud layer -->
+    <path d="M-20,360 C60,350 120,310 220,295 C300,282 350,260 460,252
+             C560,245 610,265 720,260 C820,255 870,232 980,228
+             C1080,224 1130,248 1240,252 C1330,256 1400,278 1460,285
+             L1460,420 L-20,420 Z"
+      fill="white" opacity="0.82"/>
+    <!-- Big fluffy bumps — very tall, reaching up to ~y=80 (surname level) -->
+    <ellipse cx="120"  cy="270" rx="130" ry="90"  fill="white" opacity="0.88"/>
+    <ellipse cx="240"  cy="230" rx="150" ry="110" fill="white" opacity="0.95"/>
+    <ellipse cx="370"  cy="200" rx="130" ry="105" fill="white" opacity="0.92"/>
+    <ellipse cx="490"  cy="235" rx="110" ry="85"  fill="white" opacity="0.85"/>
+    <ellipse cx="620"  cy="185" rx="155" ry="115" fill="white" opacity="0.96"/>
+    <ellipse cx="760"  cy="165" rx="140" ry="108" fill="white" opacity="0.93"/>
+    <ellipse cx="890"  cy="195" rx="125" ry="95"  fill="white" opacity="0.88"/>
+    <ellipse cx="1020" cy="170" rx="145" ry="112" fill="white" opacity="0.94"/>
+    <ellipse cx="1160" cy="190" rx="130" ry="100" fill="white" opacity="0.90"/>
+    <ellipse cx="1300" cy="210" rx="120" ry="88"  fill="white" opacity="0.87"/>
+    <ellipse cx="1420" cy="240" rx="100" ry="80"  fill="white" opacity="0.84"/>
+    <!-- Gradient fade base: white fading to transparent -->
+    <defs>
+      <linearGradient id="cloudFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <rect x="-20" y="260" width="1480" height="160" fill="url(#cloudFade)"/>
+  </svg>
+</div>
+<div style="height:80px;background:linear-gradient(to bottom, white 0%, rgba(140,200,235,0.45) 100%);margin-top:-2px;"></div>
 
 <section id="about">
   <div class="about-grid">
@@ -643,38 +722,7 @@
       <div class="section-label">What I Do</div>
       <div class="section-title">Skills &<br><em style="color:var(--rain)">Expertise</em></div>
     </div>
-    <div class="skills-grid">
-      <div class="skill-card reveal" style="--card-accent:linear-gradient(90deg,var(--rain),var(--sky-deep));--bar-color:var(--rain)">
-        <span class="skill-icon">🧪</span><div class="skill-name">Test Planning</div>
-        <div class="skill-desc">Designing comprehensive test strategies, test cases, and acceptance criteria.</div>
-        <div class="skill-bar"><div class="skill-fill" data-width="95"></div></div>
-      </div>
-      <div class="skill-card reveal" style="--card-accent:linear-gradient(90deg,var(--leaf),var(--leaf-dark));--bar-color:var(--leaf)">
-        <span class="skill-icon">🤖</span><div class="skill-name">Test Automation</div>
-        <div class="skill-desc">Selenium, Cypress, Playwright — building robust automated regression suites.</div>
-        <div class="skill-bar"><div class="skill-fill" data-width="88"></div></div>
-      </div>
-      <div class="skill-card reveal" style="--card-accent:linear-gradient(90deg,var(--gold),var(--rainbow-2));--bar-color:var(--gold)">
-        <span class="skill-icon">🔬</span><div class="skill-name">Performance Testing</div>
-        <div class="skill-desc">JMeter, k6 — load testing, stress testing, bottleneck identification.</div>
-        <div class="skill-bar"><div class="skill-fill" data-width="80"></div></div>
-      </div>
-      <div class="skill-card reveal" style="--card-accent:linear-gradient(90deg,var(--rainbow-6),var(--rain));--bar-color:var(--rainbow-6)">
-        <span class="skill-icon">🛡️</span><div class="skill-name">API Testing</div>
-        <div class="skill-desc">Postman, REST Assured — validating API contracts, edge cases, and security.</div>
-        <div class="skill-bar"><div class="skill-fill" data-width="92"></div></div>
-      </div>
-      <div class="skill-card reveal" style="--card-accent:linear-gradient(90deg,var(--rainbow-1),var(--gold));--bar-color:var(--rainbow-1)">
-        <span class="skill-icon">📊</span><div class="skill-name">Bug Tracking</div>
-        <div class="skill-desc">Jira, TestRail — clear defect documentation and metrics dashboards.</div>
-        <div class="skill-bar"><div class="skill-fill" data-width="90"></div></div>
-      </div>
-      <div class="skill-card reveal" style="--card-accent:linear-gradient(90deg,var(--sky-deep),var(--leaf));--bar-color:var(--sky-deep)">
-        <span class="skill-icon">⚡</span><div class="skill-name">CI/CD Integration</div>
-        <div class="skill-desc">GitHub Actions, Jenkins — integrating QA into delivery pipelines.</div>
-        <div class="skill-bar"><div class="skill-fill" data-width="75"></div></div>
-      </div>
-    </div>
+    <div class="skills-grid" id="skillsGrid"></div>
   </div>
 </section>
 
@@ -711,6 +759,49 @@
           <a href="#" class="port-link">View Details →</a>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+
+<div class="rainbow-bar"></div>
+
+<section id="features">
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="reveal">
+      <div class="section-label">Side Projects & Tools</div>
+      <div class="section-title">Things I've<br><em style="color:var(--gold)">Built</em></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px">
+
+      <div class="reveal" style="background:rgba(220,240,255,0.92);border:1px solid rgba(255,255,255,0.7);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px var(--shadow);transition:all .35s">
+        <div style="padding:28px 28px 0">
+          <div style="font-size:2.5rem;margin-bottom:14px">📝</div>
+          <div style="font-size:0.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rain);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+            <span style="background:rgba(30,114,200,.1);border:1px solid rgba(30,114,200,.2);padding:3px 10px;border-radius:100px">TOEIC · English</span>
+          </div>
+          <div style="font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:10px">TOEIC Mock Exam</div>
+          <div style="font-size:0.85rem;color:var(--text-mid);line-height:1.65;font-weight:300;margin-bottom:20px">
+            ข้อสอบ TOEIC จำลอง 46 ข้อ ครบทุก Part — Listening, Reading, Grammar พร้อมประเมินคะแนน และคำแนะนำส่วนตัว
+          </div>
+        </div>
+        <div style="padding:0 28px 24px;display:flex;gap:10px;flex-wrap:wrap">
+          <span style="font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(30,114,200,.1);color:var(--rain)">46 Questions</span>
+          <span style="font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(30,114,200,.1);color:var(--rain)">AI Scoring</span>
+          <span style="font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(30,114,200,.1);color:var(--rain)">Text-to-Speech</span>
+        </div>
+        <div style="border-top:1px solid var(--border);padding:16px 28px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:.78rem;color:var(--muted);font-weight:300">Try it yourself →</span>
+          <a href="toeic.html" style="background:linear-gradient(135deg,var(--rain),var(--sky-deep));color:white;font-size:.78rem;font-weight:600;padding:9px 20px;border-radius:100px;text-decoration:none;box-shadow:0 4px 14px rgba(30,114,200,.3);transition:all .2s">Open App →</a>
+        </div>
+      </div>
+
+      <div class="reveal" style="background:rgba(220,240,255,0.7);border:2px dashed rgba(74,154,196,.3);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:220px">
+        <div style="font-size:2rem;margin-bottom:12px;opacity:.5">＋</div>
+        <div style="font-size:.88rem;font-weight:600;color:var(--text-mid);margin-bottom:6px">More coming soon</div>
+        <div style="font-size:.78rem;color:var(--muted);font-weight:300;line-height:1.6">Next project is in the works...<br>Stay tuned! ☁️</div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -837,6 +928,45 @@ async function loadConfig() {
   if (cfg.name) document.getElementById('footerName').textContent = cfg.name;
   if (cfg.avatar_url) {
     document.getElementById('avatarPlaceholder').innerHTML = `<img src="${cfg.avatar_url}" alt="${cfg.name}" style="width:100%;height:100%;object-fit:cover">`;
+  }
+
+  // Skills
+  const colors = [
+    'linear-gradient(90deg,var(--rain),var(--sky-deep))',
+    'linear-gradient(90deg,var(--leaf),var(--leaf-dark))',
+    'linear-gradient(90deg,var(--gold),var(--rainbow-2))',
+    'linear-gradient(90deg,var(--rainbow-6),var(--rain))',
+    'linear-gradient(90deg,var(--rainbow-1),var(--gold))',
+    'linear-gradient(90deg,var(--sky-deep),var(--leaf))',
+  ];
+  const barColors = [
+    'var(--rain)','var(--leaf)','var(--gold)',
+    'var(--rainbow-6)','var(--rainbow-1)','var(--sky-deep)'
+  ];
+  let skills = [];
+  try { skills = JSON.parse(cfg.skills || '[]'); } catch(e) {}
+  if (skills.length === 0) skills = [
+    {icon:'🧪', name:'Test Planning', desc:'Designing comprehensive test strategies and acceptance criteria.', level:95},
+    {icon:'🤖', name:'Test Automation', desc:'Selenium, Cypress, Playwright — automated regression suites.', level:88},
+    {icon:'🔬', name:'Performance Testing', desc:'JMeter, k6 — load testing and bottleneck identification.', level:80},
+    {icon:'🛡️', name:'API Testing', desc:'Postman, REST Assured — validating API contracts and security.', level:92},
+    {icon:'📊', name:'Bug Tracking', desc:'Jira, TestRail — defect documentation and metrics dashboards.', level:90},
+    {icon:'⚡', name:'CI/CD Integration', desc:'GitHub Actions, Jenkins — integrating QA into delivery pipelines.', level:75},
+  ];
+  const grid = document.getElementById('skillsGrid');
+  if (grid) {
+    grid.innerHTML = skills.map((s, i) => {
+      const c = colors[i % colors.length];
+      const b = barColors[i % barColors.length];
+      return `<div class="skill-card reveal" style="--card-accent:${c};--bar-color:${b}">
+        <span class="skill-icon">${s.icon || '⚡'}</span>
+        <div class="skill-name">${s.name}</div>
+        <div class="skill-desc">${s.desc}</div>
+        <div class="skill-bar"><div class="skill-fill" data-width="${s.level || 80}"></div></div>
+      </div>`;
+    }).join('');
+    // Re-observe new cards for reveal + bar animation
+    grid.querySelectorAll('.skill-card').forEach(el => obs.observe(el));
   }
 }
 
