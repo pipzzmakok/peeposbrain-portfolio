@@ -400,6 +400,7 @@ select.form-input option{background:var(--surface2)}
         <div>
           <div class="section-header">
             <div class="section-title">Income</div>
+            <button class="btn btn-ghost btn-sm" onclick="prefillFromLastMonth('income')" title="Copy income from last month">↩ Last Month</button>
             <button class="btn btn-primary btn-sm" onclick="openModal('income')">+ Add</button>
           </div>
           <div class="table-wrap" id="incomeTable">
@@ -409,6 +410,7 @@ select.form-input option{background:var(--surface2)}
         <div>
           <div class="section-header">
             <div class="section-title">Fixed Expenses</div>
+            <button class="btn btn-ghost btn-sm" onclick="prefillFromLastMonth('fixed')" title="Copy fixed expenses from last month">↩ Last Month</button>
             <button class="btn btn-primary btn-sm" onclick="openModal('fixed')">+ Add</button>
           </div>
           <div class="table-wrap" id="fixedTable">
@@ -573,6 +575,35 @@ function populateSelects(){
   allCategories.forEach(c=>{ const o=document.createElement('option'); o.value=c.category_name; o.textContent=c.category_name+' ('+c.allocation_type_default+')'; allocCat.appendChild(o); });
 }
 
+
+// ── CYCLE HELPERS ──
+function computeDefaultCycle(m) {
+  // Cycle: 26th of current month → 25th of next month
+  const y = m.getFullYear(), mo = m.getMonth();
+  const start = new Date(y, mo, 26);
+  const end   = new Date(y, mo+1, 25);
+  let weekday=0, weekend=0;
+  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    const day = d.getDay();
+    if(day===0||day===6) weekend++; else weekday++;
+  }
+  return {
+    cycle_start: fmt(start),
+    cycle_end:   fmt(end),
+    total_days:  weekday+weekend,
+    weekday_count: weekday,
+    weekend_count: weekend,
+    is_default: true
+  };
+}
+
+function getCycleForMonth(m, cfgRow) {
+  if(cfgRow && cfgRow.cycle_start && cfgRow.weekday_count) {
+    return { ...cfgRow, is_default: false };
+  }
+  return computeDefaultCycle(m);
+}
+
 // ── DASHBOARD ──
 async function loadDashboard(){
   const mStart = fmt(monthStart(currentMonth));
@@ -603,9 +634,10 @@ async function loadDashboard(){
   const flexible = income - fixedTotal - plannedDebt;
   const dailyFund = flexible - allocTotal;
 
-  // settings
-  const cfg = (summary.data||[])[0]||{};
-  const weekdayAllow = cfg.weekday_count&&dailyFund>0 ? dailyFund/cfg.total_days : 0;
+  // cycle — use override if exists, else auto 26→25
+  const cfgRow = (summary.data||[])[0]||null;
+  const cycle = getCycleForMonth(currentMonth, cfgRow);
+  const weekdayAllow = cycle.total_days&&dailyFund>0 ? dailyFund/cycle.total_days : 0;
 
   document.getElementById('dashCards').innerHTML = `
     <div class="card" style="--card-accent:var(--green)">
@@ -633,6 +665,26 @@ async function loadDashboard(){
       <div class="card-label">Daily Fund</div>
       <div class="card-value yellow">${fmtBaht(dailyFund)}</div>
       <div class="card-sub">~${fmtBaht(weekdayAllow)}/day</div>
+    </div>
+    <div class="card" style="--card-accent:var(--text3)">
+      <div class="card-label">📅 Cycle Days ${cycle.is_default?'<span style="font-size:.55rem;color:var(--text3);font-family:Space Mono,monospace">(auto)</span>':'<span style="font-size:.55rem;color:var(--blue);font-family:Space Mono,monospace">(override)</span>'}</div>
+      <div style="display:flex;gap:16px;align-items:baseline;margin-top:4px">
+        <div>
+          <div class="card-value" style="font-size:1.4rem">${cycle.total_days}</div>
+          <div class="card-sub">Total days</div>
+        </div>
+        <div style="color:var(--border2);font-size:1.2rem">·</div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;font-family:Space Mono,monospace;color:var(--blue)">${cycle.weekday_count}</div>
+          <div class="card-sub">Weekday</div>
+        </div>
+        <div style="color:var(--border2);font-size:1.2rem">·</div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;font-family:Space Mono,monospace;color:var(--purple)">${cycle.weekend_count}</div>
+          <div class="card-sub">Weekend</div>
+        </div>
+      </div>
+      <div class="card-sub" style="margin-top:8px;font-family:Space Mono,monospace;font-size:.62rem">${cycle.cycle_start} → ${cycle.cycle_end}</div>
     </div>
   `;
 
@@ -957,6 +1009,38 @@ async function deleteAlloc(id){
 }
 
 // ── INCOME & FIXED ──
+async function prefillFromLastMonth(type){
+  const lastMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()-1, 1);
+  const thisMonth = fmt(monthStart(currentMonth));
+  const lastStart = fmt(lastMonth);
+
+  if(type==='income'){
+    // Check if this month already has income
+    const {data:existing} = await db.from('monthly_income').select('id').eq('month',thisMonth);
+    if(existing&&existing.length>0){
+      if(!confirm(`เดือนนี้มีข้อมูล Income อยู่แล้ว ${existing.length} รายการ\nต้องการ Copy เพิ่มเติมจากเดือนที่แล้วอีกหรือไม่?`)) return;
+    }
+    const {data,error} = await db.from('monthly_income').select('income_type,amount,note').eq('month',lastStart);
+    if(error||!data||!data.length){ showToast('ไม่มีข้อมูล Income เดือนที่แล้ว','error'); return; }
+    const rows = data.map(r=>({month:thisMonth,income_type:r.income_type,amount:r.amount,note:r.note}));
+    const {error:e2} = await db.from('monthly_income').insert(rows);
+    if(e2){ showToast('Error: '+e2.message,'error'); return; }
+    showToast(`✓ Copied ${rows.length} income item(s) from last month`,'success');
+  } else {
+    const {data:existing} = await db.from('monthly_fixed').select('id').eq('month',thisMonth);
+    if(existing&&existing.length>0){
+      if(!confirm(`เดือนนี้มีข้อมูล Fixed Expenses อยู่แล้ว ${existing.length} รายการ\nต้องการ Copy เพิ่มเติมจากเดือนที่แล้วอีกหรือไม่?`)) return;
+    }
+    const {data,error} = await db.from('monthly_fixed').select('fixed_type,amount,is_recurring,note').eq('month',lastStart);
+    if(error||!data||!data.length){ showToast('ไม่มีข้อมูล Fixed Expenses เดือนที่แล้ว','error'); return; }
+    const rows = data.map(r=>({month:thisMonth,fixed_type:r.fixed_type,amount:r.amount,is_recurring:r.is_recurring,note:r.note}));
+    const {error:e2} = await db.from('monthly_fixed').insert(rows);
+    if(e2){ showToast('Error: '+e2.message,'error'); return; }
+    showToast(`✓ Copied ${rows.length} fixed expense(s) from last month`,'success');
+  }
+  loadIncome();
+}
+
 async function loadIncome(){
   const mStart = fmt(monthStart(currentMonth));
   const [inc,fix] = await Promise.all([
@@ -1033,28 +1117,37 @@ async function loadSettings(){
       </div>
     </div>`).join('');
 
-  // cycle settings
-  const c=(cfg.data||[])[0]||{};
+  // cycle settings — show auto-computed values as placeholder
+  const cfgData=(cfg.data||[])[0]||null;
+  const autoCyc = computeDefaultCycle(currentMonth);
+  const activeCyc = getCycleForMonth(currentMonth, cfgData);
   document.getElementById('cycleSettings').innerHTML=`
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:.78rem;color:var(--text3)">
+      ${activeCyc.is_default
+        ? `⚙️ ใช้ค่า <strong style="color:var(--text2)">Auto</strong> — Cycle 26/${currentMonth.getMonth()+1} → 25/${currentMonth.getMonth()+2} · <span style="color:var(--blue)">${autoCyc.weekday_count} weekdays</span> · <span style="color:var(--purple)">${autoCyc.weekend_count} weekends</span>`
+        : `🔒 ใช้ค่า <strong style="color:var(--blue)">Override</strong> — ${activeCyc.cycle_start} → ${activeCyc.cycle_end} · ${activeCyc.weekday_count} weekdays · ${activeCyc.weekend_count} weekends`
+      }
+    </div>
     <div class="form-grid">
       <div class="form-group">
-        <label class="form-label">Cycle Start</label>
-        <input type="date" id="cyc_start" class="form-input" value="${c.cycle_start||''}">
+        <label class="form-label">Override Start (ปล่อยว่าง = Auto)</label>
+        <input type="date" id="cyc_start" class="form-input" value="${cfgData?.cycle_start||''}" placeholder="${autoCyc.cycle_start}">
       </div>
       <div class="form-group">
-        <label class="form-label">Cycle End</label>
-        <input type="date" id="cyc_end" class="form-input" value="${c.cycle_end||''}">
+        <label class="form-label">Override End</label>
+        <input type="date" id="cyc_end" class="form-input" value="${cfgData?.cycle_end||''}" placeholder="${autoCyc.cycle_end}">
       </div>
       <div class="form-group">
-        <label class="form-label">Weekday Count</label>
-        <input type="number" id="cyc_weekday" class="form-input" value="${c.weekday_count||''}" placeholder="e.g. 23">
+        <label class="form-label">Override Weekday Count (Auto: ${autoCyc.weekday_count})</label>
+        <input type="number" id="cyc_weekday" class="form-input" value="${cfgData?.weekday_count||''}" placeholder="${autoCyc.weekday_count}">
       </div>
       <div class="form-group">
-        <label class="form-label">Weekend Count</label>
-        <input type="number" id="cyc_weekend" class="form-input" value="${c.weekend_count||''}" placeholder="e.g. 8">
+        <label class="form-label">Override Weekend Count (Auto: ${autoCyc.weekend_count})</label>
+        <input type="number" id="cyc_weekend" class="form-input" value="${cfgData?.weekend_count||''}" placeholder="${autoCyc.weekend_count}">
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveCycle()">Save Cycle</button>
+        <button class="btn btn-ghost" onclick="clearCycleOverride()">Clear Override</button>
+        <button class="btn btn-primary" onclick="saveCycle()">Save Override</button>
       </div>
     </div>`;
 }
@@ -1069,7 +1162,15 @@ async function saveCycle(){
   const payload={month,cycle_start:start||null,cycle_end:end||null,total_days:total,weekday_count:weekday,weekend_count:weekend};
   const {error}=await db.from('monthly_settings').upsert(payload,{onConflict:'month'});
   if(error){ showToast('Error: '+error.message,'error'); return; }
-  showToast('✓ Cycle settings saved','success');
+  showToast('✓ Cycle override saved','success');
+  loadSettings();
+}
+
+async function clearCycleOverride(){
+  const month=fmt(monthStart(currentMonth));
+  await db.from('monthly_settings').delete().eq('month',month);
+  showToast('↩ Override cleared — using auto cycle','info');
+  loadSettings();
 }
 
 // ── MODALS ──
