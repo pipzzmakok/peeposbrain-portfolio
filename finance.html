@@ -191,13 +191,27 @@ select.form-input option{background:var(--surface2)}
 .billing-warn-btn.selected,.billing-warn-btn:hover{background:var(--yellow);color:#0e1117}
 
 /* ── RESPONSIVE ── */
+
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 8px}
+.bottom-nav-items{display:flex;justify-content:space-around;align-items:stretch}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border:none;background:none;color:var(--text3);font-size:.55rem;font-family:'Space Mono',monospace;cursor:pointer;flex:1;transition:color .2s;position:relative;letter-spacing:.02em}
+.bottom-nav-item .bnav-icon{font-size:1.3rem;line-height:1}
+.bottom-nav-item.active{color:var(--blue)}
+.bottom-nav-item .bnav-badge{position:absolute;top:2px;right:calc(50% - 20px);background:var(--red);color:white;font-size:.5rem;padding:1px 5px;border-radius:100px;min-width:14px;text-align:center}
 @media(max-width:768px){
-  .app{grid-template-columns:1fr;grid-template-rows:56px auto 1fr}
-  .sidebar{display:none}
-  .main{padding:16px}
+  .app{grid-template-columns:1fr;grid-template-rows:56px 1fr;padding-bottom:70px}
+  .sidebar{display:none!important}
+  .bottom-nav{display:block}
+  .main{padding:16px 16px 24px}
   .cards-grid{grid-template-columns:1fr 1fr}
   .form-grid{grid-template-columns:1fr}
   .transfer-grid{grid-template-columns:1fr}
+  .toast{bottom:80px;right:12px;left:12px;max-width:100%}
+  .dash-bottom-grid{grid-template-columns:1fr!important}
+  .income-grid{grid-template-columns:1fr!important}
+  .settings-row-actions{flex-wrap:wrap;gap:4px!important}
 }
 </style>
 </head>
@@ -267,7 +281,7 @@ select.form-input option{background:var(--surface2)}
           <div class="loading"><div class="spinner"></div></div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="dash-bottom-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div>
           <div class="section-header"><div class="section-title">Debt by Card</div></div>
           <div class="table-wrap" id="debtByCard"></div>
@@ -396,7 +410,7 @@ select.form-input option{background:var(--surface2)}
 
     <!-- INCOME & FIXED -->
     <div id="panel-income" class="panel">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="income-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
         <div>
           <div class="section-header">
             <div class="section-title">Income</div>
@@ -533,6 +547,7 @@ function showPanel(id, btn){
   document.getElementById('panel-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   currentPanel = id;
+  syncMobileNav(id);
   loadCurrentPanel();
 }
 function loadCurrentPanel(){
@@ -834,6 +849,9 @@ async function loadDebt(){
     if(!badge){ const b=document.createElement('span'); b.className='nav-badge'; b.id='debtBadge'; document.getElementById('nav-debt').appendChild(b); }
     document.querySelector('#nav-debt .nav-badge').textContent=unpaidCount;
   } else if(badge) badge.remove();
+  // mobile badge
+  const mbadge = document.getElementById('bnavBadge');
+  if(mbadge){ mbadge.textContent=unpaidCount; mbadge.style.display=unpaidCount>0?'block':'none'; }
 }
 
 function renderDebtTable(){
@@ -1310,6 +1328,37 @@ function copyText(text){
   navigator.clipboard.writeText(text).then(()=>showToast('Copied: '+text,'info'));
 }
 
+
+// ── MOBILE NAV ──
+function showPanelMobile(id, btn) {
+  showPanel(id, null); // reuse existing logic
+  // sync sidebar active
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  // sync bottom nav
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  const bnavBtn = document.getElementById('bnav-' + id);
+  if(bnavBtn) bnavBtn.classList.add('active');
+}
+
+function toggleMoreMenu() {
+  const m = document.getElementById('moreMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  const menu = document.getElementById('moreMenu');
+  if(menu && menu.style.display !== 'none') {
+    if(!menu.contains(e.target) && !e.target.closest('#bnav-more')) {
+      menu.style.display = 'none';
+    }
+  }
+});
+
+function syncMobileNav(id) {
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('bnav-' + id);
+  if(btn) btn.classList.add('active');
+}
+
 // ── INIT ──
 async function init(){
   updateMonthLabel();
@@ -1320,5 +1369,38 @@ async function init(){
 
 init();
 </script>
+
+<!-- BOTTOM NAV (mobile only) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-items">
+    <button class="bottom-nav-item active" id="bnav-dashboard" onclick="showPanelMobile('dashboard',this)">
+      <span class="bnav-icon">📊</span>Dashboard
+    </button>
+    <button class="bottom-nav-item" id="bnav-transfer" onclick="showPanelMobile('transfer',this)">
+      <span class="bnav-icon">💸</span>Transfer
+    </button>
+    <button class="bottom-nav-item" id="bnav-debt" onclick="showPanelMobile('debt',this)">
+      <span class="bnav-icon">💳</span>Debt
+      <span class="bnav-badge" id="bnavBadge" style="display:none"></span>
+    </button>
+    <button class="bottom-nav-item" id="bnav-allocations" onclick="showPanelMobile('allocations',this)">
+      <span class="bnav-icon">📋</span>Alloc
+    </button>
+    <button class="bottom-nav-item" id="bnav-more" onclick="toggleMoreMenu()">
+      <span class="bnav-icon">⋯</span>More
+    </button>
+  </div>
+</nav>
+
+<!-- MORE MENU (mobile) -->
+<div id="moreMenu" style="display:none;position:fixed;bottom:64px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:99;padding:8px 0">
+  <button class="nav-item" style="padding:14px 24px;font-size:.88rem" onclick="showPanelMobile('income',null);toggleMoreMenu()">
+    <span class="icon">💰</span> Income & Fixed
+  </button>
+  <button class="nav-item" style="padding:14px 24px;font-size:.88rem" onclick="showPanelMobile('settings',null);toggleMoreMenu()">
+    <span class="icon">⚙️</span> Settings
+  </button>
+</div>
+
 </body>
 </html>
