@@ -193,6 +193,18 @@ select.form-input option{background:var(--surface2)}
 /* ── RESPONSIVE ── */
 
 
+
+/* ── DEBT TABS ── */
+.debt-tabs{display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;width:fit-content}
+.debt-tab{font-family:'Space Mono',monospace;font-size:.72rem;padding:7px 18px;border-radius:6px;border:none;background:none;color:var(--text3);cursor:pointer;transition:all .2s;letter-spacing:.03em}
+.debt-tab.active{background:var(--blue);color:#0e1117;font-weight:700}
+.instalment-preview{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;display:none}
+.instalment-preview.show{display:block}
+.instalment-preview-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;margin-bottom:6px}
+.instalment-preview-row:last-child{margin-bottom:0;padding-top:8px;border-top:1px solid var(--border);font-weight:700}
+.instalment-preview-label{color:var(--text3);font-family:'Space Mono',monospace;font-size:.7rem}
+.instalment-preview-val{font-family:'Space Mono',monospace;color:var(--text)}
+
 /* ── BOTTOM NAV (mobile) ── */
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 8px}
 .bottom-nav-items{display:flex;justify-content:space-around;align-items:stretch}
@@ -307,8 +319,14 @@ select.form-input option{background:var(--surface2)}
 
     <!-- DEBT LOG -->
     <div id="panel-debt" class="panel">
-      <!-- Quick Add -->
-      <div class="quick-add">
+      <!-- Debt Tabs -->
+      <div class="debt-tabs">
+        <button class="debt-tab active" onclick="switchDebtTab('txn',this)">⚡ Transaction</button>
+        <button class="debt-tab" onclick="switchDebtTab('inst',this)">📅 Installment</button>
+      </div>
+
+      <!-- Quick Add Transaction -->
+      <div class="quick-add" id="debtFormTxn">
         <div class="quick-add-title">⚡ Quick Add Transaction</div>
         <div id="billingWarn"></div>
         <div class="form-grid">
@@ -340,6 +358,60 @@ select.form-input option{background:var(--surface2)}
             <button class="btn btn-ghost" onclick="clearTxnForm()">Clear</button>
             <button class="btn btn-primary" onclick="addTransaction()">Add Transaction</button>
           </div>
+        </div>
+      </div>
+
+      </div><!-- /debtFormTxn -->
+
+      <!-- Installment Form -->
+      <div class="quick-add" id="debtFormInst" style="display:none">
+        <div class="quick-add-title">📅 Add Installment</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Start Date (วันที่ซื้อ)</label>
+            <input type="date" id="inst_date" class="form-input" onchange="calcInstalment()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Card</label>
+            <select id="inst_source" class="form-input" onchange="calcInstalment()">
+              <option value="">Select card...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Amount (฿)</label>
+            <input type="number" id="inst_total" class="form-input" placeholder="e.g. 18000" step="0.01" oninput="calcInstalment()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">จำนวนเดือน</label>
+            <input type="number" id="inst_months" class="form-input" placeholder="e.g. 6" min="2" max="60" oninput="calcInstalment()">
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Description</label>
+            <input type="text" id="inst_desc" class="form-input" placeholder="e.g. MacBook Pro installment, เครื่องซักผ้า Samsung">
+          </div>
+        </div>
+        <!-- Preview -->
+        <div class="instalment-preview" id="instPreview">
+          <div class="instalment-preview-row">
+            <span class="instalment-preview-label">ยอดต่อเดือน</span>
+            <span class="instalment-preview-val" id="prev_monthly">—</span>
+          </div>
+          <div class="instalment-preview-row">
+            <span class="instalment-preview-label">จำนวน transactions</span>
+            <span class="instalment-preview-val" id="prev_count">—</span>
+          </div>
+          <div class="instalment-preview-row">
+            <span class="instalment-preview-label">ช่วงเวลา</span>
+            <span class="instalment-preview-val" id="prev_range">—</span>
+          </div>
+          <div class="instalment-preview-row">
+            <span class="instalment-preview-label">ยอดรวมทั้งหมด</span>
+            <span class="instalment-preview-val" id="prev_total">—</span>
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:12px">
+          <button class="btn btn-ghost" onclick="clearInstForm()">Clear</button>
+          <button class="btn btn-primary" onclick="addInstalment()">Add All Instalments</button>
         </div>
       </div>
 
@@ -725,7 +797,9 @@ async function loadDashboard(){
   const catRows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
     <tr><td>${k}</td><td class="amount-positive">${fmtBaht(v)}</td></tr>
   `).join('');
-  document.getElementById('allocByCat').innerHTML = `<table><thead><tr><th>Category</th><th>Amount</th></tr></thead><tbody>${catRows||'<tr><td colspan="2" style="text-align:center;color:var(--text3);padding:20px">No allocations</td></tr>'}</tbody></table>`;
+  // Store for FE sorting
+  window._dashByCat = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  renderDashAllocTable('amount','desc');
 
   // trend chart
   await loadTrend(debt.data||[]);
@@ -761,6 +835,30 @@ async function loadTrend(allDebt){
       <div class="chart-label">${d.label}</div>
     </div>
   `).join('');
+}
+
+
+// ── DASHBOARD ALLOC SORT ──
+let _dashAllocSort = {col:'amount', dir:'desc'};
+function renderDashAllocTable(col, dir){
+  if(col) _dashAllocSort = {col, dir};
+  const {col:c, dir:d} = _dashAllocSort;
+  let data = [...(window._dashByCat||[])];
+  data.sort((a,b)=>{
+    if(c==='name')    return d==='asc' ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]);
+    if(c==='amount')  return d==='asc' ? a[1]-b[1] : b[1]-a[1];
+    return 0;
+  });
+  const arrow = col => _dashAllocSort.col===col ? (_dashAllocSort.dir==='asc'?'↑':'↓') : '↕';
+  const nextDir = col => _dashAllocSort.col===col ? (_dashAllocSort.dir==='asc'?'desc':'asc') : 'desc';
+  const rows = data.map(([k,v])=>`<tr><td>${k}</td><td class="amount-positive">${fmtBaht(v)}</td></tr>`).join('');
+  document.getElementById('allocByCat').innerHTML = `<table>
+    <thead><tr>
+      <th style="cursor:pointer;user-select:none" onclick="renderDashAllocTable('name','${nextDir('name')}')">Category ${arrow('name')}</th>
+      <th style="cursor:pointer;user-select:none" onclick="renderDashAllocTable('amount','${nextDir('amount')}')">Amount ${arrow('amount')}</th>
+    </tr></thead>
+    <tbody>${rows||'<tr><td colspan="2" style="text-align:center;color:var(--text3);padding:20px">No allocations</td></tr>'}</tbody>
+  </table>`;
 }
 
 // ── TRANSFER SUMMARY ──
@@ -970,38 +1068,108 @@ async function deleteTransaction(id){
 }
 
 // ── ALLOCATIONS ──
+let _allocData = [];
+let _allocSort = {col:'category', dir:'asc'};
+
 async function loadAllocations(){
   const mStart = fmt(monthStart(currentMonth));
-  const {data} = await db.from('monthly_allocations').select('*').eq('month',mStart).order('account_name');
+  const {data} = await db.from('monthly_allocations').select('*').eq('month',mStart);
+  _allocData = data||[];
+  renderAllocTable();
+}
 
-  if(!data||!data.length){
+function renderAllocTable(col, dir){
+  if(col) _allocSort = {col, dir};
+  const {col:c, dir:d} = _allocSort;
+
+  if(!_allocData.length){
     document.getElementById('allocTable').innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No allocations this month</div></div>';
     return;
   }
 
-  // group by account
+  // Group by account, sort within each group
   const byAcc = {};
-  data.forEach(r=>{ if(!byAcc[r.account_name]) byAcc[r.account_name]=[]; byAcc[r.account_name].push(r); });
+  _allocData.forEach(r=>{ if(!byAcc[r.account_name]) byAcc[r.account_name]=[]; byAcc[r.account_name].push(r); });
 
-  let html='';
-  for(const [acc,rows] of Object.entries(byAcc)){
-    const total=rows.reduce((s,r)=>s+toNum(r.amount),0);
-    html+=`<div class="alloc-account-header">${acc}</div>`;
-    html+=rows.map(r=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-size:.82rem;color:var(--text)">${r.category_name}</div>
-          <div style="font-size:.68rem;color:var(--text3);font-family:'Space Mono',monospace">${r.allocation_type} ${r.note?'· '+r.note:''}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <span class="amount-positive" style="font-family:'Space Mono',monospace">${fmtBaht(r.amount)}</span>
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="deleteAlloc('${r.id}')">✕</button>
-        </div>
-      </div>
-    `).join('');
-    html+=`<div class="alloc-total"><span>Total ${acc}</span><span>${fmtBaht(total)}</span></div>`;
+  const arrow = col => _allocSort.col===col ? (_allocSort.dir==='asc'?'↑':'↓') : '↕';
+  const nextDir = col => _allocSort.col===col ? (_allocSort.dir==='asc'?'desc':'asc') : 'asc';
+
+  let html = `<table>
+    <thead><tr>
+      <th style="cursor:pointer;user-select:none" onclick="renderAllocTable('category','${nextDir('category')}')">Category ${arrow('category')}</th>
+      <th style="font-size:.6rem;color:var(--text3)">Type</th>
+      <th style="cursor:pointer;user-select:none" onclick="renderAllocTable('amount','${nextDir('amount')}')">Amount ${arrow('amount')}</th>
+      <th></th>
+    </tr></thead>
+    <tbody>`;
+
+  for(const [acc, rows] of Object.entries(byAcc)){
+    // Sort within account group
+    const sorted = [...rows].sort((a,b)=>{
+      if(c==='category') return d==='asc' ? a.category_name.localeCompare(b.category_name) : b.category_name.localeCompare(a.category_name);
+      if(c==='amount')   return d==='asc' ? a.amount-b.amount : b.amount-a.amount;
+      return 0;
+    });
+    const total = rows.reduce((s,r)=>s+toNum(r.amount),0);
+    html += `<tr><td colspan="4" style="padding:0"><div class="alloc-account-header">${acc}</div></td></tr>`;
+    html += sorted.map(r=>`<tr>
+      <td>
+        <div style="font-size:.82rem;color:var(--text)">${r.category_name}</div>
+        ${r.note?`<div style="font-size:.68rem;color:var(--text3);font-family:'Space Mono',monospace">${r.note}</div>`:''}
+      </td>
+      <td><span style="font-size:.68rem;color:var(--text3);font-family:'Space Mono',monospace">${r.allocation_type}</span></td>
+      <td class="amount-positive">${fmtBaht(r.amount)}</td>
+      <td style="display:flex;gap:6px;justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="editAlloc('${r.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="deleteAlloc('${r.id}')">✕</button>
+      </td>
+    </tr>`).join('');
+    html += `<tr><td colspan="4"><div class="alloc-total"><span>Total ${acc}</span><span>${fmtBaht(total)}</span></div></td></tr>`;
   }
-  document.getElementById('allocTable').innerHTML=html;
+
+  html += '</tbody></table>';
+  document.getElementById('allocTable').innerHTML = html;
+}
+
+async function editAlloc(id){
+  const r = _allocData.find(x=>x.id===id);
+  if(!r) return;
+  // Open modal pre-filled
+  document.getElementById('modalTitle').textContent = 'Edit Allocation';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-group"><label class="form-label">Account</label>
+      <select id="m_acc" class="form-input">${allAccounts.map(a=>`<option ${a.account_name===r.account_name?'selected':''}>${a.account_name}</option>`).join('')}</select>
+    </div>
+    <div class="form-group" style="margin-top:12px"><label class="form-label">Category</label>
+      <select id="m_cat" class="form-input">${allCategories.map(c=>`<option ${c.category_name===r.category_name?'selected':''}>${c.category_name}</option>`).join('')}</select>
+    </div>
+    <div class="form-group" style="margin-top:12px"><label class="form-label">Type</label>
+      <select id="m_type" class="form-input">
+        <option ${r.allocation_type==='Expenses'?'selected':''}>Expenses</option>
+        <option ${r.allocation_type==='Saving'?'selected':''}>Saving</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-top:12px"><label class="form-label">Amount (฿)</label>
+      <input type="number" id="m_amount" class="form-input" value="${r.amount}" placeholder="e.g. 2000">
+    </div>
+    <div class="form-group" style="margin-top:12px"><label class="form-label">Note</label>
+      <input id="m_note" class="form-input" value="${r.note||''}" placeholder="e.g. Water + electricity">
+    </div>`;
+  document.getElementById('modalSaveBtn').onclick = async () => {
+    const payload = {
+      account_name: document.getElementById('m_acc').value,
+      category_name: document.getElementById('m_cat').value,
+      allocation_type: document.getElementById('m_type').value,
+      amount: parseFloat(document.getElementById('m_amount').value)||0,
+      note: document.getElementById('m_note').value||null
+    };
+    const {error} = await db.from('monthly_allocations').update(payload).eq('id',id);
+    if(error){ showToast('Error: '+error.message,'error'); return; }
+    showToast('✓ Allocation updated','success');
+    document.getElementById('modalOverlay').classList.remove('show');
+    loadAllocations();
+  };
+  document.getElementById('modalOverlay').classList.add('show');
 }
 
 async function addAllocation(){
@@ -1328,6 +1496,103 @@ function copyText(text){
   navigator.clipboard.writeText(text).then(()=>showToast('Copied: '+text,'info'));
 }
 
+
+
+// ── INSTALLMENT ──
+function switchDebtTab(tab, btn){
+  document.querySelectorAll('.debt-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('debtFormTxn').style.display = tab==='txn' ? '' : 'none';
+  document.getElementById('debtFormInst').style.display = tab==='inst' ? '' : 'none';
+  if(tab==='inst') {
+    // Sync card options
+    const src = document.getElementById('inst_source');
+    src.innerHTML = '<option value="">Select card...</option>';
+    allSources.forEach(s=>{ const o=document.createElement('option'); o.value=s.source_name; o.textContent=s.source_name; src.appendChild(o); });
+    document.getElementById('inst_date').value = fmt(new Date());
+    calcInstalment();
+  }
+}
+
+function calcInstalment(){
+  const total = parseFloat(document.getElementById('inst_total').value)||0;
+  const months = parseInt(document.getElementById('inst_months').value)||0;
+  const startDate = document.getElementById('inst_date').value;
+  const source = document.getElementById('inst_source').value;
+  const preview = document.getElementById('instPreview');
+
+  if(!total||!months||!startDate||!source){ preview.classList.remove('show'); return; }
+
+  const monthly = total/months;
+  const src = allSources.find(s=>s.source_name===source);
+  const billingDay = src?.billing_day||1;
+
+  // Compute payment months
+  const payMonths = [];
+  const d = new Date(startDate);
+  let baseMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  if(d.getDate() >= billingDay) baseMonth = new Date(d.getFullYear(), d.getMonth()+1, 1);
+
+  for(let i=0;i<months;i++){
+    const m = new Date(baseMonth.getFullYear(), baseMonth.getMonth()+i, 1);
+    payMonths.push(m);
+  }
+
+  const first = payMonths[0];
+  const last  = payMonths[payMonths.length-1];
+  const firstLabel = first.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  const lastLabel  = last.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+
+  document.getElementById('prev_monthly').textContent = '฿' + fmtBaht(monthly) + '/month';
+  document.getElementById('prev_count').textContent   = months + ' transactions';
+  document.getElementById('prev_range').textContent   = firstLabel + ' → ' + lastLabel;
+  document.getElementById('prev_total').textContent   = '฿' + fmtBaht(total);
+  preview.classList.add('show');
+}
+
+async function addInstalment(){
+  const total  = parseFloat(document.getElementById('inst_total').value)||0;
+  const months = parseInt(document.getElementById('inst_months').value)||0;
+  const startDate = document.getElementById('inst_date').value;
+  const source = document.getElementById('inst_source').value;
+  const desc   = document.getElementById('inst_desc').value;
+
+  if(!total||!months||!startDate||!source){ showToast('กรุณากรอกข้อมูลให้ครบ','error'); return; }
+
+  const monthly = parseFloat((total/months).toFixed(2));
+  const src = allSources.find(s=>s.source_name===source);
+  const billingDay = src?.billing_day||1;
+
+  const d = new Date(startDate);
+  let baseMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  if(d.getDate() >= billingDay) baseMonth = new Date(d.getFullYear(), d.getMonth()+1, 1);
+
+  const rows = [];
+  for(let i=0;i<months;i++){
+    const payM = new Date(baseMonth.getFullYear(), baseMonth.getMonth()+i, 1);
+    rows.push({
+      txn_date: startDate,
+      source_name: source,
+      amount: monthly,
+      expense_group: 'Installment',
+      description: desc ? `${desc} (${i+1}/${months})` : `Installment ${i+1}/${months}`,
+      paid_flag: false,
+      payment_month_override: fmt(payM)
+    });
+  }
+
+  const {error} = await db.from('debt_transactions').insert(rows);
+  if(error){ showToast('Error: '+error.message,'error'); return; }
+  showToast(`✓ Added ${months} instalment transactions`,'success');
+  clearInstForm();
+  loadDebt();
+}
+
+function clearInstForm(){
+  ['inst_date','inst_source','inst_total','inst_months','inst_desc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('inst_date').value = fmt(new Date());
+  document.getElementById('instPreview').classList.remove('show');
+}
 
 // ── MOBILE NAV ──
 function showPanelMobile(id, btn) {
