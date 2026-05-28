@@ -440,6 +440,10 @@ select.form-input option{background:var(--surface2)}
 
     <!-- ALLOCATIONS -->
     <div id="panel-allocations" class="panel">
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="prefillFromLastMonth('allocations')">↩ Last Month</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearAllAllocations()" style="color:var(--red)">🗑 Clear Month</button>
+      </div>
       <div class="quick-add">
         <div class="quick-add-title">➕ Add Allocation</div>
         <div class="form-grid">
@@ -811,27 +815,47 @@ async function loadTrend(allDebt){
     const m = new Date(currentMonth.getFullYear(), currentMonth.getMonth()-i, 1);
     months.push(m);
   }
-  const summaries = await Promise.all(months.map(m=>
-    Promise.all([
-      db.from('monthly_income').select('amount').eq('month',fmt(monthStart(m))),
-      db.from('monthly_fixed').select('amount').eq('month',fmt(monthStart(m))),
-      db.from('monthly_allocations').select('amount').eq('month',fmt(monthStart(m))),
-    ])
-  ));
-  const data = summaries.map(([inc,fix,alloc],i)=>{
-    const income = (inc.data||[]).reduce((s,r)=>s+toNum(r.amount),0);
-    const fixed = (fix.data||[]).reduce((s,r)=>s+toNum(r.amount),0);
-    const mk = monthKey(months[i]);
-    const debt = allDebt.filter(t=>computePaymentMonth(t.txn_date,t.source_name,t.payment_month_override)===mk).reduce((s,t)=>s+toNum(t.amount),0);
-    const allocTotal = (alloc.data||[]).reduce((s,r)=>s+toNum(r.amount),0);
-    const daily = income - fixed - debt - allocTotal;
-    return {label:months[i].toLocaleDateString('en-US',{month:'short'}), daily:Math.max(0,daily), alloc:allocTotal};
+  const oldest = fmt(months[0]);
+
+  // Fetch ALL data in 3 queries (not per-month), filter in JS — avoids date mismatch
+  const [incRes, fixRes, allocRes] = await Promise.all([
+    db.from('monthly_income').select('month,amount').gte('month', oldest),
+    db.from('monthly_fixed').select('month,amount').gte('month', oldest),
+    db.from('monthly_allocations').select('month,amount').gte('month', oldest),
+  ]);
+
+  const incRows   = incRes.data||[];
+  const fixRows   = fixRes.data||[];
+  const allocRows = allocRes.data||[];
+
+  // Helper: normalize month string to YYYY-MM
+  const toMk = dateStr => {
+    if(!dateStr) return '';
+    return String(dateStr).slice(0,7); // works for both "2025-05-01" and "2025-05-01T00:00:00"
+  };
+
+  const data = months.map(m => {
+    const mk = monthKey(m); // "2025-05"
+    const income     = incRows.filter(r=>toMk(r.month)===mk).reduce((s,r)=>s+toNum(r.amount),0);
+    const fixed      = fixRows.filter(r=>toMk(r.month)===mk).reduce((s,r)=>s+toNum(r.amount),0);
+    const debt       = allDebt.filter(t=>computePaymentMonth(t.txn_date,t.source_name,t.payment_month_override)===mk).reduce((s,t)=>s+toNum(t.amount),0);
+    const allocTotal = allocRows.filter(r=>toMk(r.month)===mk).reduce((s,r)=>s+toNum(r.amount),0);
+    const daily      = income - fixed - debt - allocTotal;
+    return {
+      label: m.toLocaleDateString('en-US',{month:'short'}),
+      year:  m.getFullYear(),
+      mk,
+      income, fixed, debt, allocTotal,
+      daily: Math.max(0, daily),
+      alloc: allocTotal
+    };
   });
-  const maxVal = Math.max(...data.map(d=>d.daily+d.alloc),1);
+
+  const maxVal = Math.max(...data.map(d=>d.daily+d.alloc), 1);
   document.getElementById('trendChart').innerHTML = data.map(d=>`
-    <div class="chart-bar-group">
-      <div class="chart-bar" data-val="${fmtBaht(d.daily)}" style="height:${(d.daily/maxVal)*100}%;background:var(--blue);opacity:0.85"></div>
-      <div class="chart-bar" data-val="${fmtBaht(d.alloc)}" style="height:${(d.alloc/maxVal)*100}%;background:var(--purple);opacity:0.7;margin-top:2px"></div>
+    <div class="chart-bar-group" title="${d.mk}: Income ${fmtBaht(d.income)} | Fixed ${fmtBaht(d.fixed)} | Alloc ${fmtBaht(d.alloc)} | Daily ${fmtBaht(d.daily)}">
+      <div class="chart-bar" data-val="Daily: ฿${fmtBaht(d.daily)}" style="height:${(d.daily/maxVal)*100}%;background:var(--blue);opacity:0.85"></div>
+      <div class="chart-bar" data-val="Alloc: ฿${fmtBaht(d.alloc)}" style="height:${(d.alloc/maxVal)*100}%;background:var(--purple);opacity:0.7;margin-top:2px"></div>
       <div class="chart-label">${d.label}</div>
     </div>
   `).join('');
@@ -1223,8 +1247,33 @@ async function prefillFromLastMonth(type){
     const {error:e2} = await db.from('monthly_fixed').insert(rows);
     if(e2){ showToast('Error: '+e2.message,'error'); return; }
     showToast(`✓ Copied ${rows.length} fixed expense(s) from last month`,'success');
+    loadIncome();
+  } else if(type==='allocations') {
+    const {data:existing} = await db.from('monthly_allocations').select('id').eq('month',thisMonth);
+    if(existing&&existing.length>0){
+      if(!confirm(`เดือนนี้มี Allocations อยู่แล้ว ${existing.length} รายการ\nต้องการ Copy เพิ่มเติมจากเดือนที่แล้วอีกหรือไม่?`)) return;
+    }
+    const {data,error} = await db.from('monthly_allocations')
+      .select('account_name,category_name,allocation_type,amount,note')
+      .eq('month',lastStart);
+    if(error||!data||!data.length){ showToast('ไม่มีข้อมูล Allocations เดือนที่แล้ว','error'); return; }
+    const rows = data.map(r=>({...r, month:thisMonth}));
+    const {error:e2} = await db.from('monthly_allocations').insert(rows);
+    if(e2){ showToast('Error: '+e2.message,'error'); return; }
+    showToast(`✓ Copied ${rows.length} allocation(s) from last month`,'success');
+    loadAllocations();
+    return;
   }
-  loadIncome();
+}
+
+async function clearAllAllocations(){
+  const thisMonth = fmt(monthStart(currentMonth));
+  const {data} = await db.from('monthly_allocations').select('id').eq('month',thisMonth);
+  if(!data||!data.length){ showToast('ไม่มี allocations เดือนนี้','info'); return; }
+  if(!confirm(`ลบ allocations ทั้งหมด ${data.length} รายการของเดือนนี้?`)) return;
+  await db.from('monthly_allocations').delete().eq('month',thisMonth);
+  showToast('✓ Cleared all allocations','info');
+  loadAllocations();
 }
 
 async function loadIncome(){
@@ -1609,6 +1658,17 @@ function toggleMoreMenu() {
   const m = document.getElementById('moreMenu');
   m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
+
+function navigateFromMore(panelId) {
+  // Close menu first, then navigate — prevents ghost renders
+  const m = document.getElementById('moreMenu');
+  m.style.display = 'none';
+  // Clear active state from bottom nav
+  document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnav-more').classList.add('active');
+  // Switch panel (use showPanel directly, not showPanelMobile to avoid badge sync loop)
+  showPanel(panelId, null);
+}
 document.addEventListener('click', e => {
   const menu = document.getElementById('moreMenu');
   if(menu && menu.style.display !== 'none') {
@@ -1658,11 +1718,11 @@ init();
 </nav>
 
 <!-- MORE MENU (mobile) -->
-<div id="moreMenu" style="display:none;position:fixed;bottom:64px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:99;padding:8px 0">
-  <button class="nav-item" style="padding:14px 24px;font-size:.88rem" onclick="showPanelMobile('income',null);toggleMoreMenu()">
+<div id="moreMenu" style="display:none;position:fixed;bottom:64px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:99;padding:8px 0;box-shadow:0 -4px 20px rgba(0,0,0,.3)">
+  <button class="nav-item" style="padding:14px 24px;font-size:.88rem" onclick="navigateFromMore('income')">
     <span class="icon">💰</span> Income & Fixed
   </button>
-  <button class="nav-item" style="padding:14px 24px;font-size:.88rem" onclick="showPanelMobile('settings',null);toggleMoreMenu()">
+  <button class="nav-item" style="padding:14px 24px;font-size:.88rem" onclick="navigateFromMore('settings')">
     <span class="icon">⚙️</span> Settings
   </button>
 </div>
