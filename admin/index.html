@@ -2,837 +2,397 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Portfolio Config</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Admin — kittisap.me</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0c;
-    --surface: #131317;
-    --surface2: #1a1a20;
-    --surface3: #22222a;
-    --lime: #c8f135;
-    --pink: #ff6b9d;
-    --cyan: #00e5ff;
-    --red: #ff4757;
-    --green: #2ed573;
-    --text: #f0f0f0;
-    --muted: #666;
-    --border: rgba(255,255,255,0.06);
-    --border-active: rgba(200,241,53,0.3);
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'Bricolage Grotesque', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-  /* ── LOGIN ── */
-  #loginScreen {
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--bg);
-    position: relative;
-  }
-  #loginScreen::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(200,241,53,0.04), transparent);
-    pointer-events: none;
-  }
-  .login-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 48px;
-    width: 100%;
-    max-width: 400px;
-    position: relative;
-    z-index: 1;
-  }
-  .login-logo {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 32px;
-  }
-  .login-logo span { color: var(--lime); }
-  .login-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 8px; }
-  .login-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 32px; }
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .field label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
-  .field input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
-    outline: none;
-    transition: border-color 0.2s;
-    width: 100%;
-  }
-  .field input:focus { border-color: var(--lime); }
-  .field input::placeholder { color: var(--muted); }
-  .btn-login {
-    width: 100%;
-    padding: 14px;
-    background: var(--lime);
-    color: #0a0a0c;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.25s;
-    margin-top: 8px;
-  }
-  .btn-login:hover { background: #d4ff40; transform: translateY(-1px); }
-  .login-error {
-    background: rgba(255,71,87,0.1);
-    border: 1px solid rgba(255,71,87,0.3);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 0.8rem;
-    color: var(--red);
-    font-family: 'Space Mono', monospace;
-    margin-bottom: 16px;
-    display: none;
-  }
-  .login-hint {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--muted);
-    text-align: center;
-    margin-top: 20px;
-  }
-
-  /* ── ADMIN ── */
-  #adminScreen { display: none; min-height: 100vh; }
-
-  .admin-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 50;
-    backdrop-filter: blur(20px);
-  }
-  .admin-brand {
-    display: flex; align-items: center; gap: 12px;
-    font-family: 'Space Mono', monospace;
-  }
-  .admin-brand-icon {
-    width: 32px; height: 32px;
-    background: var(--lime);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.9rem;
-    color: #0a0a0c;
-  }
-  .admin-brand-name { font-size: 0.8rem; color: var(--text); }
-  .admin-brand-name span { color: var(--lime); }
-  .admin-user {
-    display: flex; align-items: center; gap: 12px;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--muted);
-  }
-  .btn-logout {
-    padding: 7px 16px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-logout:hover { border-color: var(--red); color: var(--red); }
-
-  .admin-body {
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    min-height: calc(100vh - 65px);
-  }
-
-  /* Sidebar */
-  .admin-sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 24px 16px;
-    position: sticky;
-    top: 65px;
-    height: calc(100vh - 65px);
-    overflow-y: auto;
-  }
-  .sidebar-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 0 8px;
-    margin-bottom: 8px;
-    margin-top: 20px;
-  }
-  .sidebar-label:first-child { margin-top: 0; }
-  .sidebar-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    margin-bottom: 2px;
-    border: none; background: none; width: 100%; text-align: left;
-  }
-  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
-  .sidebar-item.active { background: rgba(200,241,53,0.08); color: var(--lime); }
-  .sidebar-item .icon { font-size: 1rem; width: 20px; }
-
-  /* Main content */
-  .admin-main { padding: 32px; overflow-y: auto; }
-  .section-panel { display: none; }
-  .section-panel.active { display: block; }
-
-  .panel-header { margin-bottom: 28px; }
-  .panel-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; }
-  .panel-desc { font-size: 0.9rem; color: var(--muted); }
-
-  /* Cards */
-  .config-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 20px;
-    transition: border-color 0.2s;
-  }
-  .config-card:focus-within { border-color: var(--border-active); }
-  .config-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .config-card-icon { font-size: 1.3rem; }
-  .config-card-title { font-size: 0.95rem; font-weight: 600; }
-  .config-card-desc { font-size: 0.8rem; color: var(--muted); margin-left: auto; font-family: 'Space Mono', monospace; }
-
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group.full { grid-column: 1 / -1; }
-  .form-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-  .form-input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 11px 14px;
-    color: var(--text);
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
-    resize: vertical;
-    width: 100%;
-  }
-  .form-input:focus { border-color: var(--lime); }
-  .form-input::placeholder { color: var(--muted); }
-  .form-hint { font-size: 0.75rem; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 2px; }
-
-  /* Skills editor */
-  .skill-rows { display: flex; flex-direction: column; gap: 12px; }
-  .skill-row {
-    display: grid;
-    grid-template-columns: 48px 1fr 1fr 80px 36px;
-    gap: 10px;
-    align-items: center;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-  }
-  .skill-row input { background: var(--surface3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--text); font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
-  .skill-row input:focus { border-color: var(--lime); }
-  .skill-row .emoji-input { text-align: center; font-size: 1.2rem; }
-  .skill-level { display: flex; align-items: center; gap: 8px; }
-  .skill-level input[type=range] { flex: 1; accent-color: var(--lime); }
-  .skill-level span { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--lime); width: 32px; text-align: right; }
-  .btn-remove { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); cursor: pointer; padding: 6px; font-size: 0.9rem; transition: all 0.2s; width: 36px; height: 36px; }
-  .btn-remove:hover { border-color: var(--red); color: var(--red); }
-
-  /* Projects */
-  .project-rows { display: flex; flex-direction: column; gap: 16px; }
-  .project-row {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-  }
-  .project-row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .project-row-num { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); }
-  .project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .project-grid .full { grid-column: 1/-1; }
-  .project-grid input, .project-grid textarea { background: var(--surface3); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 0.85rem; outline: none; transition: border-color 0.2s; font-family: inherit; resize: none; width: 100%; }
-  .project-grid input:focus, .project-grid textarea:focus { border-color: var(--lime); }
-
-  /* Action bar */
-  .action-bar {
-    position: sticky; bottom: 0;
-    background: rgba(10,10,12,0.9);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
-    padding: 16px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-    margin: 0 -32px -32px;
-    margin-top: 32px;
-  }
-  .action-status {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--muted);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-  .status-dot.saved { background: var(--green); box-shadow: 0 0 8px var(--green); }
-  .status-dot.saving { background: var(--lime); animation: blink 0.6s ease-in-out infinite; }
-  .status-dot.error { background: var(--red); }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .btn-save {
-    padding: 12px 32px;
-    background: var(--lime);
-    color: #0a0a0c;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    font-weight: 700;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.25s;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .btn-save:hover { background: #d4ff40; transform: translateY(-1px); }
-  .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  .btn-add {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 18px;
-    background: transparent;
-    border: 1px dashed rgba(200,241,53,0.3);
-    border-radius: 10px;
-    color: var(--lime);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 12px;
-  }
-  .btn-add:hover { background: rgba(200,241,53,0.05); border-style: solid; }
-
-  /* Preview badge */
-  .preview-link {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 16px;
-    background: rgba(0,229,255,0.06);
-    border: 1px solid rgba(0,229,255,0.2);
-    border-radius: 8px;
-    color: var(--cyan);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.72rem;
-    text-decoration: none;
-    transition: all 0.2s;
-  }
-  .preview-link:hover { background: rgba(0,229,255,0.12); }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 80px; right: 32px;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    z-index: 999;
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all 0.3s;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { background: rgba(46,213,115,0.15); border: 1px solid rgba(46,213,115,0.4); color: var(--green); }
-  .toast.error { background: rgba(255,71,87,0.15); border: 1px solid rgba(255,71,87,0.4); color: var(--red); }
-
-  @media (max-width: 768px) {
-    .admin-body { grid-template-columns: 1fr; }
-    .admin-sidebar { display: none; }
-    .admin-main { padding: 20px; }
-    .form-row { grid-template-columns: 1fr; }
-    .skill-row { grid-template-columns: 48px 1fr 36px; }
-    .skill-row .skill-level { display: none; }
-    .project-grid { grid-template-columns: 1fr; }
-  }
+:root{--bg:#080b12;--surface:#111827;--surface2:#1a2236;--surface3:#222d42;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#f0f4ff;--text2:#8896b0;--text3:#3d4f6e;--blue:#4a9eff;--blue-dim:rgba(74,158,255,0.1);--green:#34d399;--green-dim:rgba(52,211,153,0.1);--red:#f87171;--red-dim:rgba(248,113,113,0.1);--yellow:#f9c74f;--purple:#a78bfa;--cyan:#22d3ee;--radius:14px;--radius-sm:8px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent}
+body{font-family:"Sora",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh}
+body::after{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(74,158,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(74,158,255,0.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+#loginScreen{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:36px 28px;width:100%;max-width:360px}
+.login-logo{font-family:"Space Mono",monospace;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:24px}
+.login-logo span{color:var(--blue)}
+.login-title{font-size:1.4rem;font-weight:700;letter-spacing:-.03em;margin-bottom:6px}
+.login-sub{font-size:.8rem;color:var(--text2);margin-bottom:28px;font-weight:300}
+.login-error{background:var(--red-dim);border:1px solid rgba(248,113,113,0.2);border-radius:var(--radius-sm);padding:10px 14px;font-size:.75rem;color:var(--red);font-family:"Space Mono",monospace;margin-bottom:16px;display:none}
+.f-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.f-label{font-family:"Space Mono",monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+.f-input{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-family:"Sora",sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;width:100%}
+.f-input:focus{border-color:var(--blue)}
+.f-input::placeholder{color:var(--text3)}
+select.f-input option{background:var(--surface2)}
+textarea.f-input{resize:none}
+.btn-login{width:100%;padding:12px;background:var(--blue);color:#080b12;font-family:"Space Mono",monospace;font-size:.78rem;font-weight:700;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;margin-top:4px}
+.btn-login:hover{background:#69aaff;transform:translateY(-1px)}
+.login-hint{font-family:"Space Mono",monospace;font-size:.6rem;color:var(--text3);text-align:center;margin-top:16px}
+.login-hint span{color:var(--blue)}
+#appScreen{display:none;position:relative;z-index:1}
+.topbar{background:rgba(8,11,18,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-brand{font-family:"Space Mono",monospace;font-size:.8rem;color:var(--blue)}
+.topbar-brand-sub{color:var(--text3)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.btn-sm{font-family:"Space Mono",monospace;font-size:.65rem;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s}
+.btn-sm:hover{background:var(--surface2);color:var(--text)}
+.btn-sm.danger:hover{border-color:var(--red);color:var(--red)}
+.back-btn{font-size:.72rem;color:var(--text3);text-decoration:none;font-family:"Space Mono",monospace;transition:color .2s}
+.back-btn:hover{color:var(--blue)}
+.admin-body{max-width:680px;margin:0 auto;padding:28px 20px;padding-bottom:max(80px,env(safe-area-inset-bottom))}
+.admin-section{margin-bottom:32px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:8px;font-family:"Space Mono",monospace}
+.section-title::before{content:"";width:3px;height:14px;background:var(--section-color,var(--blue));border-radius:2px;display:inline-block}
+.link-card{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;color:inherit;transition:all .25s;cursor:pointer}
+.link-card:hover{border-color:var(--border2);transform:translateX(3px)}
+.link-card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.link-card-body{flex:1}
+.link-card-name{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.link-card-desc{font-size:.72rem;color:var(--text2);font-weight:300}
+.link-card-arrow{font-family:"Space Mono",monospace;font-size:.75rem;color:var(--text3);transition:all .2s}
+.link-card:hover .link-card-arrow{transform:translateX(3px);color:var(--blue)}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.form-card-header{padding:14px 18px;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.form-card-header .toggle-arrow{font-size:.7rem;color:var(--text3);transition:transform .2s;font-family:"Space Mono",monospace}
+.form-card-header.open .toggle-arrow{transform:rotate(180deg)}
+.form-card-body{padding:18px;display:none}
+.form-card-body.open{display:block}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f-grid .full{grid-column:1/-1}
+.f-hint{font-size:.65rem;color:var(--text3);margin-top:3px;font-family:"Space Mono",monospace}
+.f-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;grid-column:1/-1}
+.btn-primary{font-family:"Space Mono",monospace;font-size:.72rem;padding:9px 18px;border-radius:var(--radius-sm);border:none;background:var(--blue);color:#080b12;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary:hover{background:#69aaff;transform:translateY(-1px)}
+.btn-ghost{font-family:"Space Mono",monospace;font-size:.72rem;padding:9px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.app-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border)}
+.app-toggle-row:last-child{border-bottom:none}
+.app-toggle-info{display:flex;align-items:center;gap:10px}
+.app-toggle-icon{font-size:1rem;width:22px;text-align:center}
+.app-toggle-name{font-size:.84rem;font-weight:500;color:var(--text)}
+.app-toggle-url{font-size:.65rem;color:var(--text3);font-family:"Space Mono",monospace;margin-top:1px}
+.toggle{position:relative;width:38px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:100px;cursor:pointer;transition:background .2s}
+.toggle-slider::before{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:white;bottom:3px;left:3px;transition:transform .2s}
+.toggle input:checked + .toggle-slider{background:var(--blue)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(16px)}
+.status-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(8,11,18,0.92);backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;z-index:40;transition:transform .3s}
+.status-bar.hidden{transform:translateY(100%)}
+.status-dot-wrap{display:flex;align-items:center;gap:6px;font-family:"Space Mono",monospace;font-size:.65rem;color:var(--text3)}
+.s-dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
+.s-dot.saved{background:var(--green);box-shadow:0 0 6px var(--green)}
+.s-dot.saving{background:var(--yellow);animation:blink .6s ease-in-out infinite}
+.s-dot.error{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.save-btn{font-family:"Space Mono",monospace;font-size:.72rem;padding:8px 20px;border-radius:var(--radius-sm);border:none;background:var(--blue);color:#080b12;font-weight:700;cursor:pointer;transition:all .2s}
+.save-btn:hover{background:#69aaff}
+.toast{position:fixed;bottom:70px;right:20px;padding:10px 18px;border-radius:var(--radius-sm);font-family:"Space Mono",monospace;font-size:.68rem;z-index:300;transform:translateY(10px);opacity:0;transition:all .25s;max-width:280px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:var(--green-dim);border:1px solid rgba(52,211,153,.25);color:var(--green)}
+.toast.error{background:var(--red-dim);border:1px solid rgba(248,113,113,.25);color:var(--red)}
+.toast.info{background:var(--blue-dim);border:1px solid rgba(74,158,255,.25);color:var(--blue)}
+@media(max-width:480px){.f-grid{grid-template-columns:1fr}.f-grid .full{grid-column:1}.topbar,.admin-body{padding-left:16px;padding-right:16px}}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-card">
-    <div class="login-logo">⚙ <span>Admin</span> Panel</div>
-    <div class="login-title">Welcome back</div>
-    <div class="login-sub">Sign in to manage your portfolio</div>
+  <div class="login-box">
+    <div class="login-logo">&#9881; <span>kittisap.me</span> / admin</div>
+    <div class="login-title">Master Admin</div>
+    <div class="login-sub">Manage all apps &amp; settings</div>
     <div class="login-error" id="loginError">Incorrect password. Try again.</div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="loginPass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="f-group">
+      <label class="f-label">Password</label>
+      <input type="password" id="loginPass" class="f-input" placeholder="Enter admin password">
     </div>
-    <button class="btn-login" onclick="doLogin()">Sign In →</button>
-    <div class="login-hint">
-      Default password: <span style="color:var(--lime)">admin1234</span><br>
-      (Change in the Settings tab after login)
-    </div>
+    <button class="btn-login" onclick="doLogin()">Sign In &rarr;</button>
+    <div class="login-hint">Default: <span>admin1234</span></div>
   </div>
 </div>
 
-<!-- ADMIN -->
-<div id="adminScreen">
-  <header class="admin-header">
-    <div class="admin-brand">
-      <div class="admin-brand-icon">⚙</div>
-      <div class="admin-brand-name">portfolio<span>/admin</span></div>
-    </div>
-    <div class="admin-user">
-      <a href="index.html" target="_blank" class="preview-link">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Preview Site
-      </a>
-      <span>Kittisap S.</span>
-      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+<div id="appScreen">
+  <header class="topbar">
+    <div class="topbar-brand">&#9881; Master Admin <span class="topbar-brand-sub">/ kittisap.me</span></div>
+    <div class="topbar-right">
+      <a href="../" class="back-btn">&larr; Portal</a>
+      <button class="btn-sm danger" onclick="doLogout()">Sign Out</button>
     </div>
   </header>
 
   <div class="admin-body">
-    <aside class="admin-sidebar">
-      <div class="sidebar-label">Content</div>
-      <button class="sidebar-item active" onclick="showPanel('profile',this)"><span class="icon">👤</span>Profile</button>
-      <button class="sidebar-item" onclick="showPanel('skills',this)"><span class="icon">⚡</span>Skills</button>
-      <button class="sidebar-item" onclick="showPanel('projects',this)"><span class="icon">📁</span>Projects</button>
-      <button class="sidebar-item" onclick="showPanel('social',this)"><span class="icon">🔗</span>Social Links</button>
-      <div class="sidebar-label">System</div>
-      <button class="sidebar-item" onclick="showPanel('settings',this)"><span class="icon">🔐</span>Settings</button>
-    </aside>
 
-    <main class="admin-main">
-
-      <!-- PROFILE -->
-      <div id="panel-profile" class="section-panel active">
-        <div class="panel-header">
-          <div class="panel-title">Profile</div>
-          <div class="panel-desc">Basic information shown in Hero and About sections</div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-card-header">
-            <span class="config-card-icon">✏️</span>
-            <span class="config-card-title">Basic Info</span>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Full Name</label>
-              <input type="text" class="form-input" id="f_name" placeholder="Kittisap Sangthong">
+    <!-- PORTAL SETTINGS -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-title" style="--section-color:var(--blue)">&#127760; Portal Settings</div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">App Visibility <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="app-toggle-row">
+            <div class="app-toggle-info">
+              <span class="app-toggle-icon">&#128100;</span>
+              <div><div class="app-toggle-name">Portfolio</div><div class="app-toggle-url">./portfolio/</div></div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Job Title</label>
-              <input type="text" class="form-input" id="f_title" placeholder="Software Quality Assurance">
+            <label class="toggle"><input type="checkbox" id="vis_portfolio" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="app-toggle-row">
+            <div class="app-toggle-info">
+              <span class="app-toggle-icon">&#128176;</span>
+              <div><div class="app-toggle-name">Finance</div><div class="app-toggle-url">./finance/</div></div>
             </div>
-            <div class="form-group full">
-              <label class="form-label">Short Bio</label>
-              <textarea class="form-input" id="f_bio" rows="3" placeholder="Quality is a must..."></textarea>
+            <label class="toggle"><input type="checkbox" id="vis_finance" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="app-toggle-row">
+            <div class="app-toggle-info">
+              <span class="app-toggle-icon">&#128221;</span>
+              <div><div class="app-toggle-name">TOEIC Mock</div><div class="app-toggle-url">./toeic/</div></div>
             </div>
-            <div class="form-group full">
-              <label class="form-label">Extended Bio (optional second paragraph)</label>
-              <textarea class="form-input" id="f_bio2" rows="3" placeholder="More about you..."></textarea>
+            <label class="toggle"><input type="checkbox" id="vis_toeic" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="app-toggle-row">
+            <div class="app-toggle-info">
+              <span class="app-toggle-icon">&#9729;&#65039;</span>
+              <div><div class="app-toggle-name">Sky Vision</div><div class="app-toggle-url">./sky/</div></div>
             </div>
+            <label class="toggle"><input type="checkbox" id="vis_sky" checked><span class="toggle-slider"></span></label>
           </div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-card-header">
-            <span class="config-card-icon">🏷️</span>
-            <span class="config-card-title">Tags / Keywords</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tags (comma separated)</label>
-            <input type="text" class="form-input" id="f_tags" placeholder="Test Planning, Automation, Cypress, Jira, ...">
-            <span class="form-hint">These appear as pills in the About section</span>
-          </div>
-        </div>
-
-        <div class="config-card">
-          <div class="config-card-header">
-            <span class="config-card-icon">🖼️</span>
-            <span class="config-card-title">Profile Photo</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Photo URL</label>
-            <input type="text" class="form-input" id="f_avatar_url" placeholder="https://...your-photo-url.jpg">
-            <span class="form-hint">Upload to Imgur, Google Drive (public), or any image host and paste the URL</span>
-          </div>
-        </div>
-
-        <div class="action-bar">
-          <div class="action-status"><div class="status-dot" id="statusDot"></div><span id="statusText">Unsaved changes</span></div>
-          <button class="btn-save" onclick="saveAll()">💾 Save Changes</button>
         </div>
       </div>
-
-      <!-- SKILLS -->
-      <div id="panel-skills" class="section-panel">
-        <div class="panel-header">
-          <div class="panel-title">Skills</div>
-          <div class="panel-desc">Cards shown in the Skills section</div>
-        </div>
-        <div class="config-card">
-          <div class="skill-rows" id="skillRows"></div>
-          <button class="btn-add" onclick="addSkillRow()">+ Add Skill</button>
-        </div>
-        <div class="action-bar">
-          <div class="action-status"><div class="status-dot" id="statusDot2"></div><span id="statusText2">Unsaved changes</span></div>
-          <button class="btn-save" onclick="saveAll()">💾 Save Changes</button>
-        </div>
-      </div>
-
-      <!-- PROJECTS -->
-      <div id="panel-projects" class="section-panel">
-        <div class="panel-header">
-          <div class="panel-title">Projects</div>
-          <div class="panel-desc">Portfolio cards shown in the Work section</div>
-        </div>
-        <div class="config-card">
-          <div class="project-rows" id="projectRows"></div>
-          <button class="btn-add" onclick="addProjectRow()">+ Add Project</button>
-        </div>
-        <div class="action-bar">
-          <div class="action-status"><div class="status-dot" id="statusDot3"></div><span id="statusText3">Unsaved changes</span></div>
-          <button class="btn-save" onclick="saveAll()">💾 Save Changes</button>
-        </div>
-      </div>
-
-      <!-- SOCIAL -->
-      <div id="panel-social" class="section-panel">
-        <div class="panel-header">
-          <div class="panel-title">Social Links</div>
-          <div class="panel-desc">Contact section links</div>
-        </div>
-        <div class="config-card">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Email</label>
-              <input type="email" class="form-input" id="f_email" placeholder="kittisap.st@gmail.com">
-            </div>
-            <div class="form-group">
-              <label class="form-label">GitHub Username</label>
-              <input type="text" class="form-input" id="f_github" placeholder="pipzzmakok">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Instagram Username</label>
-              <input type="text" class="form-input" id="f_instagram" placeholder="peeposbrainispainting">
-            </div>
-            <div class="form-group">
-              <label class="form-label">LinkedIn URL (optional)</label>
-              <input type="text" class="form-input" id="f_linkedin" placeholder="linkedin.com/in/...">
-            </div>
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">Coming Soon Card <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="f-grid">
+            <div class="f-group"><label class="f-label">Icon</label><input type="text" id="soon_icon" class="f-input" placeholder="&#128302;" maxlength="4"></div>
+            <div class="f-group"><label class="f-label">Name</label><input type="text" id="soon_name" class="f-input" placeholder="Next App"></div>
+            <div class="f-group full"><label class="f-label">Description</label><input type="text" id="soon_desc" class="f-input" placeholder="Something new is brewing"></div>
+            <div class="f-actions"><button class="btn-primary" onclick="savePortalConfig()">Save Portal</button></div>
           </div>
         </div>
-        <div class="action-bar">
-          <div class="action-status"><div class="status-dot" id="statusDot4"></div><span id="statusText4">Unsaved changes</span></div>
-          <button class="btn-save" onclick="saveAll()">💾 Save Changes</button>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO CONFIG -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-title" style="--section-color:var(--cyan)">&#128100; Portfolio Config</div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">Profile Info <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="f-grid">
+            <div class="f-group"><label class="f-label">Full Name</label><input type="text" id="f_name" class="f-input" placeholder="Kittisap Sangthong"></div>
+            <div class="f-group"><label class="f-label">Job Title</label><input type="text" id="f_title" class="f-input" placeholder="Software Quality Assurance"></div>
+            <div class="f-group full"><label class="f-label">Bio</label><textarea id="f_bio" class="f-input" rows="2" placeholder="Quality is a must..."></textarea></div>
+            <div class="f-group full"><label class="f-label">Extended Bio</label><textarea id="f_bio2" class="f-input" rows="2" placeholder="More about you..."></textarea></div>
+            <div class="f-group full"><label class="f-label">Tags (comma separated)</label><input type="text" id="f_tags" class="f-input" placeholder="Test Planning, Automation, Cypress"></div>
+            <div class="f-group full"><label class="f-label">Avatar URL</label><input type="text" id="f_avatar_url" class="f-input" placeholder="https://..."><div class="f-hint">Upload to Imgur then paste URL here</div></div>
+          </div>
         </div>
       </div>
-
-      <!-- SETTINGS -->
-      <div id="panel-settings" class="section-panel">
-        <div class="panel-header">
-          <div class="panel-title">Settings</div>
-          <div class="panel-desc">Security and configuration</div>
-        </div>
-        <div class="config-card">
-          <div class="config-card-header">
-            <span class="config-card-icon">🔐</span>
-            <span class="config-card-title">Change Admin Password</span>
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">Social Links <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="f-grid">
+            <div class="f-group"><label class="f-label">Email</label><input type="email" id="f_email" class="f-input" placeholder="you@email.com"></div>
+            <div class="f-group"><label class="f-label">GitHub Username</label><input type="text" id="f_github" class="f-input" placeholder="pipzzmakok"></div>
+            <div class="f-group"><label class="f-label">Instagram Username</label><input type="text" id="f_instagram" class="f-input" placeholder="peeposbrainispainting"></div>
+            <div class="f-group"><label class="f-label">LinkedIn URL</label><input type="text" id="f_linkedin" class="f-input" placeholder="linkedin.com/in/..."></div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">New Password</label>
-              <input type="password" class="form-input" id="f_newpass" placeholder="New password">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Confirm Password</label>
-              <input type="password" class="form-input" id="f_confirmpass" placeholder="Confirm password">
-            </div>
-          </div>
-          <button class="btn-save" style="margin-top:16px" onclick="changePassword()">Update Password</button>
-        </div>
-        <div class="config-card" style="margin-top:20px">
-          <div class="config-card-header">
-            <span class="config-card-icon">ℹ️</span>
-            <span class="config-card-title">Supabase Info</span>
-          </div>
-          <p style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);line-height:1.8">
-            Project: <span style="color:var(--lime)">qquxotxrwnzxyutzlwim</span><br>
-            Table: <span style="color:var(--cyan)">portfolio_config</span><br>
-            RLS: <span style="color:var(--red)">Disabled (public read)</span>
-          </p>
         </div>
       </div>
+    </div>
 
-    </main>
+    <!-- FINANCE SETTINGS -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-title" style="--section-color:var(--green)">&#128176; Finance Settings</div>
+      </div>
+      <a href="../finance/#settings" class="link-card">
+        <div class="link-card-icon" style="background:var(--green-dim)">&#9881;&#65039;</div>
+        <div class="link-card-body">
+          <div class="link-card-name">Open Finance Settings</div>
+          <div class="link-card-desc">Accounts, Sources (credit cards), Categories, Monthly Cycle</div>
+        </div>
+        <div class="link-card-arrow">&#8599;</div>
+      </a>
+    </div>
+
+    <!-- SYSTEM -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-title" style="--section-color:var(--purple)">&#9881;&#65039; System</div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">Change Password <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="f-grid">
+            <div class="f-group"><label class="f-label">New Password</label><input type="password" id="f_newpass" class="f-input" placeholder="Min 6 characters"></div>
+            <div class="f-group"><label class="f-label">Confirm</label><input type="password" id="f_confirmpass" class="f-input" placeholder="Confirm password"></div>
+            <div class="f-actions"><button class="btn-primary" onclick="changePassword()">Update Password</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">Supabase Info <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div style="font-family:Space Mono,monospace;font-size:.68rem;color:var(--text2);line-height:2.2">
+            Project: <span style="color:var(--blue)">qquxotxrwnzxyutzlwim</span><br>
+            Tables: <span style="color:var(--cyan)">portfolio_config &middot; debt_transactions &middot; monthly_* &middot; accounts &middot; categories &middot; sources</span><br>
+            RLS: <span style="color:var(--yellow)">Public (anon read/write)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="status-bar hidden" id="statusBar">
+    <div class="status-dot-wrap"><div class="s-dot" id="sDot"></div><span id="sText">Unsaved changes</span></div>
+    <button class="save-btn" onclick="saveAll()">&#128190; Save All</button>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://qquxotxrwnzxyutzlwim.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdXhvdHhyd256eHl1dHpsd2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNzU5MDEsImV4cCI6MjA5NDY1MTkwMX0.vEu40LwSAhWhu1T4Mm_uFeWD3YRjptg0q0VshnYUXHM';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://qquxotxrwnzxyutzlwim.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdXhvdHhyd256eHl1dHpsd2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNzU5MDEsImV4cCI6MjA5NDY1MTkwMX0.vEu40LwSAhWhu1T4Mm_uFeWD3YRjptg0q0VshnYUXHM';
+const{createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// ── AUTH ──
-const PASS_KEY = 'admin_pass';
-let adminPassword = localStorage.getItem(PASS_KEY) || 'admin1234';
+const PASS_KEY='ks_admin_pass';
+let adminPass=localStorage.getItem(PASS_KEY)||'admin1234';
+let dirty=false;
 
-function doLogin() {
-  const pass = document.getElementById('loginPass').value;
-  if (pass === adminPassword) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminScreen').style.display = 'block';
-    loadAllData();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginPass').focus();
+function doLogin(){
+  const v=document.getElementById('loginPass').value;
+  if(v===adminPass){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    loadAll();
+  }else{
+    document.getElementById('loginError').style.display='block';
+    document.getElementById('loginPass').value='';
   }
 }
-document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-function doLogout() {
-  document.getElementById('adminScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginError').style.display = 'none';
+function doLogout(){
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginError').style.display='none';
 }
 
-function changePassword() {
-  const np = document.getElementById('f_newpass').value;
-  const cp = document.getElementById('f_confirmpass').value;
-  if (!np) return showToast('Enter a new password', 'error');
-  if (np !== cp) return showToast('Passwords do not match', 'error');
-  if (np.length < 6) return showToast('Password must be 6+ characters', 'error');
-  localStorage.setItem(PASS_KEY, np);
-  adminPassword = np;
-  document.getElementById('f_newpass').value = '';
-  document.getElementById('f_confirmpass').value = '';
-  showToast('✓ Password updated!', 'success');
+function changePassword(){
+  const np=document.getElementById('f_newpass').value;
+  const cp=document.getElementById('f_confirmpass').value;
+  if(!np)return showToast('Enter new password','error');
+  if(np!==cp)return showToast('Passwords do not match','error');
+  if(np.length<6)return showToast('Min 6 characters','error');
+  localStorage.setItem(PASS_KEY,np);adminPass=np;
+  document.getElementById('f_newpass').value='';
+  document.getElementById('f_confirmpass').value='';
+  showToast('Password updated','success');
 }
 
-// ── PANELS ──
-function showPanel(id, btn) {
-  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  btn.classList.add('active');
+async function loadAll(){
+  const{data}=await db.from('portfolio_config').select('key,value');
+  if(!data)return;
+  const cfg={};
+  data.forEach(r=>cfg[r.key]=r.value);
+  // Portfolio fields
+  ['name','title','bio','bio2','tags','avatar_url','email','github','instagram','linkedin'].forEach(k=>{
+    const el=document.getElementById('f_'+k);
+    if(el)el.value=cfg[k]||'';
+  });
+  // Portal visibility
+  if(cfg.portal_vis){
+    try{
+      const vis=JSON.parse(cfg.portal_vis);
+      ['portfolio','finance','toeic','sky'].forEach(k=>{
+        const el=document.getElementById('vis_'+k);
+        if(el)el.checked=vis[k]!==false;
+      });
+    }catch(e){}
+  }
+  // Soon card
+  if(cfg.soon_icon)document.getElementById('soon_icon').value=cfg.soon_icon;
+  if(cfg.soon_name)document.getElementById('soon_name').value=cfg.soon_name;
+  if(cfg.soon_desc)document.getElementById('soon_desc').value=cfg.soon_desc;
 }
 
-// ── DATA ──
-let cfg = {};
-
-async function loadAllData() {
-  const { data, error } = await db.from('portfolio_config').select('key, value');
-  if (error) return showToast('Failed to load data: ' + error.message, 'error');
-  data.forEach(r => cfg[r.key] = r.value);
-
-  // Profile
-  document.getElementById('f_name').value = cfg.name || '';
-  document.getElementById('f_title').value = cfg.title || '';
-  document.getElementById('f_bio').value = cfg.bio || '';
-  document.getElementById('f_bio2').value = cfg.bio2 || '';
-  document.getElementById('f_tags').value = cfg.tags || '';
-  document.getElementById('f_avatar_url').value = cfg.avatar_url || '';
-
-  // Social
-  document.getElementById('f_email').value = cfg.email || '';
-  document.getElementById('f_github').value = cfg.github || '';
-  document.getElementById('f_instagram').value = cfg.instagram || '';
-  document.getElementById('f_linkedin').value = cfg.linkedin || '';
-
-  // Skills
-  let skills = [];
-  try { skills = JSON.parse(cfg.skills || '[]'); } catch(e) {}
-  if (skills.length === 0) skills = [
-    {icon:'🧪', name:'Test Planning', desc:'Test strategies & acceptance criteria', level:95},
-    {icon:'🤖', name:'Test Automation', desc:'Selenium, Cypress, Playwright', level:88},
-    {icon:'🛡️', name:'API Testing', desc:'Postman, REST Assured', level:92},
-    {icon:'📊', name:'Bug Reporting', desc:'Jira, TestRail', level:90},
+async function savePortalConfig(){
+  const vis={};
+  ['portfolio','finance','toeic','sky'].forEach(k=>vis[k]=document.getElementById('vis_'+k).checked);
+  const updates=[
+    {key:'portal_vis',value:JSON.stringify(vis)},
+    {key:'soon_icon',value:document.getElementById('soon_icon').value||'\u{1F52C}'},
+    {key:'soon_name',value:document.getElementById('soon_name').value||'Next App'},
+    {key:'soon_desc',value:document.getElementById('soon_desc').value||'Something new is brewing'},
   ];
-  renderSkills(skills);
-
-  // Projects
-  let projects = [];
-  try { projects = JSON.parse(cfg.projects || '[]'); } catch(e) {}
-  if (projects.length === 0) projects = [
-    {emoji:'🚀', title:'E2E Test Suite', desc:'Full regression automation covering 300+ test cases', tags:'Automation, Cypress', link:'#'},
-    {emoji:'📈', title:'Load Test Report', desc:'Stress-tested under 10k concurrent users', tags:'Performance, k6', link:'#'},
-  ];
-  renderProjects(projects);
-
-  setStatus('saved');
+  for(const u of updates)await db.from('portfolio_config').upsert({key:u.key,value:u.value},{onConflict:'key'});
+  showToast('Portal config saved','success');
 }
 
-// ── SKILLS ──
-function renderSkills(skills) {
-  const rows = document.getElementById('skillRows');
-  rows.innerHTML = '';
-  skills.forEach((s, i) => {
-    rows.appendChild(makeSkillRow(s, i));
-  });
-}
-
-function makeSkillRow(s, i) {
-  const div = document.createElement('div');
-  div.className = 'skill-row';
-  div.dataset.index = i;
-  div.innerHTML = `
-    <input class="emoji-input" type="text" value="${s.icon||'⚡'}" placeholder="⚡" maxlength="2">
-    <input type="text" value="${s.name||''}" placeholder="Skill name">
-    <input type="text" value="${s.desc||''}" placeholder="Short description">
-    <div class="skill-level">
-      <input type="range" min="10" max="100" value="${s.level||80}" oninput="this.nextElementSibling.textContent=this.value+'%'">
-      <span>${s.level||80}%</span>
-    </div>
-    <button class="btn-remove" onclick="this.closest('.skill-row').remove()" title="Remove">✕</button>
-  `;
-  return div;
-}
-
-function addSkillRow() {
-  const rows = document.getElementById('skillRows');
-  const i = rows.children.length;
-  rows.appendChild(makeSkillRow({icon:'⚡',name:'',desc:'',level:80}, i));
-}
-
-function getSkillsData() {
-  return [...document.querySelectorAll('.skill-row')].map(row => {
-    const inputs = row.querySelectorAll('input');
-    return {
-      icon: inputs[0].value,
-      name: inputs[1].value,
-      desc: inputs[2].value,
-      level: parseInt(inputs[3].value),
-    };
-  });
-}
-
-// ── PROJECTS ──
-function renderProjects(projects) {
-  const rows = document.getElementById('projectRows');
-  rows.innerHTML = '';
-  projects.forEach((p, i) => rows.appendChild(makeProjectRow(p, i)));
-}
-
-function makeProjectRow(p, i) {
-  const div = document.createElement('div');
-  div.className = 'project-row';
-  div.innerHTML = `
-    <div class="project-row-header">
-      <span class="project-row-num">Project #${i+1}</span>
-      <button class="btn-remove" onclick="this.closest('.project-row').remove()" title="Remove">✕ Remove</button>
-    </div>
-    <div class="project-grid">
-      <input type="text" value="${p.emoji||'🚀'}" placeholder="Emoji" style="width:60px">
-      <input type="text" value="${p.title||''}" placeholder="Project title">
-      <textarea class="full" rows="2" placeholder="Description">${p.desc||''}</textarea>
-      <input type="text" value="${p.tags||''}" placeholder="Tags (comma separated)">
-      <input type="text" value="${p.link||'#'}" placeholder="URL or #">
-    </div>
-  `;
-  return div;
-}
-
-function addProjectRow() {
-  const rows = document.getElementById('projectRows');
-  const i = rows.children.length;
-  rows.appendChild(makeProjectRow({emoji:'🚀',title:'',desc:'',tags:'',link:'#'}, i));
-}
-
-function getProjectsData() {
-  return [...document.querySelectorAll('.project-row')].map(row => {
-    const inputs = row.querySelectorAll('input, textarea');
-    return {
-      emoji: inputs[0].value,
-      title: inputs[1].value,
-      desc: inputs[2].value,
-      tags: inputs[3].value,
-      link: inputs[4].value,
-    };
-  });
-}
-
-// ── SAVE ──
-async function saveAll() {
+async function saveAll(){
   setStatus('saving');
-  const updates = [
-    { key: 'name',       value: document.getElementById('f_name').value },
-    { key: 'title',      value: document.getElementById('f_title').value },
-    { key: 'bio',        value: document.getElementById('f_bio').value },
-    { key: 'bio2',       value: document.getElementById('f_bio2').value },
-    { key: 'tags',       value: document.getElementById('f_tags').value },
-    { key: 'avatar_url', value: document.getElementById('f_avatar_url').value },
-    { key: 'email',      value: document.getElementById('f_email').value },
-    { key: 'github',     value: document.getElementById('f_github').value },
-    { key: 'instagram',  value: document.getElementById('f_instagram').value },
-    { key: 'linkedin',   value: document.getElementById('f_linkedin').value },
-    { key: 'skills',     value: JSON.stringify(getSkillsData()) },
-    { key: 'projects',   value: JSON.stringify(getProjectsData()) },
+  const vis={};
+  ['portfolio','finance','toeic','sky'].forEach(k=>vis[k]=document.getElementById('vis_'+k).checked);
+  const updates=[
+    {key:'name',value:document.getElementById('f_name').value},
+    {key:'title',value:document.getElementById('f_title').value},
+    {key:'bio',value:document.getElementById('f_bio').value},
+    {key:'bio2',value:document.getElementById('f_bio2').value},
+    {key:'tags',value:document.getElementById('f_tags').value},
+    {key:'avatar_url',value:document.getElementById('f_avatar_url').value},
+    {key:'email',value:document.getElementById('f_email').value},
+    {key:'github',value:document.getElementById('f_github').value},
+    {key:'instagram',value:document.getElementById('f_instagram').value},
+    {key:'linkedin',value:document.getElementById('f_linkedin').value},
+    {key:'portal_vis',value:JSON.stringify(vis)},
+    {key:'soon_icon',value:document.getElementById('soon_icon').value||'\u{1F52C}'},
+    {key:'soon_name',value:document.getElementById('soon_name').value||'Next App'},
+    {key:'soon_desc',value:document.getElementById('soon_desc').value||'Something new is brewing'},
   ];
-
-  let hasError = false;
-  for (const item of updates) {
-    const { error } = await db.from('portfolio_config')
-      .upsert({ key: item.key, value: item.value }, { onConflict: 'key' });
-    if (error) { hasError = true; console.error(error); }
+  let err=false;
+  for(const u of updates){
+    const{error}=await db.from('portfolio_config').upsert({key:u.key,value:u.value},{onConflict:'key'});
+    if(error)err=true;
   }
-
-  if (hasError) {
-    setStatus('error');
-    showToast('⚠️ Some changes failed to save', 'error');
-  } else {
-    setStatus('saved');
-    showToast('✓ All changes saved!', 'success');
-  }
+  if(err){setStatus('error');showToast('Some changes failed','error');}
+  else{setStatus('saved');showToast('All changes saved','success');}
 }
 
-function setStatus(state) {
-  const dots = document.querySelectorAll('.status-dot');
-  const texts = document.querySelectorAll('[id^="statusText"]');
-  dots.forEach(d => { d.className = 'status-dot ' + state; });
-  const msg = state === 'saved' ? 'All changes saved' : state === 'saving' ? 'Saving...' : 'Save failed';
-  texts.forEach(t => t.textContent = msg);
+function markDirty(){
+  if(!dirty){dirty=true;document.getElementById('statusBar').classList.remove('hidden');setStatus('');}
+}
+function setStatus(s){
+  const dot=document.getElementById('sDot');
+  const txt=document.getElementById('sText');
+  dot.className='s-dot'+(s?' '+s:'');
+  txt.textContent=s==='saved'?'All changes saved':s==='saving'?'Saving...':s==='error'?'Save failed':'Unsaved changes';
+  if(s==='saved'){dirty=false;setTimeout(()=>document.getElementById('statusBar').classList.add('hidden'),2500);}
 }
 
-// ── TOAST ──
-function showToast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + type;
+function toggleCard(h){
+  h.classList.toggle('open');
+  h.nextElementSibling.classList.toggle('open');
+}
+
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// Mark unsaved on input
-document.addEventListener('input', () => setStatus(''));
+document.addEventListener('input',markDirty);
 </script>
 </body>
 </html>
