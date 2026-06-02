@@ -3,186 +3,249 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>กะปริมาณอาหาร</title>
+  <title>กะปริมาณอาหาร — kittisap.me</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Space+Mono&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #0f1923;
-      --bg2:      #1a2a1e;
-      --green1:   #1b4332;
-      --green2:   #2d6a4f;
-      --green3:   #40916c;
-      --green4:   #52b788;
-      --green5:   #74c69d;
-      --green6:   #95d5b2;
-      --text:     #e8f0e9;
-      --text2:    #d8f3dc;
-      --red:      #ff6b6b;
-      --orange:   #f4a261;
+      --bg:      #080b12;
+      --bg2:     #0d1120;
+      --surface: #111827;
+      --sur2:    #1a2236;
+      --border:  rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --text:    #f0f4ff;
+      --text2:   #8896b0;
+      --text3:   #3d4f6e;
+      --green:   #34d399;
+      --green2:  #1b4332;
+      --green3:  #2d6a4f;
+      --green4:  #40916c;
+      --green5:  #52b788;
+      --green6:  #74c69d;
+      --green7:  #95d5b2;
+      --red:     #f87171;
+      --orange:  #f4a261;
+      --radius:  16px;
     }
 
     body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--bg) 0%, var(--bg2) 50%, var(--bg) 100%);
-      font-family: 'Sarabun', sans-serif;
+      font-family: 'Sora', sans-serif;
+      background: var(--bg);
       color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
       padding-bottom: 60px;
     }
 
+    /* grid bg */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(52,211,153,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(52,211,153,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* glow blobs */
+    .glow-blob { position:fixed; border-radius:50%; filter:blur(120px); pointer-events:none; z-index:0; }
+    .glow-1 { width:400px;height:400px;top:-100px;right:-80px;background:rgba(52,211,153,0.06); }
+    .glow-2 { width:300px;height:300px;bottom:-80px;left:-60px;background:rgba(74,158,255,0.04); }
+
     /* ── HEADER ── */
     header {
-      background: linear-gradient(90deg, var(--green1), var(--green2));
-      padding: 20px 24px 16px;
-      border-bottom: 2px solid var(--green3);
       position: sticky; top: 0; z-index: 10;
-      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+      background: linear-gradient(135deg, rgba(27,67,50,0.95), rgba(8,11,18,0.98));
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(52,211,153,0.15);
+      padding: 18px 24px 14px;
+      box-shadow: 0 4px 30px rgba(0,0,0,.6);
     }
     header .inner {
-      max-width: 600px; margin: 0 auto;
+      max-width: 640px; margin: 0 auto;
       display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
     }
-    header .label { font-size: 10px; letter-spacing: 3px; color: var(--green5); text-transform: uppercase; margin-bottom: 4px; }
-    header h1 { font-size: 24px; font-weight: 800; color: var(--text2); line-height: 1.2; }
-    header p  { font-size: 12px; color: var(--green6); margin-top: 4px; opacity: .85; }
+    .h-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px; letter-spacing: 3px;
+      color: var(--green6); text-transform: uppercase; margin-bottom: 4px;
+    }
+    header h1 { font-size: 22px; font-weight: 700; color: #d8f3dc; line-height: 1.2; }
+    header p  { font-size: 11px; color: var(--green7); margin-top: 4px; opacity: .8; }
+
     a.nav-portal {
       font-family: 'Space Mono', monospace;
-      font-size: 11px; color: rgba(255,255,255,.55);
+      font-size: 10px; color: rgba(255,255,255,.45);
       text-decoration: none; letter-spacing: .04em;
-      border: 1px solid rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.15);
       padding: 5px 12px; border-radius: 100px;
       white-space: nowrap; margin-top: 4px;
       transition: color .2s, border-color .2s;
+      flex-shrink: 0;
     }
-    a.nav-portal:hover { color: #fff; border-color: rgba(255,255,255,.6); }
+    a.nav-portal:hover { color:#fff; border-color:rgba(255,255,255,.5); }
 
     /* ── CONTENT ── */
-    .content { max-width: 600px; margin: 0 auto; padding: 0 16px; }
+    .content { position:relative; z-index:1; max-width:640px; margin:0 auto; padding:0 16px; }
 
     /* ── GUIDE ── */
     .guide-toggle {
-      margin-top: 20px; width: 100%;
-      background: rgba(64,145,108,.15);
-      border: 1.5px solid var(--green3);
-      border-radius: 12px; color: var(--green5);
-      padding: 12px 18px; font-size: 14px;
+      margin-top: 18px; width: 100%;
+      background: rgba(52,211,153,0.06);
+      border: 1px solid rgba(52,211,153,0.2);
+      border-radius: 12px; color: var(--green6);
+      padding: 12px 16px; font-size: 13px;
       cursor: pointer; display: flex; align-items: center;
       justify-content: space-between;
-      font-family: inherit; transition: background .2s;
+      font-family: 'Sora', sans-serif;
+      transition: background .2s;
     }
-    .guide-toggle.open { background: var(--green1); }
-    .guide-panel {
-      background: rgba(27,67,50,.6);
-      border: 1px solid var(--green3);
-      border-radius: 12px; padding: 16px;
-      margin-top: 8px; display: none; gap: 10px;
-      flex-direction: column;
-    }
-    .guide-panel.open { display: flex; }
+    .guide-toggle.open { background: rgba(27,67,50,0.6); }
+    .guide-panel { display:none; margin-top:8px; gap:8px; flex-direction:column; }
+    .guide-panel.open { display:flex; }
     .guide-row {
-      display: flex; align-items: center; gap: 14px;
-      background: rgba(255,255,255,.04);
-      border-radius: 10px; padding: 10px 14px;
+      display:flex; align-items:center; gap:14px;
+      background: rgba(255,255,255,0.03);
+      border:1px solid var(--border);
+      border-radius:10px; padding:10px 14px;
     }
-    .guide-emoji { font-size: 26px; }
-    .guide-info  { flex: 1; }
-    .guide-info .title { font-size: 14px; font-weight: 700; color: var(--text2); }
-    .guide-info .sub   { font-size: 12px; color: var(--green6); }
-    .guide-nums { text-align: right; }
-    .guide-nums .g { font-size: 13px; color: var(--green5); font-weight: 600; }
-    .guide-nums .c { font-size: 11px; color: var(--green4); }
+    .guide-emoji { font-size:24px; flex-shrink:0; }
+    .guide-info { flex:1; }
+    .guide-info .t { font-size:13px; font-weight:600; color:#d8f3dc; }
+    .guide-info .s { font-size:11px; color:var(--green7); margin-top:2px; }
+    .guide-nums { text-align:right; }
+    .guide-nums .g { font-size:12px; color:var(--green6); font-weight:600; }
+    .guide-nums .c { font-size:10px; color:var(--green5); }
 
-    /* ── FOODS ── */
-    .section-label {
-      font-size: 11px; letter-spacing: 2px; color: var(--green4);
-      text-transform: uppercase; margin: 24px 0 10px;
+    /* ── SECTION LABEL ── */
+    .sec-label {
+      font-family:'Space Mono',monospace;
+      font-size:9px; letter-spacing:2px;
+      color:var(--green5); text-transform:uppercase;
+      margin:22px 0 10px;
     }
-    .food-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ── FOOD GRID ── */
+    .food-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(max-width:400px){ .food-grid { grid-template-columns:1fr; } }
+
     .food-card {
-      background: rgba(255,255,255,.04);
-      border: 1.5px solid rgba(64,145,108,.25);
-      border-radius: 14px; padding: 14px 12px;
-      cursor: pointer; text-align: left; color: var(--text);
-      font-family: inherit; position: relative;
-      transition: all .18s;
+      position:relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding:14px 12px;
+      cursor:pointer; text-align:left; color:var(--text);
+      font-family:'Sora',sans-serif;
+      transition: all .2s cubic-bezier(.16,1,.3,1);
+      overflow:hidden;
     }
+    .food-card::before {
+      content:''; position:absolute; top:0;left:0;right:0; height:2px;
+      background: linear-gradient(90deg,var(--green),var(--green6));
+      opacity:0; transition:opacity .2s;
+    }
+    .food-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.4); }
+    .food-card:hover::before { opacity:1; }
     .food-card.selected {
-      background: linear-gradient(135deg, var(--green1), var(--green2));
-      border-color: var(--green3);
+      background: linear-gradient(135deg, rgba(27,67,50,0.9), rgba(8,11,18,0.95));
+      border-color: rgba(52,211,153,0.3);
     }
-    .food-card .badge {
-      display: none; position: absolute; top: 8px; right: 10px;
-      background: var(--green3); color: #fff;
-      border-radius: 20px; width: 20px; height: 20px;
-      align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700;
+    .food-card.selected::before { opacity:1; }
+    .badge {
+      display:none; position:absolute; top:8px; right:10px;
+      background: var(--green4); color:#fff;
+      border-radius:20px; width:20px; height:20px;
+      align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; font-family:'Space Mono',monospace;
     }
-    .food-card.selected .badge { display: flex; }
-    .food-icon { font-size: 24px; margin-bottom: 4px; }
-    .food-name { font-size: 13px; font-weight: 700; color: var(--text2); }
-    .food-meta { font-size: 11px; color: var(--green5); margin-top: 2px; }
+    .food-card.selected .badge { display:flex; }
+    .f-icon { font-size:22px; margin-bottom:6px; }
+    .f-name { font-size:13px; font-weight:600; color:#d8f3dc; }
+    .f-meta { font-size:10px; color:var(--green6); margin-top:3px; }
 
     /* ── SUMMARY ── */
     .summary {
-      background: linear-gradient(135deg, var(--green1), #081c15);
-      border: 1.5px solid var(--green3);
-      border-radius: 16px; padding: 18px 20px; margin-top: 20px;
-      display: none;
+      display:none;
+      background: linear-gradient(135deg, rgba(27,67,50,0.7), rgba(8,11,18,0.9));
+      border:1px solid rgba(52,211,153,0.2);
+      border-radius: var(--radius); padding:18px 20px; margin-top:20px;
     }
-    .summary.show { display: block; }
-    .summary .s-label { font-size: 11px; letter-spacing: 2px; color: var(--green4); text-transform: uppercase; margin-bottom: 14px; }
+    .summary.show { display:block; }
+    .sum-label {
+      font-family:'Space Mono',monospace;
+      font-size:9px; letter-spacing:2px; color:var(--green5);
+      text-transform:uppercase; margin-bottom:14px;
+    }
     .s-row {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 10px; padding-bottom: 10px;
-      border-bottom: 1px solid rgba(64,145,108,.2);
+      display:flex; align-items:center; gap:10px;
+      margin-bottom:10px; padding-bottom:10px;
+      border-bottom:1px solid rgba(52,211,153,0.1);
     }
-    .s-row .s-icon { font-size: 20px; }
-    .s-row .s-info { flex: 1; }
-    .s-row .s-info .n { font-size: 13px; font-weight: 600; }
-    .s-row .s-info .c { font-size: 11px; color: var(--green5); }
-    .s-btns { display: flex; gap: 6px; }
+    .s-icon { font-size:18px; }
+    .s-info { flex:1; }
+    .s-info .n { font-size:13px; font-weight:500; }
+    .s-info .c { font-size:10px; color:var(--green6); margin-top:2px; }
+    .s-btns { display:flex; gap:6px; }
     .btn-qty {
-      width: 28px; height: 28px; border-radius: 8px;
-      font-size: 16px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-family: inherit;
+      width:28px; height:28px; border-radius:8px;
+      font-size:15px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Sora',sans-serif; transition:all .15s;
     }
-    .btn-minus { background: rgba(255,80,80,.15); border: 1px solid rgba(255,80,80,.3); color: var(--red); }
-    .btn-plus  { background: rgba(64,145,108,.2); border: 1px solid rgba(64,145,108,.4); color: var(--green5); }
-    .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
-    .total-box { background: rgba(64,145,108,.15); border-radius: 12px; padding: 12px 16px; text-align: center; }
-    .total-box .num { font-size: 28px; font-weight: 800; color: var(--green5); }
-    .total-box .lbl { font-size: 11px; color: var(--green4); margin-top: 2px; }
-    .total-box:nth-child(2) .num { color: var(--green6); }
-    .bar-wrap { margin-top: 14px; }
-    .bar-header { display: flex; justify-content: space-between; font-size: 11px; color: var(--green4); margin-bottom: 6px; }
-    .bar-track  { background: rgba(255,255,255,.08); border-radius: 999px; height: 8px; overflow: hidden; }
-    .bar-fill   { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green4), var(--green5)); transition: width .4s ease; }
-    .bar-msg    { font-size: 11px; color: var(--green5); margin-top: 6px; }
+    .btn-minus { background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.25); color:var(--red); }
+    .btn-plus  { background:rgba(52,211,153,0.1);  border:1px solid rgba(52,211,153,0.25);  color:var(--green); }
+    .btn-minus:hover { background:rgba(248,113,113,0.2); }
+    .btn-plus:hover  { background:rgba(52,211,153,0.2); }
+
+    .totals { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+    .total-box {
+      background:rgba(52,211,153,0.06);
+      border:1px solid rgba(52,211,153,0.12);
+      border-radius:12px; padding:12px 16px; text-align:center;
+    }
+    .total-box .num { font-size:26px; font-weight:700; color:var(--green6); font-family:'Space Mono',monospace; }
+    .total-box .lbl { font-size:10px; color:var(--green5); margin-top:3px; }
+    .total-box:nth-child(2) .num { color:var(--green7); }
+
+    .bar-wrap { margin-top:14px; }
+    .bar-header { display:flex; justify-content:space-between; font-size:10px; color:var(--green5); margin-bottom:6px; font-family:'Space Mono',monospace; }
+    .bar-track  { background:rgba(255,255,255,0.07); border-radius:999px; height:6px; overflow:hidden; }
+    .bar-fill   { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--green5),var(--green6)); transition:width .4s ease; }
+    .bar-msg    { font-size:10px; color:var(--green6); margin-top:6px; }
+
     .btn-clear {
-      margin-top: 14px; width: 100%;
-      background: transparent; border: 1px solid rgba(255,100,100,.3);
-      border-radius: 10px; color: var(--red); font-size: 13px;
-      padding: 10px; cursor: pointer; font-family: inherit;
+      margin-top:14px; width:100%;
+      background:transparent;
+      border:1px solid rgba(248,113,113,0.2);
+      border-radius:10px; color:var(--red); font-size:12px;
+      padding:10px; cursor:pointer; font-family:'Sora',sans-serif;
+      transition: background .15s;
     }
+    .btn-clear:hover { background:rgba(248,113,113,0.08); }
 
     /* ── NOTE ── */
     .note {
-      margin-top: 20px; padding: 12px 16px;
-      background: rgba(255,255,255,.03);
-      border-radius: 10px; font-size: 11px;
-      color: var(--green4); line-height: 1.7;
+      margin-top:20px; padding:12px 16px;
+      background:rgba(255,255,255,0.02);
+      border:1px solid var(--border);
+      border-radius:10px; font-size:10px;
+      color:var(--text3); line-height:1.8;
     }
   </style>
 </head>
 <body>
 
+<div class="glow-blob glow-1"></div>
+<div class="glow-blob glow-2"></div>
+
 <header>
   <div class="inner">
     <div>
-      <div class="label">Portion Estimator</div>
+      <div class="h-label">Portion Estimator</div>
       <h1>กะปริมาณอาหาร</h1>
       <p>เลือกเมนูที่คุณกิน แล้วระบบจะประมาณแคลอรี่ให้</p>
     </div>
@@ -192,20 +255,17 @@
 
 <div class="content">
 
-  <!-- Guide -->
   <button class="guide-toggle" id="guideBtn">
     <span>👋 ไกด์กะปริมาณด้วยมือ</span>
     <span id="guideArrow">▼</span>
   </button>
   <div class="guide-panel" id="guidePanel"></div>
 
-  <!-- Foods -->
-  <div class="section-label">เมนูที่กิน</div>
+  <div class="sec-label">เมนูที่กิน</div>
   <div class="food-grid" id="foodGrid"></div>
 
-  <!-- Summary -->
   <div class="summary" id="summary">
-    <div class="s-label">สรุปมื้อนี้</div>
+    <div class="sum-label">สรุปมื้อนี้</div>
     <div id="sRows"></div>
     <div class="totals">
       <div class="total-box"><div class="num" id="totCal">0</div><div class="lbl">แคลอรี่รวม (kcal)</div></div>
@@ -230,137 +290,129 @@
 </div>
 
 <script>
-// ── State ──────────────────────────────────────────────
-let foods = [];
-let selected = {}; // { foodName: qty }
+// ── Inline data (ย้ายมาจาก foods.json เพื่อให้ทำงานได้บนทุก host) ──
+// หากต้องการเพิ่มเมนู ให้แก้ที่ FOODS_DATA ด้านล่างได้เลย
+const FOODS_DATA = {
+  portionGuide: [
+    { emoji:"✊", thai:"1 กำมือ",     grams:"~80–100g",  food:"ข้าว / พาสต้า / ธัญพืช",   cal:"~130–160 kcal" },
+    { emoji:"🖐", thai:"1 ฝ่ามือ",    grams:"~85–100g",  food:"เนื้อสัตว์ / ปลา / ไก่",    cal:"~150–200 kcal" },
+    { emoji:"👍", thai:"1 นิ้วโป้ง",  grams:"~15–20g",   food:"ไขมัน / เนย / เนยถั่ว",     cal:"~90–120 kcal"  },
+    { emoji:"🤜", thai:"1 กำปั้น",    grams:"~150–200g", food:"ผัก / สลัด",                cal:"~30–50 kcal"   },
+    { emoji:"🥄", thai:"1 ช้อนโต๊ะ", grams:"~15ml",     food:"น้ำมัน / ซอส / น้ำสลัด",   cal:"~100–120 kcal" },
+    { emoji:"🍽", thai:"1 จาน",       grams:"~400–600g", food:"ข้าวกับกับข้าว 1 มื้อ",     cal:"~450–650 kcal" }
+  ],
+  foods: [
+    { name:"ข้าวสวย",    unit:"ทัพพี",        grams:100, cal:130, icon:"🍚", category:"คาร์บ"      },
+    { name:"ข้าวผัด",    unit:"ทัพพี",        grams:150, cal:230, icon:"🍳", category:"คาร์บ"      },
+    { name:"ก๋วยเตี๋ยว", unit:"ชาม",          grams:350, cal:320, icon:"🍜", category:"คาร์บ"      },
+    { name:"ไข่ต้ม",     unit:"ฟอง",          grams:50,  cal:78,  icon:"🥚", category:"โปรตีน"     },
+    { name:"อกไก่นึ่ง",  unit:"ชิ้น (กำมือ)", grams:100, cal:165, icon:"🍗", category:"โปรตีน"     },
+    { name:"ปลาทูนึ่ง",  unit:"ตัว",          grams:80,  cal:120, icon:"🐟", category:"โปรตีน"     },
+    { name:"ผัดผัก",     unit:"ทัพพี",        grams:100, cal:60,  icon:"🥦", category:"ผัก"        },
+    { name:"ต้มยำ",      unit:"ชาม",          grams:300, cal:200, icon:"🍲", category:"อาหารจาน"   },
+    { name:"ส้มตำ",      unit:"จาน",          grams:150, cal:130, icon:"🥗", category:"ผัก"        },
+    { name:"ข้าวมันไก่",  unit:"จาน",          grams:400, cal:580, icon:"🍱", category:"อาหารจาน"   },
+    { name:"ผลไม้รวม",   unit:"กำมือ",        grams:100, cal:60,  icon:"🍓", category:"ของหวาน"    },
+    { name:"น้ำอัดลม",   unit:"กระป๋อง",      grams:330, cal:140, icon:"🥤", category:"เครื่องดื่ม" }
+  ]
+};
 
-// ── Load data ──────────────────────────────────────────
-async function loadData() {
-  try {
-    const res  = await fetch('./foods.json');
-    const data = await res.json();
-    foods = data.foods;
-    renderGuide(data.portionGuide);
-    renderFoods();
-  } catch (e) {
-    console.error('Cannot load foods.json', e);
-  }
-}
+// ── State ──
+const foods = FOODS_DATA.foods;
+let selected = {};
 
-// ── Guide ──────────────────────────────────────────────
-function renderGuide(guide) {
+// ── Guide ──
+(function renderGuide() {
   const panel = document.getElementById('guidePanel');
-  panel.innerHTML = guide.map(g => `
+  panel.innerHTML = FOODS_DATA.portionGuide.map(g => `
     <div class="guide-row">
       <span class="guide-emoji">${g.emoji}</span>
       <div class="guide-info">
-        <div class="title">${g.thai}</div>
-        <div class="sub">${g.food}</div>
+        <div class="t">${g.thai}</div>
+        <div class="s">${g.food}</div>
       </div>
       <div class="guide-nums">
         <div class="g">${g.grams}</div>
         <div class="c">${g.cal}</div>
       </div>
-    </div>
-  `).join('');
-}
+    </div>`).join('');
+})();
 
 document.getElementById('guideBtn').addEventListener('click', () => {
-  const btn   = document.getElementById('guideBtn');
-  const panel = document.getElementById('guidePanel');
-  const arrow = document.getElementById('guideArrow');
-  btn.classList.toggle('open');
-  panel.classList.toggle('open');
-  arrow.textContent = panel.classList.contains('open') ? '▲' : '▼';
+  document.getElementById('guideBtn').classList.toggle('open');
+  document.getElementById('guidePanel').classList.toggle('open');
+  document.getElementById('guideArrow').textContent =
+    document.getElementById('guidePanel').classList.contains('open') ? '▲' : '▼';
 });
 
-// ── Foods grid ─────────────────────────────────────────
+// ── Foods ──
 function renderFoods() {
-  const grid = document.getElementById('foodGrid');
-  grid.innerHTML = foods.map(f => `
+  document.getElementById('foodGrid').innerHTML = foods.map(f => `
     <button class="food-card ${selected[f.name] ? 'selected' : ''}"
             onclick="toggleFood('${f.name}')">
       <div class="badge">${selected[f.name] || ''}</div>
-      <div class="food-icon">${f.icon}</div>
-      <div class="food-name">${f.name}</div>
-      <div class="food-meta">${f.unit} · ${f.cal} kcal</div>
-    </button>
-  `).join('');
+      <div class="f-icon">${f.icon}</div>
+      <div class="f-name">${f.name}</div>
+      <div class="f-meta">${f.unit} · ${f.cal} kcal</div>
+    </button>`).join('');
 }
 
-// ── Toggle food ────────────────────────────────────────
 function toggleFood(name) {
   selected[name] = (selected[name] || 0) + 1;
-  renderFoods();
-  renderSummary();
+  renderFoods(); renderSummary();
 }
 
 function changeQty(name, delta) {
-  if (!selected[name]) return;
-  selected[name] += delta;
+  selected[name] = (selected[name] || 0) + delta;
   if (selected[name] <= 0) delete selected[name];
-  renderFoods();
-  renderSummary();
+  renderFoods(); renderSummary();
 }
 
-// ── Summary ────────────────────────────────────────────
+// ── Summary ──
 function renderSummary() {
   const keys = Object.keys(selected);
-  const summaryEl = document.getElementById('summary');
+  const el = document.getElementById('summary');
+  if (!keys.length) { el.classList.remove('show'); return; }
+  el.classList.add('show');
 
-  if (keys.length === 0) {
-    summaryEl.classList.remove('show');
-    return;
-  }
-  summaryEl.classList.add('show');
-
-  let totalCal = 0, totalGrams = 0;
-
-  const rows = keys.map(name => {
-    const f   = foods.find(x => x.name === name);
-    const qty = selected[name];
-    totalCal   += f.cal   * qty;
-    totalGrams += f.grams * qty;
-    return `
-      <div class="s-row">
-        <span class="s-icon">${f.icon}</span>
-        <div class="s-info">
-          <div class="n">${f.name}</div>
-          <div class="c">${f.unit} × ${qty} = ${f.cal * qty} kcal</div>
-        </div>
-        <div class="s-btns">
-          <button class="btn-qty btn-minus" onclick="changeQty('${name}',-1)">−</button>
-          <button class="btn-qty btn-plus"  onclick="changeQty('${name}',1)">+</button>
-        </div>
-      </div>`;
+  let cal = 0, grams = 0;
+  document.getElementById('sRows').innerHTML = keys.map(name => {
+    const f = foods.find(x => x.name === name);
+    const q = selected[name];
+    cal += f.cal * q; grams += f.grams * q;
+    return `<div class="s-row">
+      <span class="s-icon">${f.icon}</span>
+      <div class="s-info">
+        <div class="n">${f.name}</div>
+        <div class="c">${f.unit} × ${q} = ${f.cal * q} kcal</div>
+      </div>
+      <div class="s-btns">
+        <button class="btn-qty btn-minus" onclick="changeQty('${name}',-1)">−</button>
+        <button class="btn-qty btn-plus"  onclick="changeQty('${name}', 1)">+</button>
+      </div>
+    </div>`;
   }).join('');
 
-  document.getElementById('sRows').innerHTML    = rows;
-  document.getElementById('totCal').textContent  = totalCal;
-  document.getElementById('totGrams').textContent = totalGrams;
-
-  const pct = Math.min(100, Math.round(totalCal / 20));
-  document.getElementById('barPct').textContent  = pct + '%';
-  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('totCal').textContent   = cal;
+  document.getElementById('totGrams').textContent  = grams;
+  const pct = Math.min(100, Math.round(cal / 20));
+  document.getElementById('barPct').textContent    = pct + '%';
+  document.getElementById('barFill').style.width   = pct + '%';
   document.getElementById('barFill').style.background =
-    totalCal > 2000
-      ? 'linear-gradient(90deg,#f4a261,#e76f51)'
-      : 'linear-gradient(90deg,#52b788,#74c69d)';
-  document.getElementById('barMsg').textContent  =
-    totalCal <= 400  ? '🟢 มื้อเบา เหมาะสำหรับอาหารว่าง' :
-    totalCal <= 800  ? '🟢 ปริมาณพอดีสำหรับ 1 มื้อ' :
-    totalCal <= 1200 ? '🟡 มื้อหนัก แต่ยังอยู่ในเกณฑ์ปกติ' :
-                       '🔴 แคลอรี่สูงมาก ควรปรับลด';
+    cal > 2000 ? 'linear-gradient(90deg,#f4a261,#e76f51)'
+               : 'linear-gradient(90deg,#52b788,#74c69d)';
+  document.getElementById('barMsg').textContent =
+    cal <= 400  ? '🟢 มื้อเบา เหมาะสำหรับอาหารว่าง' :
+    cal <= 800  ? '🟢 ปริมาณพอดีสำหรับ 1 มื้อ' :
+    cal <= 1200 ? '🟡 มื้อหนัก แต่ยังอยู่ในเกณฑ์ปกติ' :
+                  '🔴 แคลอรี่สูงมาก ควรปรับลด';
 }
 
 document.getElementById('clearBtn').addEventListener('click', () => {
-  selected = {};
-  renderFoods();
-  renderSummary();
+  selected = {}; renderFoods(); renderSummary();
 });
 
-// ── Init ───────────────────────────────────────────────
-loadData();
+renderFoods();
 </script>
 </body>
 </html>
