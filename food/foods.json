@@ -1,0 +1,24 @@
+{
+  "portionGuide": [
+    { "emoji": "✊", "thai": "1 กำมือ",      "grams": "~80–100g",   "food": "ข้าว / พาสต้า / ธัญพืช",      "cal": "~130–160 kcal" },
+    { "emoji": "🖐", "thai": "1 ฝ่ามือ",     "grams": "~85–100g",   "food": "เนื้อสัตว์ / ปลา / ไก่",       "cal": "~150–200 kcal" },
+    { "emoji": "👍", "thai": "1 นิ้วโป้ง",   "grams": "~15–20g",    "food": "ไขมัน / เนย / เนยถั่ว",        "cal": "~90–120 kcal"  },
+    { "emoji": "🤜", "thai": "1 กำปั้น",     "grams": "~150–200g",  "food": "ผัก / สลัด",                   "cal": "~30–50 kcal"   },
+    { "emoji": "🥄", "thai": "1 ช้อนโต๊ะ",  "grams": "~15ml",      "food": "น้ำมัน / ซอส / น้ำสลัด",      "cal": "~100–120 kcal" },
+    { "emoji": "🍽", "thai": "1 จาน",        "grams": "~400–600g",  "food": "ข้าวกับกับข้าว 1 มื้อ",        "cal": "~450–650 kcal" }
+  ],
+  "foods": [
+    { "name": "ข้าวสวย",    "unit": "ทัพพี",         "grams": 100, "cal": 130, "icon": "🍚", "category": "คาร์บ"    },
+    { "name": "ข้าวผัด",    "unit": "ทัพพี",         "grams": 150, "cal": 230, "icon": "🍳", "category": "คาร์บ"    },
+    { "name": "ก๋วยเตี๋ยว", "unit": "ชาม",           "grams": 350, "cal": 320, "icon": "🍜", "category": "คาร์บ"    },
+    { "name": "ไข่ต้ม",     "unit": "ฟอง",           "grams": 50,  "cal": 78,  "icon": "🥚", "category": "โปรตีน"   },
+    { "name": "อกไก่นึ่ง",  "unit": "ชิ้น (กำมือ)",  "grams": 100, "cal": 165, "icon": "🍗", "category": "โปรตีน"   },
+    { "name": "ปลาทูนึ่ง",  "unit": "ตัว",           "grams": 80,  "cal": 120, "icon": "🐟", "category": "โปรตีน"   },
+    { "name": "ผัดผัก",     "unit": "ทัพพี",         "grams": 100, "cal": 60,  "icon": "🥦", "category": "ผัก"      },
+    { "name": "ต้มยำ",      "unit": "ชาม",           "grams": 300, "cal": 200, "icon": "🍲", "category": "อาหารจาน" },
+    { "name": "ส้มตำ",      "unit": "จาน",           "grams": 150, "cal": 130, "icon": "🥗", "category": "ผัก"      },
+    { "name": "ข้าวมันไก่",  "unit": "จาน",           "grams": 400, "cal": 580, "icon": "🍱", "category": "อาหารจาน" },
+    { "name": "ผลไม้รวม",   "unit": "กำมือ",         "grams": 100, "cal": 60,  "icon": "🍓", "category": "ของหวาน"  },
+    { "name": "น้ำอัดลม",   "unit": "กระป๋อง",       "grams": 330, "cal": 140, "icon": "🥤", "category": "เครื่องดื่ม" }
+  ]
+}
