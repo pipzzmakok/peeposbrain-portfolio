@@ -38,7 +38,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ── NOISE OVERLAY ── */
 body::before {
   content: '';
   position: fixed; inset: 0;
@@ -46,7 +45,6 @@ body::before {
   pointer-events: none; z-index: 0; opacity: .35;
 }
 
-/* ── GRID BG ── */
 body::after {
   content: '';
   position: fixed; inset: 0;
@@ -57,7 +55,6 @@ body::after {
   pointer-events: none; z-index: 0;
 }
 
-/* ── GLOW ── */
 .glow-blob {
   position: fixed;
   border-radius: 50%;
@@ -70,7 +67,6 @@ body::after {
 .glow-2 { width:400px;height:400px;bottom:-100px;left:-80px;background:rgba(52,211,153,0.05);animation-delay:3s; }
 @keyframes blobFloat { from{transform:translate(0,0) scale(1)} to{transform:translate(20px,15px) scale(1.05)} }
 
-/* ── LAYOUT ── */
 .wrap {
   position: relative; z-index: 1;
   max-width: 680px;
@@ -79,7 +75,6 @@ body::after {
   padding-bottom: max(40px, env(safe-area-inset-bottom));
 }
 
-/* ── HEADER ── */
 header {
   padding: 52px 0 40px;
   text-align: center;
@@ -98,9 +93,7 @@ header {
   width: 100%; height: 100%;
   object-fit: cover; border-radius: 50%;
 }
-.avatar-placeholder {
-  font-size: 1.8rem;
-}
+.avatar-placeholder { font-size: 1.8rem; }
 .status-dot {
   position: absolute; bottom: 4px; right: 4px;
   width: 12px; height: 12px;
@@ -142,7 +135,6 @@ header {
   letter-spacing: .04em;
 }
 
-/* ── DIVIDER ── */
 .divider {
   display: flex; align-items: center; gap: 12px;
   margin: 8px 0 24px;
@@ -156,7 +148,6 @@ header {
   color: var(--text3);
 }
 
-/* ── APP GRID ── */
 .app-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -164,7 +155,6 @@ header {
   margin-bottom: 24px;
 }
 
-/* ── APP CARD ── */
 .app-card {
   position: relative;
   background: var(--surface);
@@ -196,7 +186,6 @@ header {
 }
 .app-card:hover::before, .app-card:active::before { opacity: 1; }
 
-/* Card glow on hover */
 .app-card::after {
   content: '';
   position: absolute; inset: 0;
@@ -237,12 +226,10 @@ header {
 }
 .app-card:hover .card-arrow { color: var(--card-accent-color, var(--blue)); transform: translate(2px,-2px); }
 
-/* ── WIDE CARD ── */
 .app-card.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; padding: 16px 20px; }
 .app-card.wide .card-arrow { position: static; margin-left: auto; }
 .app-card.wide .card-body { display: flex; flex-direction: column; gap: 2px; }
 
-/* ── SOON CARD ── */
 .app-card.soon {
   opacity: .45;
   pointer-events: none;
@@ -260,7 +247,6 @@ header {
   border: 1px solid var(--border);
 }
 
-/* ── FOOTER ── */
 footer {
   padding: 32px 0 20px;
   text-align: center;
@@ -289,7 +275,6 @@ footer {
 }
 .footer-link:hover { border-color: var(--border2); color: var(--text); }
 
-/* ── SKELETON LOADER ── */
 .skeleton {
   background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
   background-size: 200% 100%;
@@ -298,7 +283,6 @@ footer {
 }
 @keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
 
-/* ── FADE IN ── */
 .fade-in {
   opacity: 0; transform: translateY(16px);
   animation: fadeUp .5s ease forwards;
@@ -312,7 +296,6 @@ footer {
 .fade-in:nth-child(6){animation-delay:.3s}
 .fade-in:nth-child(7){animation-delay:.35s}
 
-/* ── MOBILE ── */
 @media(max-width:420px){
   .app-grid { grid-template-columns: 1fr; }
   .app-card.wide { flex-direction: column; align-items: flex-start; }
@@ -393,16 +376,16 @@ footer {
       <div class="card-arrow">↗</div>
     </a>
 
-    <!-- Coming Soon placeholder -->
-    <div class="app-card soon fade-in"
-      style="--card-icon-bg:rgba(255,255,255,0.04)">
-      <div class="card-badge">Soon</div>
-      <div class="card-icon">🔬</div>
+    <!-- Food Portion — replaces Soon -->
+    <a href="./food/" class="app-card fade-in"
+      style="--card-accent:linear-gradient(90deg,#34d399,#6ee7b7);--card-icon-bg:rgba(52,211,153,0.1);--card-glow:rgba(52,211,153,0.05);--card-accent-color:#34d399">
+      <div class="card-icon">🍽</div>
       <div class="card-body">
-        <div class="card-name">Next App</div>
-        <div class="card-desc">Something new is brewing</div>
+        <div class="card-name">Portion</div>
+        <div class="card-desc">กะปริมาณ & แคลอรี่อาหาร</div>
       </div>
-    </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
     <!-- Admin — wide -->
     <a href="./admin/" class="app-card wide fade-in"
@@ -430,7 +413,6 @@ footer {
 </div>
 
 <script>
-// Load avatar from Supabase portfolio config
 (async () => {
   try {
     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
@@ -444,7 +426,7 @@ footer {
     data.forEach(r => cfg[r.key] = r.value);
     if (cfg.avatar_url) {
       const ring = document.getElementById('avatarRing');
-      ring.innerHTML = `<img src="${cfg.avatar_url}" alt="${cfg.name||''}"><div class="status-dot"></div>`;
+      ring.innerHTML = `<img src="${cfg.avatar_url}" alt="${cfg.name||''}" /><div class="status-dot"></div>`;
     }
   } catch(e) { /* silent fail */ }
 })();
