@@ -1,418 +1,572 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>กะปริมาณอาหาร — kittisap.me</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>กะปริมาณอาหาร — kittisap.me</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e1117; --surface:#111827; --surface2:#1a2236; --surface3:#222d42;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#f0f4ff; --text2:#8896b0; --text3:#3d4f6e;
+  --blue:#4a9eff; --blue-dim:rgba(74,158,255,0.1);
+  --green:#34d399; --green-dim:rgba(52,211,153,0.1);
+  --red:#f87171; --red-dim:rgba(248,113,113,0.1);
+  --yellow:#f9c74f; --yellow-dim:rgba(249,199,79,0.1);
+  --orange:#fb923c; --orange-dim:rgba(251,146,60,0.1);
+  --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.1);
+  --radius:14px; --radius-sm:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(74,158,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(74,158,255,0.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
 
-    :root {
-      --bg:      #080b12;
-      --bg2:     #0d1120;
-      --surface: #111827;
-      --sur2:    #1a2236;
-      --border:  rgba(255,255,255,0.07);
-      --border2: rgba(255,255,255,0.12);
-      --text:    #f0f4ff;
-      --text2:   #8896b0;
-      --text3:   #3d4f6e;
-      --green:   #34d399;
-      --green2:  #1b4332;
-      --green3:  #2d6a4f;
-      --green4:  #40916c;
-      --green5:  #52b788;
-      --green6:  #74c69d;
-      --green7:  #95d5b2;
-      --red:     #f87171;
-      --orange:  #f4a261;
-      --radius:  16px;
-    }
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(14,17,23,0.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between}
+.topbar-brand{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--green);letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.brand-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.back-btn{font-size:.7rem;color:var(--text3);text-decoration:none;font-family:'Space Mono',monospace;transition:color .2s;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.back-btn:hover{color:var(--blue);border-color:var(--blue)}
+.btn-sm{font-family:'Space Mono',monospace;font-size:.65rem;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-sm:hover{background:var(--surface2);color:var(--text)}
+.btn-sm.active{background:var(--green-dim);border-color:rgba(52,211,153,.3);color:var(--green)}
 
-    body {
-      font-family: 'Sora', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-      padding-bottom: 60px;
-    }
+/* ── WRAP ── */
+.wrap{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:20px 16px;padding-bottom:max(40px,env(safe-area-inset-bottom))}
 
-    /* grid bg */
-    body::after {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(52,211,153,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(52,211,153,0.025) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none; z-index: 0;
-    }
+/* ── TDEE CARD ── */
+.tdee-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;cursor:pointer;transition:border-color .2s;position:relative}
+.tdee-card:hover{border-color:var(--border2)}
+.tdee-card-header{display:flex;align-items:center;justify-content:space-between}
+.tdee-card-title{font-size:.78rem;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;letter-spacing:.04em;text-transform:uppercase}
+.tdee-card-arrow{font-size:.7rem;color:var(--text3);transition:transform .2s}
+.tdee-card.open .tdee-card-arrow{transform:rotate(180deg)}
+.tdee-nums{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.tdee-num{display:flex;flex-direction:column;gap:2px}
+.tdee-num-val{font-family:'Space Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--green)}
+.tdee-num-label{font-size:.62rem;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.tdee-progress{margin-top:12px}
+.tdee-progress-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:6px}
+.tdee-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--blue));transition:width .5s}
+.tdee-progress-label{font-size:.68rem;color:var(--text3);font-family:'Space Mono',monospace;display:flex;justify-content:space-between}
+.tdee-setup{padding:16px 0 0;border-top:1px solid var(--border);margin-top:14px;display:none}
+.tdee-card.open .tdee-setup{display:block}
+.tdee-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.f-group{display:flex;flex-direction:column;gap:4px}
+.f-label{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+.f-input{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:.84rem;outline:none;transition:border-color .2s;width:100%}
+.f-input:focus{border-color:var(--green)}
+select.f-input option{background:var(--surface2)}
+.f-group.full{grid-column:1/-1}
+.btn-calc{width:100%;padding:10px;background:var(--green);color:#0e1117;font-family:'Space Mono',monospace;font-size:.75rem;font-weight:700;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;letter-spacing:.03em}
+.btn-calc:hover{background:#4ade90}
 
-    /* glow blobs */
-    .glow-blob { position:fixed; border-radius:50%; filter:blur(120px); pointer-events:none; z-index:0; }
-    .glow-1 { width:400px;height:400px;top:-100px;right:-80px;background:rgba(52,211,153,0.06); }
-    .glow-2 { width:300px;height:300px;bottom:-80px;left:-60px;background:rgba(74,158,255,0.04); }
+/* ── MEAL SUMMARY ── */
+.meal-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.meal-summary.empty{display:none}
+.meal-total{font-family:'Space Mono',monospace}
+.meal-total-val{font-size:1.4rem;font-weight:700;color:var(--yellow)}
+.meal-total-label{font-size:.62rem;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.meal-items{flex:1;display:flex;flex-wrap:wrap;gap:6px}
+.meal-chip{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:.72rem;color:var(--text2);display:flex;align-items:center;gap:6px}
+.meal-chip-remove{color:var(--red);cursor:pointer;font-size:.8rem;line-height:1}
+.meal-chip-remove:hover{color:#ff9999}
+.btn-clear{font-family:'Space Mono',monospace;font-size:.62rem;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid rgba(248,113,113,.2);background:var(--red-dim);color:var(--red);cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-clear:hover{background:var(--red);color:#0e1117}
 
-    /* ── HEADER ── */
-    header {
-      position: sticky; top: 0; z-index: 10;
-      background: linear-gradient(135deg, rgba(27,67,50,0.95), rgba(8,11,18,0.98));
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(52,211,153,0.15);
-      padding: 18px 24px 14px;
-      box-shadow: 0 4px 30px rgba(0,0,0,.6);
-    }
-    header .inner {
-      max-width: 640px; margin: 0 auto;
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-    }
-    .h-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px; letter-spacing: 3px;
-      color: var(--green6); text-transform: uppercase; margin-bottom: 4px;
-    }
-    header h1 { font-size: 22px; font-weight: 700; color: #d8f3dc; line-height: 1.2; }
-    header p  { font-size: 11px; color: var(--green7); margin-top: 4px; opacity: .8; }
+/* ── SEARCH & FILTER ── */
+.search-row{display:flex;gap:8px;margin-bottom:12px}
+.search-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:.84rem;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--blue)}
+.search-input::placeholder{color:var(--text3)}
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-btn{font-family:'Space Mono',monospace;font-size:.62rem;padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.filter-btn.active{background:var(--blue-dim);color:var(--blue);border-color:rgba(74,158,255,.3)}
+.filter-btn:hover:not(.active){background:var(--surface2);color:var(--text2)}
 
-    a.nav-portal {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px; color: rgba(255,255,255,.45);
-      text-decoration: none; letter-spacing: .04em;
-      border: 1px solid rgba(255,255,255,.15);
-      padding: 5px 12px; border-radius: 100px;
-      white-space: nowrap; margin-top: 4px;
-      transition: color .2s, border-color .2s;
-      flex-shrink: 0;
-    }
-    a.nav-portal:hover { color:#fff; border-color:rgba(255,255,255,.5); }
+/* ── FOOD GRID ── */
+.food-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.food-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.food-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--cat-color,var(--blue));opacity:0;transition:opacity .2s}
+.food-card:hover,.food-card.selected{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.food-card:hover::before,.food-card.selected::before{opacity:1}
+.food-card.selected{background:var(--surface2)}
+.food-card.hidden{display:none}
+.food-icon{font-size:1.6rem;margin-bottom:8px;display:block;line-height:1}
+.food-name{font-size:.84rem;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.3}
+.food-meta{font-size:.68rem;color:var(--text3);margin-bottom:6px;font-family:'Space Mono',monospace}
+.food-cal{font-size:.78rem;font-weight:700;font-family:'Space Mono',monospace;color:var(--yellow)}
+.food-cat-badge{position:absolute;top:10px;right:10px;font-size:.52rem;font-family:'Space Mono',monospace;padding:2px 6px;border-radius:100px;background:var(--surface3);color:var(--text3);letter-spacing:.06em}
+.food-qty-row{display:flex;align-items:center;gap:6px;margin-top:8px}
+.qty-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--surface3);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .2s}
+.qty-btn:hover{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.qty-val{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--text);min-width:16px;text-align:center;font-weight:700}
 
-    /* ── CONTENT ── */
-    .content { position:relative; z-index:1; max-width:640px; margin:0 auto; padding:0 16px; }
+/* ── PAGING ── */
+.paging{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:24px}
+.page-btn{font-family:'Space Mono',monospace;font-size:.68rem;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all .2s;min-width:34px}
+.page-btn:hover:not(:disabled){background:var(--surface2);color:var(--text)}
+.page-btn.active{background:var(--blue-dim);border-color:rgba(74,158,255,.3);color:var(--blue)}
+.page-btn:disabled{opacity:.3;cursor:not-allowed}
+.page-info{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--text3)}
 
-    /* ── GUIDE ── */
-    .guide-toggle {
-      margin-top: 18px; width: 100%;
-      background: rgba(52,211,153,0.06);
-      border: 1px solid rgba(52,211,153,0.2);
-      border-radius: 12px; color: var(--green6);
-      padding: 12px 16px; font-size: 13px;
-      cursor: pointer; display: flex; align-items: center;
-      justify-content: space-between;
-      font-family: 'Sora', sans-serif;
-      transition: background .2s;
-    }
-    .guide-toggle.open { background: rgba(27,67,50,0.6); }
-    .guide-panel { display:none; margin-top:8px; gap:8px; flex-direction:column; }
-    .guide-panel.open { display:flex; }
-    .guide-row {
-      display:flex; align-items:center; gap:14px;
-      background: rgba(255,255,255,0.03);
-      border:1px solid var(--border);
-      border-radius:10px; padding:10px 14px;
-    }
-    .guide-emoji { font-size:24px; flex-shrink:0; }
-    .guide-info { flex:1; }
-    .guide-info .t { font-size:13px; font-weight:600; color:#d8f3dc; }
-    .guide-info .s { font-size:11px; color:var(--green7); margin-top:2px; }
-    .guide-nums { text-align:right; }
-    .guide-nums .g { font-size:12px; color:var(--green6); font-weight:600; }
-    .guide-nums .c { font-size:10px; color:var(--green5); }
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:2rem;margin-bottom:10px;opacity:.5}
 
-    /* ── SECTION LABEL ── */
-    .sec-label {
-      font-family:'Space Mono',monospace;
-      font-size:9px; letter-spacing:2px;
-      color:var(--green5); text-transform:uppercase;
-      margin:22px 0 10px;
-    }
+/* ── TOAST ── */
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 18px;font-family:'Space Mono',monospace;font-size:.7rem;color:var(--text);z-index:200;opacity:0;transition:all .25s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-    /* ── FOOD GRID ── */
-    .food-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    @media(max-width:400px){ .food-grid { grid-template-columns:1fr; } }
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:32px;gap:10px;color:var(--text3);font-family:'Space Mono',monospace;font-size:.72rem}
+.spinner{width:18px;height:18px;border:2px solid var(--surface3);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    .food-card {
-      position:relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding:14px 12px;
-      cursor:pointer; text-align:left; color:var(--text);
-      font-family:'Sora',sans-serif;
-      transition: all .2s cubic-bezier(.16,1,.3,1);
-      overflow:hidden;
-    }
-    .food-card::before {
-      content:''; position:absolute; top:0;left:0;right:0; height:2px;
-      background: linear-gradient(90deg,var(--green),var(--green6));
-      opacity:0; transition:opacity .2s;
-    }
-    .food-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.4); }
-    .food-card:hover::before { opacity:1; }
-    .food-card.selected {
-      background: linear-gradient(135deg, rgba(27,67,50,0.9), rgba(8,11,18,0.95));
-      border-color: rgba(52,211,153,0.3);
-    }
-    .food-card.selected::before { opacity:1; }
-    .badge {
-      display:none; position:absolute; top:8px; right:10px;
-      background: var(--green4); color:#fff;
-      border-radius:20px; width:20px; height:20px;
-      align-items:center; justify-content:center;
-      font-size:11px; font-weight:700; font-family:'Space Mono',monospace;
-    }
-    .food-card.selected .badge { display:flex; }
-    .f-icon { font-size:22px; margin-bottom:6px; }
-    .f-name { font-size:13px; font-weight:600; color:#d8f3dc; }
-    .f-meta { font-size:10px; color:var(--green6); margin-top:3px; }
-
-    /* ── SUMMARY ── */
-    .summary {
-      display:none;
-      background: linear-gradient(135deg, rgba(27,67,50,0.7), rgba(8,11,18,0.9));
-      border:1px solid rgba(52,211,153,0.2);
-      border-radius: var(--radius); padding:18px 20px; margin-top:20px;
-    }
-    .summary.show { display:block; }
-    .sum-label {
-      font-family:'Space Mono',monospace;
-      font-size:9px; letter-spacing:2px; color:var(--green5);
-      text-transform:uppercase; margin-bottom:14px;
-    }
-    .s-row {
-      display:flex; align-items:center; gap:10px;
-      margin-bottom:10px; padding-bottom:10px;
-      border-bottom:1px solid rgba(52,211,153,0.1);
-    }
-    .s-icon { font-size:18px; }
-    .s-info { flex:1; }
-    .s-info .n { font-size:13px; font-weight:500; }
-    .s-info .c { font-size:10px; color:var(--green6); margin-top:2px; }
-    .s-btns { display:flex; gap:6px; }
-    .btn-qty {
-      width:28px; height:28px; border-radius:8px;
-      font-size:15px; cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Sora',sans-serif; transition:all .15s;
-    }
-    .btn-minus { background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.25); color:var(--red); }
-    .btn-plus  { background:rgba(52,211,153,0.1);  border:1px solid rgba(52,211,153,0.25);  color:var(--green); }
-    .btn-minus:hover { background:rgba(248,113,113,0.2); }
-    .btn-plus:hover  { background:rgba(52,211,153,0.2); }
-
-    .totals { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
-    .total-box {
-      background:rgba(52,211,153,0.06);
-      border:1px solid rgba(52,211,153,0.12);
-      border-radius:12px; padding:12px 16px; text-align:center;
-    }
-    .total-box .num { font-size:26px; font-weight:700; color:var(--green6); font-family:'Space Mono',monospace; }
-    .total-box .lbl { font-size:10px; color:var(--green5); margin-top:3px; }
-    .total-box:nth-child(2) .num { color:var(--green7); }
-
-    .bar-wrap { margin-top:14px; }
-    .bar-header { display:flex; justify-content:space-between; font-size:10px; color:var(--green5); margin-bottom:6px; font-family:'Space Mono',monospace; }
-    .bar-track  { background:rgba(255,255,255,0.07); border-radius:999px; height:6px; overflow:hidden; }
-    .bar-fill   { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--green5),var(--green6)); transition:width .4s ease; }
-    .bar-msg    { font-size:10px; color:var(--green6); margin-top:6px; }
-
-    .btn-clear {
-      margin-top:14px; width:100%;
-      background:transparent;
-      border:1px solid rgba(248,113,113,0.2);
-      border-radius:10px; color:var(--red); font-size:12px;
-      padding:10px; cursor:pointer; font-family:'Sora',sans-serif;
-      transition: background .15s;
-    }
-    .btn-clear:hover { background:rgba(248,113,113,0.08); }
-
-    /* ── NOTE ── */
-    .note {
-      margin-top:20px; padding:12px 16px;
-      background:rgba(255,255,255,0.02);
-      border:1px solid var(--border);
-      border-radius:10px; font-size:10px;
-      color:var(--text3); line-height:1.8;
-    }
-  </style>
+@media(max-width:480px){
+  .food-grid{grid-template-columns:1fr 1fr}
+  .tdee-form-grid{grid-template-columns:1fr}
+  .f-group.full{grid-column:1}
+}
+</style>
 </head>
 <body>
 
-<div class="glow-blob glow-1"></div>
-<div class="glow-blob glow-2"></div>
-
-<header>
-  <div class="inner">
-    <div>
-      <div class="h-label">Portion Estimator</div>
-      <h1>กะปริมาณอาหาร</h1>
-      <p>เลือกเมนูที่คุณกิน แล้วระบบจะประมาณแคลอรี่ให้</p>
-    </div>
-    <a href="../" class="nav-portal">← Portal</a>
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-dot"></div>
+    กะปริมาณอาหาร
+  </div>
+  <div class="topbar-right">
+    <a href="../admin/" class="btn-sm">⚙ Admin</a>
+    <a href="../" class="back-btn">← Portal</a>
   </div>
 </header>
 
-<div class="content">
+<div class="wrap">
 
-  <button class="guide-toggle" id="guideBtn">
-    <span>👋 ไกด์กะปริมาณด้วยมือ</span>
-    <span id="guideArrow">▼</span>
-  </button>
-  <div class="guide-panel" id="guidePanel"></div>
-
-  <div class="sec-label">เมนูที่กิน</div>
-  <div class="food-grid" id="foodGrid"></div>
-
-  <div class="summary" id="summary">
-    <div class="sum-label">สรุปมื้อนี้</div>
-    <div id="sRows"></div>
-    <div class="totals">
-      <div class="total-box"><div class="num" id="totCal">0</div><div class="lbl">แคลอรี่รวม (kcal)</div></div>
-      <div class="total-box"><div class="num" id="totGrams">0</div><div class="lbl">น้ำหนักโดยประมาณ (g)</div></div>
+  <!-- TDEE CARD -->
+  <div class="tdee-card" id="tdeeCard" onclick="toggleTDEE()">
+    <div class="tdee-card-header">
+      <div class="tdee-card-title">🔥 พลังงานที่ต้องการ / วัน</div>
+      <span class="tdee-card-arrow">▾</span>
     </div>
-    <div class="bar-wrap">
-      <div class="bar-header">
-        <span>เป้าหมาย 2,000 kcal/วัน</span>
-        <span id="barPct">0%</span>
+    <div class="tdee-nums" id="tdeeNums">
+      <div style="font-size:.78rem;color:var(--text3);padding:4px 0">กดเพื่อตั้งค่าข้อมูลสุขภาพ →</div>
+    </div>
+    <div class="tdee-setup">
+      <div class="tdee-form-grid">
+        <div class="f-group">
+          <label class="f-label">เพศ</label>
+          <select id="td_gender" class="f-input">
+            <option value="male">ชาย</option>
+            <option value="female">หญิง</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label class="f-label">อายุ (ปี)</label>
+          <input type="number" id="td_age" class="f-input" placeholder="25" min="10" max="100">
+        </div>
+        <div class="f-group">
+          <label class="f-label">น้ำหนัก (กก.)</label>
+          <input type="number" id="td_weight" class="f-input" placeholder="65" min="30" max="200">
+        </div>
+        <div class="f-group">
+          <label class="f-label">ส่วนสูง (ซม.)</label>
+          <input type="number" id="td_height" class="f-input" placeholder="170" min="100" max="250">
+        </div>
+        <div class="f-group full">
+          <label class="f-label">ระดับกิจกรรม</label>
+          <select id="td_activity" class="f-input">
+            <option value="1.2">นั่งทำงาน ไม่ค่อยออกกำลัง</option>
+            <option value="1.375">ออกกำลังกายเบา 1–3 วัน/สัปดาห์</option>
+            <option value="1.55" selected>ออกกำลังกายปานกลาง 3–5 วัน/สัปดาห์</option>
+            <option value="1.725">ออกกำลังกายหนัก 6–7 วัน/สัปดาห์</option>
+            <option value="1.9">งานหนักมาก / นักกีฬา</option>
+          </select>
+        </div>
+        <div class="f-group full">
+          <label class="f-label">เป้าหมาย</label>
+          <select id="td_goal" class="f-input">
+            <option value="0.8">ลดน้ำหนัก (–20%)</option>
+            <option value="0.9">ลดน้ำหนักเล็กน้อย (–10%)</option>
+            <option value="1.0" selected>รักษาน้ำหนัก</option>
+            <option value="1.1">เพิ่มน้ำหนักเล็กน้อย (+10%)</option>
+            <option value="1.2">เพิ่มน้ำหนัก (+20%)</option>
+          </select>
+        </div>
       </div>
-      <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
-      <div class="bar-msg" id="barMsg"></div>
+      <button class="btn-calc" onclick="event.stopPropagation();calcTDEE()">คำนวณ</button>
     </div>
-    <button class="btn-clear" id="clearBtn">ล้างรายการทั้งหมด</button>
   </div>
 
-  <div class="note">
-    ⚠️ ค่าแคลอรี่เป็นการประมาณการเท่านั้น อาจแตกต่างตามการปรุง วัตถุดิบ และปริมาณจริง
-    ควรปรึกษานักโภชนาการสำหรับการควบคุมน้ำหนักอย่างจริงจัง
+  <!-- MEAL SUMMARY -->
+  <div class="meal-summary" id="mealSummary">
+    <div class="meal-total">
+      <div class="meal-total-val" id="mealTotalVal">0</div>
+      <div class="meal-total-label">kcal วันนี้</div>
+    </div>
+    <div class="meal-items" id="mealItems"></div>
+    <button class="btn-clear" onclick="clearMeal()">ล้าง</button>
   </div>
+
+  <!-- SEARCH & FILTER -->
+  <div class="search-row">
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 ค้นหาเมนู..." oninput="onSearch()">
+  </div>
+  <div class="filter-row" id="filterRow">
+    <button class="filter-btn active" onclick="setFilter('all',this)">ทั้งหมด</button>
+    <button class="filter-btn" onclick="setFilter('ข้าว/แป้ง',this)">🍚 ข้าว/แป้ง</button>
+    <button class="filter-btn" onclick="setFilter('เส้น',this)">🍜 เส้น</button>
+    <button class="filter-btn" onclick="setFilter('กับข้าว',this)">🍲 กับข้าว</button>
+    <button class="filter-btn" onclick="setFilter('โปรตีน',this)">🥩 โปรตีน</button>
+    <button class="filter-btn" onclick="setFilter('ของทานเล่น',this)">🥟 ของทานเล่น</button>
+    <button class="filter-btn" onclick="setFilter('ผลไม้/ของหวาน',this)">🍓 ผลไม้/ของหวาน</button>
+    <button class="filter-btn" onclick="setFilter('เครื่องดื่ม',this)">🥤 เครื่องดื่ม</button>
+  </div>
+
+  <!-- FOOD GRID -->
+  <div class="food-grid" id="foodGrid">
+    <div class="loading"><div class="spinner"></div> กำลังโหลด...</div>
+  </div>
+
+  <!-- PAGING -->
+  <div class="paging" id="paging"></div>
 
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-// ── Inline data (ย้ายมาจาก foods.json เพื่อให้ทำงานได้บนทุก host) ──
-// หากต้องการเพิ่มเมนู ให้แก้ที่ FOODS_DATA ด้านล่างได้เลย
-const FOODS_DATA = {
-  portionGuide: [
-    { emoji:"✊", thai:"1 กำมือ",     grams:"~80–100g",  food:"ข้าว / พาสต้า / ธัญพืช",   cal:"~130–160 kcal" },
-    { emoji:"🖐", thai:"1 ฝ่ามือ",    grams:"~85–100g",  food:"เนื้อสัตว์ / ปลา / ไก่",    cal:"~150–200 kcal" },
-    { emoji:"👍", thai:"1 นิ้วโป้ง",  grams:"~15–20g",   food:"ไขมัน / เนย / เนยถั่ว",     cal:"~90–120 kcal"  },
-    { emoji:"🤜", thai:"1 กำปั้น",    grams:"~150–200g", food:"ผัก / สลัด",                cal:"~30–50 kcal"   },
-    { emoji:"🥄", thai:"1 ช้อนโต๊ะ", grams:"~15ml",     food:"น้ำมัน / ซอส / น้ำสลัด",   cal:"~100–120 kcal" },
-    { emoji:"🍽", thai:"1 จาน",       grams:"~400–600g", food:"ข้าวกับกับข้าว 1 มื้อ",     cal:"~450–650 kcal" }
-  ],
-  foods: [
-    { name:"ข้าวสวย",    unit:"ทัพพี",        grams:100, cal:130, icon:"🍚", category:"คาร์บ"      },
-    { name:"ข้าวผัด",    unit:"ทัพพี",        grams:150, cal:230, icon:"🍳", category:"คาร์บ"      },
-    { name:"ก๋วยเตี๋ยว", unit:"ชาม",          grams:350, cal:320, icon:"🍜", category:"คาร์บ"      },
-    { name:"ไข่ต้ม",     unit:"ฟอง",          grams:50,  cal:78,  icon:"🥚", category:"โปรตีน"     },
-    { name:"อกไก่นึ่ง",  unit:"ชิ้น (กำมือ)", grams:100, cal:165, icon:"🍗", category:"โปรตีน"     },
-    { name:"ปลาทูนึ่ง",  unit:"ตัว",          grams:80,  cal:120, icon:"🐟", category:"โปรตีน"     },
-    { name:"ผัดผัก",     unit:"ทัพพี",        grams:100, cal:60,  icon:"🥦", category:"ผัก"        },
-    { name:"ต้มยำ",      unit:"ชาม",          grams:300, cal:200, icon:"🍲", category:"อาหารจาน"   },
-    { name:"ส้มตำ",      unit:"จาน",          grams:150, cal:130, icon:"🥗", category:"ผัก"        },
-    { name:"ข้าวมันไก่",  unit:"จาน",          grams:400, cal:580, icon:"🍱", category:"อาหารจาน"   },
-    { name:"ผลไม้รวม",   unit:"กำมือ",        grams:100, cal:60,  icon:"🍓", category:"ของหวาน"    },
-    { name:"น้ำอัดลม",   unit:"กระป๋อง",      grams:330, cal:140, icon:"🥤", category:"เครื่องดื่ม" }
-  ]
+const SUPABASE_URL = 'https://qquxotxrwnzxyutzlwim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdXhvdHhyd256eHl1dHpsd2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNzU5MDEsImV4cCI6MjA5NDY1MTkwMX0.vEu40LwSAhWhu1T4Mm_uFeWD3YRjptg0q0VshnYUXHM';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const PER_PAGE = 10;
+const CAT_COLORS = {
+  'ข้าว/แป้ง': 'var(--yellow)',
+  'เส้น': 'var(--orange)',
+  'กับข้าว': 'var(--green)',
+  'โปรตีน': 'var(--blue)',
+  'ของทานเล่น': 'var(--purple)',
+  'ผลไม้/ของหวาน': 'var(--red)',
+  'เครื่องดื่ม': '#22d3ee',
 };
 
-// ── State ──
-const foods = FOODS_DATA.foods;
-let selected = {};
+let allFoods = [];
+let filtered = [];
+let meal = {};
+let currentFilter = 'all';
+let currentPage = 1;
+let searchQ = '';
+let tdeeData = null;
 
-// ── Guide ──
-(function renderGuide() {
-  const panel = document.getElementById('guidePanel');
-  panel.innerHTML = FOODS_DATA.portionGuide.map(g => `
-    <div class="guide-row">
-      <span class="guide-emoji">${g.emoji}</span>
-      <div class="guide-info">
-        <div class="t">${g.thai}</div>
-        <div class="s">${g.food}</div>
-      </div>
-      <div class="guide-nums">
-        <div class="g">${g.grams}</div>
-        <div class="c">${g.cal}</div>
-      </div>
-    </div>`).join('');
-})();
+// ── BUILT-IN FOOD DATABASE (60 items) ──
+const BUILTIN_FOODS = [
+  // ข้าว/แป้ง
+  {id:'b1',icon:'🍚',name:'ข้าวสวย',unit:'ทัพพี (100g)',grams:100,cal:130,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b2',icon:'🍚',name:'ข้าวเหนียว',unit:'ทัพพี (100g)',grams:100,cal:175,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b3',icon:'🍚',name:'ข้าวกล้อง',unit:'ทัพพี (100g)',grams:100,cal:112,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b4',icon:'🍳',name:'ข้าวผัด',unit:'จาน (200g)',grams:200,cal:290,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b5',icon:'🍱',name:'ข้าวมันไก่',unit:'จาน (400g)',grams:400,cal:580,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b6',icon:'🍛',name:'ข้าวแกงกะหรี่',unit:'จาน (350g)',grams:350,cal:520,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b7',icon:'🍘',name:'ขนมปังขาว',unit:'แผ่น (30g)',grams:30,cal:80,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b8',icon:'🥖',name:'ขนมปังโฮลวีต',unit:'แผ่น (30g)',grams:30,cal:70,cat:'ข้าว/แป้ง',visible:true},
+  {id:'b9',icon:'🥞',name:'โจ๊กข้าว',unit:'ชาม (300g)',grams:300,cal:180,cat:'ข้าว/แป้ง',visible:true},
+  // เส้น
+  {id:'b10',icon:'🍜',name:'ก๋วยเตี๋ยวต้มยำ',unit:'ชาม (350g)',grams:350,cal:350,cat:'เส้น',visible:true},
+  {id:'b11',icon:'🍜',name:'ก๋วยเตี๋ยวเนื้อ',unit:'ชาม (350g)',grams:350,cal:420,cat:'เส้น',visible:true},
+  {id:'b12',icon:'🍝',name:'ผัดไทย',unit:'จาน (200g)',grams:200,cal:400,cat:'เส้น',visible:true},
+  {id:'b13',icon:'🍜',name:'บะหมี่หมูแดง',unit:'ชาม (300g)',grams:300,cal:450,cat:'เส้น',visible:true},
+  {id:'b14',icon:'🥡',name:'ราดหน้า',unit:'จาน (300g)',grams:300,cal:480,cat:'เส้น',visible:true},
+  {id:'b15',icon:'🍜',name:'ผัดซีอิ๊ว',unit:'จาน (250g)',grams:250,cal:380,cat:'เส้น',visible:true},
+  {id:'b16',icon:'🍜',name:'ก๋วยจั๊บ',unit:'ชาม (300g)',grams:300,cal:320,cat:'เส้น',visible:true},
+  // กับข้าว
+  {id:'b17',icon:'🍲',name:'ต้มยำกุ้ง',unit:'ชาม (300g)',grams:300,cal:200,cat:'กับข้าว',visible:true},
+  {id:'b18',icon:'🥘',name:'แกงเขียวหวาน',unit:'ทัพพี (150g)',grams:150,cal:220,cat:'กับข้าว',visible:true},
+  {id:'b19',icon:'🥘',name:'แกงมัสมั่น',unit:'ทัพพี (150g)',grams:150,cal:280,cat:'กับข้าว',visible:true},
+  {id:'b20',icon:'🥗',name:'ส้มตำ',unit:'จาน (150g)',grams:150,cal:130,cat:'กับข้าว',visible:true},
+  {id:'b21',icon:'🥦',name:'ผัดผักรวม',unit:'ทัพพี (100g)',grams:100,cal:60,cat:'กับข้าว',visible:true},
+  {id:'b22',icon:'🥬',name:'ผัดคะน้าหมูกรอบ',unit:'จาน (150g)',grams:150,cal:250,cat:'กับข้าว',visible:true},
+  {id:'b23',icon:'🍳',name:'ไข่เจียว',unit:'1 ฟอง (60g)',grams:60,cal:130,cat:'กับข้าว',visible:true},
+  {id:'b24',icon:'🥚',name:'ไข่ต้ม',unit:'1 ฟอง (50g)',grams:50,cal:78,cat:'กับข้าว',visible:true},
+  {id:'b25',icon:'🍳',name:'ไข่ดาว',unit:'1 ฟอง (60g)',grams:60,cal:100,cat:'กับข้าว',visible:true},
+  {id:'b26',icon:'🥘',name:'พะแนง',unit:'ทัพพี (150g)',grams:150,cal:260,cat:'กับข้าว',visible:true},
+  {id:'b27',icon:'🍲',name:'ต้มข่าไก่',unit:'ชาม (250g)',grams:250,cal:240,cat:'กับข้าว',visible:true},
+  // โปรตีน
+  {id:'b28',icon:'🍗',name:'อกไก่นึ่ง',unit:'ชิ้น (100g)',grams:100,cal:165,cat:'โปรตีน',visible:true},
+  {id:'b29',icon:'🍗',name:'ไก่ย่าง',unit:'ชิ้น (100g)',grams:100,cal:190,cat:'โปรตีน',visible:true},
+  {id:'b30',icon:'🐟',name:'ปลาทูนึ่ง',unit:'ตัว (80g)',grams:80,cal:120,cat:'โปรตีน',visible:true},
+  {id:'b31',icon:'🐟',name:'ปลาแซลมอนย่าง',unit:'ชิ้น (100g)',grams:100,cal:208,cat:'โปรตีน',visible:true},
+  {id:'b32',icon:'🦐',name:'กุ้งต้ม',unit:'10 ตัว (100g)',grams:100,cal:99,cat:'โปรตีน',visible:true},
+  {id:'b33',icon:'🥩',name:'เนื้อวัวย่าง',unit:'ชิ้น (100g)',grams:100,cal:250,cat:'โปรตีน',visible:true},
+  {id:'b34',icon:'🥓',name:'หมูย่าง',unit:'ชิ้น (100g)',grams:100,cal:297,cat:'โปรตีน',visible:true},
+  {id:'b35',icon:'🫘',name:'เต้าหู้ขาวแข็ง',unit:'100g',grams:100,cal:76,cat:'โปรตีน',visible:true},
+  // ของทานเล่น
+  {id:'b36',icon:'🥟',name:'ทอดมัน (1 ชิ้น)',unit:'ชิ้น (25g)',grams:25,cal:65,cat:'ของทานเล่น',visible:true},
+  {id:'b37',icon:'🥟',name:'ปอเปี๊ยะทอด',unit:'1 ชิ้น (30g)',grams:30,cal:90,cat:'ของทานเล่น',visible:true},
+  {id:'b38',icon:'🍢',name:'ไก่ทอด KFC สไตล์',unit:'1 ชิ้น (100g)',grams:100,cal:290,cat:'ของทานเล่น',visible:true},
+  {id:'b39',icon:'🍕',name:'พิซซ่า',unit:'1 ชิ้น (100g)',grams:100,cal:266,cat:'ของทานเล่น',visible:true},
+  {id:'b40',icon:'🌮',name:'เกี๊ยวซ่า (3 ชิ้น)',unit:'3 ชิ้น (60g)',grams:60,cal:150,cat:'ของทานเล่น',visible:true},
+  {id:'b41',icon:'🍿',name:'ข้าวโพดคั่ว',unit:'ถ้วย (30g)',grams:30,cal:110,cat:'ของทานเล่น',visible:true},
+  {id:'b42',icon:'🍫',name:'ช็อกโกแลต',unit:'1 แท่ง (40g)',grams:40,cal:210,cat:'ของทานเล่น',visible:true},
+  {id:'b43',icon:'🥜',name:'ถั่วอบ',unit:'กำมือ (30g)',grams:30,cal:175,cat:'ของทานเล่น',visible:true},
+  // ผลไม้/ของหวาน
+  {id:'b44',icon:'🍌',name:'กล้วยหอม',unit:'1 ลูก (120g)',grams:120,cal:110,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b45',icon:'🍊',name:'ส้ม',unit:'1 ลูก (130g)',grams:130,cal:62,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b46',icon:'🍇',name:'องุ่น',unit:'กำมือ (100g)',grams:100,cal:69,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b47',icon:'🍓',name:'สตรอว์เบอร์รี',unit:'กำมือ (100g)',grams:100,cal:33,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b48',icon:'🍉',name:'แตงโม',unit:'2 ชิ้น (200g)',grams:200,cal:60,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b49',icon:'🥭',name:'มะม่วง',unit:'1 ลูก (200g)',grams:200,cal:130,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b50',icon:'🍮',name:'ขนมถ้วย',unit:'1 ถ้วย (80g)',grams:80,cal:150,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b51',icon:'🍦',name:'ไอศกรีมวานิลา',unit:'1 สกู๊ป (65g)',grams:65,cal:137,cat:'ผลไม้/ของหวาน',visible:true},
+  {id:'b52',icon:'🧁',name:'บัวลอย',unit:'ชาม (150g)',grams:150,cal:200,cat:'ผลไม้/ของหวาน',visible:true},
+  // เครื่องดื่ม
+  {id:'b53',icon:'🥛',name:'นมวัวสด',unit:'แก้ว (240ml)',grams:240,cal:150,cat:'เครื่องดื่ม',visible:true},
+  {id:'b54',icon:'🥛',name:'นมถั่วเหลือง',unit:'กล่อง (200ml)',grams:200,cal:100,cat:'เครื่องดื่ม',visible:true},
+  {id:'b55',icon:'🧋',name:'ชานมไข่มุก',unit:'แก้ว (500ml)',grams:500,cal:350,cat:'เครื่องดื่ม',visible:true},
+  {id:'b56',icon:'☕',name:'กาแฟดำ',unit:'แก้ว (240ml)',grams:240,cal:5,cat:'เครื่องดื่ม',visible:true},
+  {id:'b57',icon:'🥤',name:'น้ำอัดลม',unit:'กระป๋อง (330ml)',grams:330,cal:140,cat:'เครื่องดื่ม',visible:true},
+  {id:'b58',icon:'🧃',name:'น้ำส้มคั้น',unit:'แก้ว (200ml)',grams:200,cal:90,cat:'เครื่องดื่ม',visible:true},
+  {id:'b59',icon:'💧',name:'น้ำเปล่า',unit:'แก้ว (240ml)',grams:240,cal:0,cat:'เครื่องดื่ม',visible:true},
+  {id:'b60',icon:'🍵',name:'ชาเขียว (ไม่หวาน)',unit:'แก้ว (240ml)',grams:240,cal:2,cat:'เครื่องดื่ม',visible:true},
+];
 
-document.getElementById('guideBtn').addEventListener('click', () => {
-  document.getElementById('guideBtn').classList.toggle('open');
-  document.getElementById('guidePanel').classList.toggle('open');
-  document.getElementById('guideArrow').textContent =
-    document.getElementById('guidePanel').classList.contains('open') ? '▲' : '▼';
-});
-
-// ── Foods ──
-function renderFoods() {
-  document.getElementById('foodGrid').innerHTML = foods.map(f => `
-    <button class="food-card ${selected[f.name] ? 'selected' : ''}"
-            onclick="toggleFood('${f.name}')">
-      <div class="badge">${selected[f.name] || ''}</div>
-      <div class="f-icon">${f.icon}</div>
-      <div class="f-name">${f.name}</div>
-      <div class="f-meta">${f.unit} · ${f.cal} kcal</div>
-    </button>`).join('');
+// ── INIT ──
+async function init() {
+  loadProfile();
+  await loadFoods();
+  renderMeal();
 }
 
-function toggleFood(name) {
-  selected[name] = (selected[name] || 0) + 1;
-  renderFoods(); renderSummary();
+// ── FOODS: merge builtin + supabase custom ──
+async function loadFoods() {
+  let dbFoods = [];
+  try {
+    const { data } = await db.from('food_items').select('*').order('created_at');
+    dbFoods = (data || []).map(r => ({
+      id: r.id, icon: r.icon||'🍽', name: r.name, unit: r.unit,
+      grams: r.grams, cal: r.cal, cat: r.category, visible: r.visible !== false
+    }));
+  } catch(e) { /* no table yet, use builtin only */ }
+
+  // Load visibility overrides from portfolio_config
+  let vis = {};
+  try {
+    const { data } = await db.from('portfolio_config').select('value').eq('key','food_visibility').single();
+    if(data?.value) vis = JSON.parse(data.value);
+  } catch(e) {}
+
+  allFoods = [
+    ...BUILTIN_FOODS.map(f => ({ ...f, visible: vis[f.id] !== undefined ? vis[f.id] : f.visible })),
+    ...dbFoods
+  ];
+  applyFilter();
 }
 
-function changeQty(name, delta) {
-  selected[name] = (selected[name] || 0) + delta;
-  if (selected[name] <= 0) delete selected[name];
-  renderFoods(); renderSummary();
+// ── FILTER & SEARCH ──
+function setFilter(cat, btn) {
+  currentFilter = cat;
+  currentPage = 1;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
 }
 
-// ── Summary ──
-function renderSummary() {
-  const keys = Object.keys(selected);
-  const el = document.getElementById('summary');
-  if (!keys.length) { el.classList.remove('show'); return; }
-  el.classList.add('show');
+function onSearch() {
+  searchQ = document.getElementById('searchInput').value.toLowerCase().trim();
+  currentPage = 1;
+  applyFilter();
+}
 
-  let cal = 0, grams = 0;
-  document.getElementById('sRows').innerHTML = keys.map(name => {
-    const f = foods.find(x => x.name === name);
-    const q = selected[name];
-    cal += f.cal * q; grams += f.grams * q;
-    return `<div class="s-row">
-      <span class="s-icon">${f.icon}</span>
-      <div class="s-info">
-        <div class="n">${f.name}</div>
-        <div class="c">${f.unit} × ${q} = ${f.cal * q} kcal</div>
-      </div>
-      <div class="s-btns">
-        <button class="btn-qty btn-minus" onclick="changeQty('${name}',-1)">−</button>
-        <button class="btn-qty btn-plus"  onclick="changeQty('${name}', 1)">+</button>
-      </div>
+function applyFilter() {
+  filtered = allFoods.filter(f => {
+    if(!f.visible) return false;
+    if(currentFilter !== 'all' && f.cat !== currentFilter) return false;
+    if(searchQ && !f.name.toLowerCase().includes(searchQ)) return false;
+    return true;
+  });
+  renderGrid();
+}
+
+// ── RENDER GRID ──
+function renderGrid() {
+  const grid = document.getElementById('foodGrid');
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if(currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PER_PAGE;
+  const page = filtered.slice(start, start + PER_PAGE);
+
+  if(!page.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>ไม่พบเมนูที่ค้นหา</div></div>';
+    renderPaging(0, 1);
+    return;
+  }
+
+  grid.innerHTML = page.map(f => {
+    const qty = meal[f.id]?.qty || 0;
+    const color = CAT_COLORS[f.cat] || 'var(--blue)';
+    return `<div class="food-card ${qty>0?'selected':''}" style="--cat-color:${color}" onclick="addFood('${f.id}')">
+      <span class="food-cat-badge">${f.cat}</span>
+      <span class="food-icon">${f.icon}</span>
+      <div class="food-name">${f.name}</div>
+      <div class="food-meta">${f.unit}</div>
+      <div class="food-cal">${f.cal} kcal</div>
+      ${qty>0?`<div class="food-qty-row">
+        <button class="qty-btn" onclick="event.stopPropagation();removeFood('${f.id}')">−</button>
+        <span class="qty-val">${qty}</span>
+        <button class="qty-btn" onclick="event.stopPropagation();addFood('${f.id}')">+</button>
+      </div>`:''}
     </div>`;
   }).join('');
 
-  document.getElementById('totCal').textContent   = cal;
-  document.getElementById('totGrams').textContent  = grams;
-  const pct = Math.min(100, Math.round(cal / 20));
-  document.getElementById('barPct').textContent    = pct + '%';
-  document.getElementById('barFill').style.width   = pct + '%';
-  document.getElementById('barFill').style.background =
-    cal > 2000 ? 'linear-gradient(90deg,#f4a261,#e76f51)'
-               : 'linear-gradient(90deg,#52b788,#74c69d)';
-  document.getElementById('barMsg').textContent =
-    cal <= 400  ? '🟢 มื้อเบา เหมาะสำหรับอาหารว่าง' :
-    cal <= 800  ? '🟢 ปริมาณพอดีสำหรับ 1 มื้อ' :
-    cal <= 1200 ? '🟡 มื้อหนัก แต่ยังอยู่ในเกณฑ์ปกติ' :
-                  '🔴 แคลอรี่สูงมาก ควรปรับลด';
+  renderPaging(total, totalPages);
 }
 
-document.getElementById('clearBtn').addEventListener('click', () => {
-  selected = {}; renderFoods(); renderSummary();
-});
+function renderPaging(total, totalPages) {
+  const pg = document.getElementById('paging');
+  if(totalPages <= 1){ pg.innerHTML=''; return; }
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for(let i=1;i<=totalPages;i++){
+    if(totalPages>5 && i>2 && i<totalPages-1 && Math.abs(i-currentPage)>1){
+      if(i===3||i===totalPages-2) html+='<span class="page-info">…</span>';
+      continue;
+    }
+    html+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  html+=`<span class="page-info">${(currentPage-1)*PER_PAGE+1}–${Math.min(currentPage*PER_PAGE,total)} / ${total}</span>`;
+  pg.innerHTML = html;
+}
 
-renderFoods();
+function goPage(p){ currentPage=p; renderGrid(); window.scrollTo({top:200,behavior:'smooth'}); }
+
+// ── MEAL LOG ──
+function addFood(id) {
+  const f = allFoods.find(x=>x.id===id);
+  if(!f) return;
+  if(!meal[id]) meal[id] = { ...f, qty: 0 };
+  meal[id].qty++;
+  renderMeal();
+  renderGrid();
+  showToast(`+${f.cal} kcal — ${f.name}`);
+}
+function removeFood(id) {
+  if(!meal[id]) return;
+  meal[id].qty--;
+  if(meal[id].qty<=0) delete meal[id];
+  renderMeal();
+  renderGrid();
+}
+function clearMeal(){ meal={}; renderMeal(); renderGrid(); }
+
+function renderMeal() {
+  const items = Object.values(meal);
+  const total = items.reduce((s,f)=>s+f.cal*f.qty,0);
+  const summary = document.getElementById('mealSummary');
+  document.getElementById('mealTotalVal').textContent = total.toLocaleString();
+  document.getElementById('mealItems').innerHTML = items.map(f=>`
+    <div class="meal-chip">
+      ${f.icon} ${f.name}${f.qty>1?` ×${f.qty}`:''}
+      <span class="meal-chip-remove" onclick="removeFood('${f.id}')">✕</span>
+    </div>`).join('');
+  summary.classList.toggle('empty', items.length===0);
+
+  // Update TDEE progress if available
+  if(tdeeData) {
+    const pct = Math.min(100, Math.round((total/tdeeData.target)*100));
+    const fillEl = document.getElementById('tdeeProgressFill');
+    const pctEl = document.getElementById('tdeeProgressPct');
+    const remEl = document.getElementById('tdeeRemaining');
+    if(fillEl) fillEl.style.width = pct+'%';
+    if(pctEl) pctEl.textContent = pct+'%';
+    if(remEl) remEl.textContent = Math.max(0,tdeeData.target-total).toLocaleString()+' kcal เหลือ';
+  }
+}
+
+// ── TDEE ──
+function toggleTDEE() {
+  document.getElementById('tdeeCard').classList.toggle('open');
+}
+
+function calcTDEE() {
+  const gender = document.getElementById('td_gender').value;
+  const age = parseInt(document.getElementById('td_age').value)||0;
+  const weight = parseFloat(document.getElementById('td_weight').value)||0;
+  const height = parseFloat(document.getElementById('td_height').value)||0;
+  const activity = parseFloat(document.getElementById('td_activity').value)||1.55;
+  const goal = parseFloat(document.getElementById('td_goal').value)||1.0;
+
+  if(!age||!weight||!height){ showToast('กรุณากรอกข้อมูลให้ครบ'); return; }
+
+  // Mifflin-St Jeor BMR
+  let bmr;
+  if(gender==='male') bmr = 10*weight + 6.25*height - 5*age + 5;
+  else bmr = 10*weight + 6.25*height - 5*age - 161;
+
+  const tdee = Math.round(bmr * activity);
+  const target = Math.round(tdee * goal);
+  const bmi = +(weight / ((height/100)**2)).toFixed(1);
+
+  tdeeData = { bmr:Math.round(bmr), tdee, target, bmi };
+  localStorage.setItem('food_profile', JSON.stringify({gender,age,weight,height,activity,goal}));
+  renderTDEE();
+  document.getElementById('tdeeCard').classList.add('open');
+  showToast('✓ บันทึกข้อมูลแล้ว');
+}
+
+function renderTDEE() {
+  if(!tdeeData) return;
+  const eaten = Object.values(meal).reduce((s,f)=>s+f.cal*f.qty,0);
+  const pct = Math.min(100, Math.round((eaten/tdeeData.target)*100));
+  const remaining = Math.max(0, tdeeData.target - eaten);
+  document.getElementById('tdeeNums').innerHTML = `
+    <div class="tdee-num"><div class="tdee-num-val">${tdeeData.target.toLocaleString()}</div><div class="tdee-num-label">เป้าหมาย (kcal)</div></div>
+    <div class="tdee-num"><div class="tdee-num-val" style="color:var(--yellow)">${eaten.toLocaleString()}</div><div class="tdee-num-label">กินแล้ว</div></div>
+    <div class="tdee-num"><div class="tdee-num-val" style="color:var(--blue)">${remaining.toLocaleString()}</div><div class="tdee-num-label">เหลือ</div></div>
+    <div class="tdee-num"><div class="tdee-num-val" style="color:var(--purple)">${tdeeData.bmi}</div><div class="tdee-num-label">BMI</div></div>
+    <div class="tdee-progress" style="width:100%;grid-column:1/-1">
+      <div class="tdee-progress-label"><span id="tdeeProgressPct">${pct}%</span><span id="tdeeRemaining">${remaining.toLocaleString()} kcal เหลือ</span></div>
+      <div class="tdee-progress-bar"><div class="tdee-progress-fill" id="tdeeProgressFill" style="width:${pct}%;background:${pct>100?'var(--red)':'linear-gradient(90deg,var(--green),var(--blue))'}"></div></div>
+    </div>`;
+}
+
+function loadProfile() {
+  const saved = localStorage.getItem('food_profile');
+  if(!saved) return;
+  try {
+    const p = JSON.parse(saved);
+    document.getElementById('td_gender').value = p.gender||'male';
+    document.getElementById('td_age').value = p.age||'';
+    document.getElementById('td_weight').value = p.weight||'';
+    document.getElementById('td_height').value = p.height||'';
+    document.getElementById('td_activity').value = p.activity||'1.55';
+    document.getElementById('td_goal').value = p.goal||'1.0';
+    // Auto-calc
+    const g=p.gender,age=p.age,w=p.weight,h=p.height,a=p.activity||1.55,goal=p.goal||1;
+    let bmr = g==='male'?10*w+6.25*h-5*age+5:10*w+6.25*h-5*age-161;
+    const tdee=Math.round(bmr*a), target=Math.round(tdee*goal), bmi=+(w/((h/100)**2)).toFixed(1);
+    tdeeData={bmr:Math.round(bmr),tdee,target,bmi};
+    renderTDEE();
+  } catch(e){}
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+init();
 </script>
 </body>
 </html>
