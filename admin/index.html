@@ -95,6 +95,24 @@ textarea.f-input{resize:none}
 .toast.error{background:var(--red-dim);border:1px solid rgba(248,113,113,.25);color:var(--red)}
 .toast.info{background:var(--blue-dim);border:1px solid rgba(74,158,255,.25);color:var(--blue)}
 @media(max-width:480px){.f-grid{grid-template-columns:1fr}.f-grid .full{grid-column:1}.topbar,.admin-body{padding-left:16px;padding-right:16px}}
+
+/* ── FOOD MANAGEMENT ── */
+.food-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
+.food-admin-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color .2s}
+.food-admin-item:hover{border-color:var(--border2)}
+.food-admin-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.food-admin-icon{font-size:1.1rem;flex-shrink:0}
+.food-admin-name{font-size:.76rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.food-admin-meta{font-size:.6rem;color:var(--text3);font-family:"Space Mono",monospace}
+.food-filter-row{display:flex;gap:6px;overflow-x:auto;padding:12px 14px 0;scrollbar-width:none}
+.food-filter-row::-webkit-scrollbar{display:none}
+.food-filter-btn{font-family:"Space Mono",monospace;font-size:.58rem;padding:4px 10px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.food-filter-btn.active{background:var(--blue-dim);color:var(--blue);border-color:rgba(74,158,255,.3)}
+.food-filter-btn:hover:not(.active){color:var(--text2)}
+.food-search{width:100%;margin:10px 14px 0;width:calc(100% - 28px);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text);font-family:"Sora",sans-serif;font-size:.8rem;outline:none;transition:border-color .2s}
+.food-search:focus{border-color:var(--blue)}
+.food-search::placeholder{color:var(--text3)}
+@media(max-width:480px){.food-admin-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -222,6 +240,74 @@ textarea.f-input{resize:none}
       </a>
     </div>
 
+
+    <!-- FOOD MANAGEMENT -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-title" style="--section-color:var(--green)">&#127869;&#65039; Food Management</div>
+      </div>
+
+      <!-- Add New Item -->
+      <div class="form-card" style="margin-bottom:12px">
+        <div class="form-card-header" onclick="toggleCard(this)">&#43; เพิ่มเมนูใหม่ <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="f-grid">
+            <div class="f-group"><label class="f-label">ชื่อเมนู</label><input id="fi_name" class="f-input" placeholder="e.g. ข้าวผัดกุ้ง"></div>
+            <div class="f-group"><label class="f-label">Icon (Emoji)</label><input id="fi_icon" class="f-input" placeholder="🍳" maxlength="4"></div>
+            <div class="f-group"><label class="f-label">หน่วย</label><input id="fi_unit" class="f-input" placeholder="e.g. จาน (200g)"></div>
+            <div class="f-group"><label class="f-label">น้ำหนัก (g)</label><input type="number" id="fi_grams" class="f-input" placeholder="200"></div>
+            <div class="f-group"><label class="f-label">แคลอรี่ (kcal)</label><input type="number" id="fi_cal" class="f-input" placeholder="350"></div>
+            <div class="f-group"><label class="f-label">หมวดหมู่</label>
+              <select id="fi_cat" class="f-input">
+                <option value="ข้าว/แป้ง">&#127834; ข้าว/แป้ง</option>
+                <option value="เส้น">&#127836; เส้น</option>
+                <option value="กับข้าว">&#127826; กับข้าว</option>
+                <option value="โปรตีน">&#129385; โปรตีน</option>
+                <option value="ของทานเล่น">&#129472; ของทานเล่น</option>
+                <option value="ผลไม้/ของหวาน">&#127827; ผลไม้/ของหวาน</option>
+                <option value="เครื่องดื่ม">&#129380; เครื่องดื่ม</option>
+              </select>
+            </div>
+            <div class="f-group full"><label class="f-label">หมายเหตุ</label><input id="fi_note" class="f-input" placeholder="Optional"></div>
+            <div class="f-actions"><button class="btn-primary" onclick="addFoodItem()">&#43; เพิ่มเมนู</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Builtin visibility -->
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">&#128065;&#65039; ซ่อน/แสดง เมนูพื้นฐาน (60 รายการ) <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body" style="padding:0">
+          <input class="food-search" id="foodAdminSearch" placeholder="&#128269; ค้นหาเมนู..." oninput="renderFoodAdmin()">
+          <div class="food-filter-row" id="foodAdminFilterRow">
+            <button class="food-filter-btn active" onclick="setFoodAdminFilter('all',this)">ทั้งหมด</button>
+            <button class="food-filter-btn" onclick="setFoodAdminFilter('ข้าว/แป้ง',this)">ข้าว/แป้ง</button>
+            <button class="food-filter-btn" onclick="setFoodAdminFilter('เส้น',this)">เส้น</button>
+            <button class="food-filter-btn" onclick="setFoodAdminFilter('กับข้าว',this)">กับข้าว</button>
+            <button class="food-filter-btn" onclick="setFoodAdminFilter('โปรตีน',this)">โปรตีน</button>
+            <button class="food-filter-btn" onclick="setFoodAdminFilter('ของทานเล่น',this)">ของทานเล่น</button>
+            <button class="food-filter-btn" onclick="setFoodAdminFilter('ผลไม้/ของหวาน',this)">ผลไม้/ของหวาน</button>
+            <button class="food-filter-btn" onclick="setFoodAdminFilter('เครื่องดื่ม',this)">เครื่องดื่ม</button>
+          </div>
+          <div class="food-admin-grid" id="foodAdminGrid">
+            <div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--text3);font-size:.78rem">Loading...</div>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+            <button class="btn-ghost" onclick="setAllFoodVis(false)">ซ่อนทั้งหมด</button>
+            <button class="btn-primary" onclick="saveFoodVisibility()">&#128190; บันทึก Visibility</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom items from DB -->
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">&#127381; เมนูที่เพิ่มเอง <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body" style="padding:0">
+          <div id="customFoodList"><div style="padding:16px;text-align:center;color:var(--text3);font-size:.78rem">Loading...</div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SYSTEM -->
     <div class="admin-section">
       <div class="section-header">
@@ -302,6 +388,7 @@ function changePassword(){
 }
 
 async function loadAll(){
+  loadFoodAdmin();
   const{data}=await db.from('portfolio_config').select('key,value');
   if(!data)return;
   const cfg={};
@@ -391,6 +478,152 @@ function showToast(msg,type='success'){
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
+
+
+// ── FOOD MANAGEMENT ──
+const BUILTIN_FOODS_ADMIN = [
+  {id:'b1',icon:'🍚',name:'ข้าวสวย',cat:'ข้าว/แป้ง'},{id:'b2',icon:'🍚',name:'ข้าวเหนียว',cat:'ข้าว/แป้ง'},
+  {id:'b3',icon:'🍚',name:'ข้าวกล้อง',cat:'ข้าว/แป้ง'},{id:'b4',icon:'🍳',name:'ข้าวผัด',cat:'ข้าว/แป้ง'},
+  {id:'b5',icon:'🍱',name:'ข้าวมันไก่',cat:'ข้าว/แป้ง'},{id:'b6',icon:'🍛',name:'ข้าวแกงกะหรี่',cat:'ข้าว/แป้ง'},
+  {id:'b7',icon:'🍘',name:'ขนมปังขาว',cat:'ข้าว/แป้ง'},{id:'b8',icon:'🥖',name:'ขนมปังโฮลวีต',cat:'ข้าว/แป้ง'},
+  {id:'b9',icon:'🥞',name:'โจ๊กข้าว',cat:'ข้าว/แป้ง'},
+  {id:'b10',icon:'🍜',name:'ก๋วยเตี๋ยวต้มยำ',cat:'เส้น'},{id:'b11',icon:'🍜',name:'ก๋วยเตี๋ยวเนื้อ',cat:'เส้น'},
+  {id:'b12',icon:'🍝',name:'ผัดไทย',cat:'เส้น'},{id:'b13',icon:'🍜',name:'บะหมี่หมูแดง',cat:'เส้น'},
+  {id:'b14',icon:'🥡',name:'ราดหน้า',cat:'เส้น'},{id:'b15',icon:'🍜',name:'ผัดซีอิ๊ว',cat:'เส้น'},
+  {id:'b16',icon:'🍜',name:'ก๋วยจั๊บ',cat:'เส้น'},
+  {id:'b17',icon:'🍲',name:'ต้มยำกุ้ง',cat:'กับข้าว'},{id:'b18',icon:'🥘',name:'แกงเขียวหวาน',cat:'กับข้าว'},
+  {id:'b19',icon:'🥘',name:'แกงมัสมั่น',cat:'กับข้าว'},{id:'b20',icon:'🥗',name:'ส้มตำ',cat:'กับข้าว'},
+  {id:'b21',icon:'🥦',name:'ผัดผักรวม',cat:'กับข้าว'},{id:'b22',icon:'🥬',name:'ผัดคะน้าหมูกรอบ',cat:'กับข้าว'},
+  {id:'b23',icon:'🍳',name:'ไข่เจียว',cat:'กับข้าว'},{id:'b24',icon:'🥚',name:'ไข่ต้ม',cat:'กับข้าว'},
+  {id:'b25',icon:'🍳',name:'ไข่ดาว',cat:'กับข้าว'},{id:'b26',icon:'🥘',name:'พะแนง',cat:'กับข้าว'},
+  {id:'b27',icon:'🍲',name:'ต้มข่าไก่',cat:'กับข้าว'},
+  {id:'b28',icon:'🍗',name:'อกไก่นึ่ง',cat:'โปรตีน'},{id:'b29',icon:'🍗',name:'ไก่ย่าง',cat:'โปรตีน'},
+  {id:'b30',icon:'🐟',name:'ปลาทูนึ่ง',cat:'โปรตีน'},{id:'b31',icon:'🐟',name:'ปลาแซลมอนย่าง',cat:'โปรตีน'},
+  {id:'b32',icon:'🦐',name:'กุ้งต้ม',cat:'โปรตีน'},{id:'b33',icon:'🥩',name:'เนื้อวัวย่าง',cat:'โปรตีน'},
+  {id:'b34',icon:'🥓',name:'หมูย่าง',cat:'โปรตีน'},{id:'b35',icon:'🫘',name:'เต้าหู้ขาวแข็ง',cat:'โปรตีน'},
+  {id:'b36',icon:'🥟',name:'ทอดมัน',cat:'ของทานเล่น'},{id:'b37',icon:'🥟',name:'ปอเปี๊ยะทอด',cat:'ของทานเล่น'},
+  {id:'b38',icon:'🍢',name:'ไก่ทอด',cat:'ของทานเล่น'},{id:'b39',icon:'🍕',name:'พิซซ่า',cat:'ของทานเล่น'},
+  {id:'b40',icon:'🌮',name:'เกี๊ยวซ่า',cat:'ของทานเล่น'},{id:'b41',icon:'🍿',name:'ข้าวโพดคั่ว',cat:'ของทานเล่น'},
+  {id:'b42',icon:'🍫',name:'ช็อกโกแลต',cat:'ของทานเล่น'},{id:'b43',icon:'🥜',name:'ถั่วอบ',cat:'ของทานเล่น'},
+  {id:'b44',icon:'🍌',name:'กล้วยหอม',cat:'ผลไม้/ของหวาน'},{id:'b45',icon:'🍊',name:'ส้ม',cat:'ผลไม้/ของหวาน'},
+  {id:'b46',icon:'🍇',name:'องุ่น',cat:'ผลไม้/ของหวาน'},{id:'b47',icon:'🍓',name:'สตรอว์เบอร์รี',cat:'ผลไม้/ของหวาน'},
+  {id:'b48',icon:'🍉',name:'แตงโม',cat:'ผลไม้/ของหวาน'},{id:'b49',icon:'🥭',name:'มะม่วง',cat:'ผลไม้/ของหวาน'},
+  {id:'b50',icon:'🍮',name:'ขนมถ้วย',cat:'ผลไม้/ของหวาน'},{id:'b51',icon:'🍦',name:'ไอศกรีมวานิลา',cat:'ผลไม้/ของหวาน'},
+  {id:'b52',icon:'🧁',name:'บัวลอย',cat:'ผลไม้/ของหวาน'},
+  {id:'b53',icon:'🥛',name:'นมวัวสด',cat:'เครื่องดื่ม'},{id:'b54',icon:'🥛',name:'นมถั่วเหลือง',cat:'เครื่องดื่ม'},
+  {id:'b55',icon:'🧋',name:'ชานมไข่มุก',cat:'เครื่องดื่ม'},{id:'b56',icon:'☕',name:'กาแฟดำ',cat:'เครื่องดื่ม'},
+  {id:'b57',icon:'🥤',name:'น้ำอัดลม',cat:'เครื่องดื่ม'},{id:'b58',icon:'🧃',name:'น้ำส้มคั้น',cat:'เครื่องดื่ม'},
+  {id:'b59',icon:'💧',name:'น้ำเปล่า',cat:'เครื่องดื่ม'},{id:'b60',icon:'🍵',name:'ชาเขียว',cat:'เครื่องดื่ม'},
+];
+
+let foodVis = {}; // id → bool
+let foodAdminFilter = 'all';
+
+async function loadFoodAdmin() {
+  // Load visibility from Supabase
+  try {
+    const { data } = await db.from('portfolio_config').select('value').eq('key','food_visibility').single();
+    if(data?.value) foodVis = JSON.parse(data.value);
+  } catch(e) {}
+  // Default all visible
+  BUILTIN_FOODS_ADMIN.forEach(f => { if(foodVis[f.id]===undefined) foodVis[f.id]=true; });
+  renderFoodAdmin();
+  loadCustomFoods();
+}
+
+function setFoodAdminFilter(cat, btn) {
+  foodAdminFilter = cat;
+  document.querySelectorAll('.food-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderFoodAdmin();
+}
+
+function renderFoodAdmin() {
+  const q = (document.getElementById('foodAdminSearch')?.value||'').toLowerCase();
+  const items = BUILTIN_FOODS_ADMIN.filter(f=>{
+    if(foodAdminFilter!=='all'&&f.cat!==foodAdminFilter) return false;
+    if(q&&!f.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const grid = document.getElementById('foodAdminGrid');
+  if(!items.length){ grid.innerHTML='<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--text3)">ไม่พบรายการ</div>'; return; }
+  grid.innerHTML = items.map(f=>`
+    <div class="food-admin-item">
+      <div class="food-admin-info">
+        <span class="food-admin-icon">${f.icon}</span>
+        <div>
+          <div class="food-admin-name">${f.name}</div>
+          <div class="food-admin-meta">${f.cat}</div>
+        </div>
+      </div>
+      <label class="toggle" title="${foodVis[f.id]?'แสดงอยู่':'ซ่อนอยู่'}">
+        <input type="checkbox" ${foodVis[f.id]?'checked':''} onchange="foodVis['${f.id}']=this.checked">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+}
+
+function setAllFoodVis(val) {
+  BUILTIN_FOODS_ADMIN.forEach(f=>foodVis[f.id]=val);
+  renderFoodAdmin();
+}
+
+async function saveFoodVisibility() {
+  const { error } = await db.from('portfolio_config').upsert(
+    {key:'food_visibility', value:JSON.stringify(foodVis)},{onConflict:'key'}
+  );
+  if(error) showToast('Error: '+error.message,'error');
+  else showToast('Visibility saved','success');
+}
+
+async function addFoodItem() {
+  const name = document.getElementById('fi_name').value.trim();
+  const icon = document.getElementById('fi_icon').value.trim()||'🍽';
+  const unit = document.getElementById('fi_unit').value.trim();
+  const grams = parseFloat(document.getElementById('fi_grams').value)||0;
+  const cal = parseFloat(document.getElementById('fi_cal').value)||0;
+  const category = document.getElementById('fi_cat').value;
+  const note = document.getElementById('fi_note').value.trim();
+  if(!name||!cal){ showToast('กรุณากรอกชื่อและแคลอรี่','error'); return; }
+  const {error} = await db.from('food_items').insert({name,icon,unit,grams,cal,category,note:note||null,visible:true});
+  if(error){ showToast('Error: '+error.message,'error'); return; }
+  showToast('เพิ่มเมนูแล้ว: '+name,'success');
+  ['fi_name','fi_icon','fi_unit','fi_grams','fi_cal','fi_note'].forEach(id=>document.getElementById(id).value='');
+  loadCustomFoods();
+}
+
+async function loadCustomFoods() {
+  const { data } = await db.from('food_items').select('*').order('created_at',{ascending:false});
+  const el = document.getElementById('customFoodList');
+  if(!data||!data.length){
+    el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:.78rem">ยังไม่มีเมนูที่เพิ่มเอง</div>';
+    return;
+  }
+  el.innerHTML = data.map(f=>`
+    <div class="settings-row">
+      <div class="settings-row-info">
+        <div class="settings-row-name">${f.icon||'🍽'} ${f.name}</div>
+        <div class="settings-row-sub">${f.category||'—'} · ${f.cal} kcal · ${f.unit||'—'}</div>
+      </div>
+      <div class="settings-row-actions">
+        <span class="badge ${f.visible?'badge-active':'badge-inactive'}">${f.visible?'Show':'Hidden'}</span>
+        <button class="btn-icon" onclick="toggleCustomFood('${f.id}',${f.visible})" title="Toggle">👁</button>
+        <button class="btn-icon" onclick="deleteCustomFood('${f.id}')" title="Delete" style="color:var(--red)">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleCustomFood(id, current) {
+  await db.from('food_items').update({visible:!current}).eq('id',id);
+  loadCustomFoods();
+}
+async function deleteCustomFood(id) {
+  if(!confirm('ลบเมนูนี้?')) return;
+  await db.from('food_items').delete().eq('id',id);
+  showToast('ลบแล้ว','info');
+  loadCustomFoods();
+}
+
 
 document.addEventListener('input',markDirty);
 </script>
