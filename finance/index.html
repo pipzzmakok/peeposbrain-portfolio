@@ -757,7 +757,7 @@ async function loadDashboard(){
   const remainDebt = plannedDebt - paidDebt;
 
   const allocTotal = (alloc.data||[]).reduce((s,r)=>s+toNum(r.amount),0);
-  const flexible = income - fixedTotal - plannedDebt;
+  const flexible = income - fixedTotal - remainDebt;
   const dailyFund = flexible - allocTotal;
 
   // cycle — use override if exists, else auto 26→25
