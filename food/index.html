@@ -160,7 +160,7 @@ select.f-input option{background:var(--surface2)}
     <div class="tdee-nums" id="tdeeNums">
       <div style="font-size:.78rem;color:var(--text3);padding:4px 0">กดเพื่อตั้งค่าข้อมูลสุขภาพ →</div>
     </div>
-    <div class="tdee-setup" onclick="event.stopPropagation()">
+    <div class="tdee-setup">
       <div class="tdee-form-grid">
         <div class="f-group">
           <label class="f-label">เพศ</label>
@@ -228,7 +228,6 @@ select.f-input option{background:var(--surface2)}
     <button class="filter-btn" onclick="setFilter('โปรตีน',this)">🥩 โปรตีน</button>
     <button class="filter-btn" onclick="setFilter('ของทานเล่น',this)">🥟 ของทานเล่น</button>
     <button class="filter-btn" onclick="setFilter('ผลไม้/ของหวาน',this)">🍓 ผลไม้/ของหวาน</button>
-    <button class="filter-btn" onclick="setFilter('ผัก',this)">🥦 ผัก</button>
     <button class="filter-btn" onclick="setFilter('เครื่องดื่ม',this)">🥤 เครื่องดื่ม</button>
   </div>
 
@@ -258,6 +257,7 @@ const CAT_COLORS = {
   'โปรตีน': 'var(--blue)',
   'ของทานเล่น': 'var(--purple)',
   'ผลไม้/ของหวาน': 'var(--red)',
+  'ผัก': '#4ade80',
   'เครื่องดื่ม': '#22d3ee',
 };
 
@@ -269,77 +269,6 @@ let currentPage = 1;
 let searchQ = '';
 let tdeeData = null;
 
-// ── BUILT-IN FOOD DATABASE (60 items) ──
-const BUILTIN_FOODS = [
-  // ข้าว/แป้ง
-  {id:'b1',icon:'🍚',name:'ข้าวสวย',unit:'ทัพพี (100g)',grams:100,cal:130,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b2',icon:'🍚',name:'ข้าวเหนียว',unit:'ทัพพี (100g)',grams:100,cal:175,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b3',icon:'🍚',name:'ข้าวกล้อง',unit:'ทัพพี (100g)',grams:100,cal:112,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b4',icon:'🍳',name:'ข้าวผัด',unit:'จาน (200g)',grams:200,cal:290,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b5',icon:'🍱',name:'ข้าวมันไก่',unit:'จาน (400g)',grams:400,cal:580,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b6',icon:'🍛',name:'ข้าวแกงกะหรี่',unit:'จาน (350g)',grams:350,cal:520,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b7',icon:'🍘',name:'ขนมปังขาว',unit:'แผ่น (30g)',grams:30,cal:80,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b8',icon:'🥖',name:'ขนมปังโฮลวีต',unit:'แผ่น (30g)',grams:30,cal:70,cat:'ข้าว/แป้ง',visible:true},
-  {id:'b9',icon:'🥞',name:'โจ๊กข้าว',unit:'ชาม (300g)',grams:300,cal:180,cat:'ข้าว/แป้ง',visible:true},
-  // เส้น
-  {id:'b10',icon:'🍜',name:'ก๋วยเตี๋ยวต้มยำ',unit:'ชาม (350g)',grams:350,cal:350,cat:'เส้น',visible:true},
-  {id:'b11',icon:'🍜',name:'ก๋วยเตี๋ยวเนื้อ',unit:'ชาม (350g)',grams:350,cal:420,cat:'เส้น',visible:true},
-  {id:'b12',icon:'🍝',name:'ผัดไทย',unit:'จาน (200g)',grams:200,cal:400,cat:'เส้น',visible:true},
-  {id:'b13',icon:'🍜',name:'บะหมี่หมูแดง',unit:'ชาม (300g)',grams:300,cal:450,cat:'เส้น',visible:true},
-  {id:'b14',icon:'🥡',name:'ราดหน้า',unit:'จาน (300g)',grams:300,cal:480,cat:'เส้น',visible:true},
-  {id:'b15',icon:'🍜',name:'ผัดซีอิ๊ว',unit:'จาน (250g)',grams:250,cal:380,cat:'เส้น',visible:true},
-  {id:'b16',icon:'🍜',name:'ก๋วยจั๊บ',unit:'ชาม (300g)',grams:300,cal:320,cat:'เส้น',visible:true},
-  // กับข้าว
-  {id:'b17',icon:'🍲',name:'ต้มยำกุ้ง',unit:'ชาม (300g)',grams:300,cal:200,cat:'กับข้าว',visible:true},
-  {id:'b18',icon:'🥘',name:'แกงเขียวหวาน',unit:'ทัพพี (150g)',grams:150,cal:220,cat:'กับข้าว',visible:true},
-  {id:'b19',icon:'🥘',name:'แกงมัสมั่น',unit:'ทัพพี (150g)',grams:150,cal:280,cat:'กับข้าว',visible:true},
-  {id:'b20',icon:'🥗',name:'ส้มตำ',unit:'จาน (150g)',grams:150,cal:130,cat:'กับข้าว',visible:true},
-  {id:'b21',icon:'🥦',name:'ผัดผักรวม',unit:'ทัพพี (100g)',grams:100,cal:60,cat:'กับข้าว',visible:true},
-  {id:'b22',icon:'🥬',name:'ผัดคะน้าหมูกรอบ',unit:'จาน (150g)',grams:150,cal:250,cat:'กับข้าว',visible:true},
-  {id:'b23',icon:'🍳',name:'ไข่เจียว',unit:'1 ฟอง (60g)',grams:60,cal:130,cat:'กับข้าว',visible:true},
-  {id:'b24',icon:'🥚',name:'ไข่ต้ม',unit:'1 ฟอง (50g)',grams:50,cal:78,cat:'กับข้าว',visible:true},
-  {id:'b25',icon:'🍳',name:'ไข่ดาว',unit:'1 ฟอง (60g)',grams:60,cal:100,cat:'กับข้าว',visible:true},
-  {id:'b26',icon:'🥘',name:'พะแนง',unit:'ทัพพี (150g)',grams:150,cal:260,cat:'กับข้าว',visible:true},
-  {id:'b27',icon:'🍲',name:'ต้มข่าไก่',unit:'ชาม (250g)',grams:250,cal:240,cat:'กับข้าว',visible:true},
-  // โปรตีน
-  {id:'b28',icon:'🍗',name:'อกไก่นึ่ง',unit:'ชิ้น (100g)',grams:100,cal:165,cat:'โปรตีน',visible:true},
-  {id:'b29',icon:'🍗',name:'ไก่ย่าง',unit:'ชิ้น (100g)',grams:100,cal:190,cat:'โปรตีน',visible:true},
-  {id:'b30',icon:'🐟',name:'ปลาทูนึ่ง',unit:'ตัว (80g)',grams:80,cal:120,cat:'โปรตีน',visible:true},
-  {id:'b31',icon:'🐟',name:'ปลาแซลมอนย่าง',unit:'ชิ้น (100g)',grams:100,cal:208,cat:'โปรตีน',visible:true},
-  {id:'b32',icon:'🦐',name:'กุ้งต้ม',unit:'10 ตัว (100g)',grams:100,cal:99,cat:'โปรตีน',visible:true},
-  {id:'b33',icon:'🥩',name:'เนื้อวัวย่าง',unit:'ชิ้น (100g)',grams:100,cal:250,cat:'โปรตีน',visible:true},
-  {id:'b34',icon:'🥓',name:'หมูย่าง',unit:'ชิ้น (100g)',grams:100,cal:297,cat:'โปรตีน',visible:true},
-  {id:'b35',icon:'🫘',name:'เต้าหู้ขาวแข็ง',unit:'100g',grams:100,cal:76,cat:'โปรตีน',visible:true},
-  // ของทานเล่น
-  {id:'b36',icon:'🥟',name:'ทอดมัน (1 ชิ้น)',unit:'ชิ้น (25g)',grams:25,cal:65,cat:'ของทานเล่น',visible:true},
-  {id:'b37',icon:'🥟',name:'ปอเปี๊ยะทอด',unit:'1 ชิ้น (30g)',grams:30,cal:90,cat:'ของทานเล่น',visible:true},
-  {id:'b38',icon:'🍢',name:'ไก่ทอด KFC สไตล์',unit:'1 ชิ้น (100g)',grams:100,cal:290,cat:'ของทานเล่น',visible:true},
-  {id:'b39',icon:'🍕',name:'พิซซ่า',unit:'1 ชิ้น (100g)',grams:100,cal:266,cat:'ของทานเล่น',visible:true},
-  {id:'b40',icon:'🌮',name:'เกี๊ยวซ่า (3 ชิ้น)',unit:'3 ชิ้น (60g)',grams:60,cal:150,cat:'ของทานเล่น',visible:true},
-  {id:'b41',icon:'🍿',name:'ข้าวโพดคั่ว',unit:'ถ้วย (30g)',grams:30,cal:110,cat:'ของทานเล่น',visible:true},
-  {id:'b42',icon:'🍫',name:'ช็อกโกแลต',unit:'1 แท่ง (40g)',grams:40,cal:210,cat:'ของทานเล่น',visible:true},
-  {id:'b43',icon:'🥜',name:'ถั่วอบ',unit:'กำมือ (30g)',grams:30,cal:175,cat:'ของทานเล่น',visible:true},
-  // ผลไม้/ของหวาน
-  {id:'b44',icon:'🍌',name:'กล้วยหอม',unit:'1 ลูก (120g)',grams:120,cal:110,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b45',icon:'🍊',name:'ส้ม',unit:'1 ลูก (130g)',grams:130,cal:62,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b46',icon:'🍇',name:'องุ่น',unit:'กำมือ (100g)',grams:100,cal:69,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b47',icon:'🍓',name:'สตรอว์เบอร์รี',unit:'กำมือ (100g)',grams:100,cal:33,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b48',icon:'🍉',name:'แตงโม',unit:'2 ชิ้น (200g)',grams:200,cal:60,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b49',icon:'🥭',name:'มะม่วง',unit:'1 ลูก (200g)',grams:200,cal:130,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b50',icon:'🍮',name:'ขนมถ้วย',unit:'1 ถ้วย (80g)',grams:80,cal:150,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b51',icon:'🍦',name:'ไอศกรีมวานิลา',unit:'1 สกู๊ป (65g)',grams:65,cal:137,cat:'ผลไม้/ของหวาน',visible:true},
-  {id:'b52',icon:'🧁',name:'บัวลอย',unit:'ชาม (150g)',grams:150,cal:200,cat:'ผลไม้/ของหวาน',visible:true},
-  // เครื่องดื่ม
-  {id:'b53',icon:'🥛',name:'นมวัวสด',unit:'แก้ว (240ml)',grams:240,cal:150,cat:'เครื่องดื่ม',visible:true},
-  {id:'b54',icon:'🥛',name:'นมถั่วเหลือง',unit:'กล่อง (200ml)',grams:200,cal:100,cat:'เครื่องดื่ม',visible:true},
-  {id:'b55',icon:'🧋',name:'ชานมไข่มุก',unit:'แก้ว (500ml)',grams:500,cal:350,cat:'เครื่องดื่ม',visible:true},
-  {id:'b56',icon:'☕',name:'กาแฟดำ',unit:'แก้ว (240ml)',grams:240,cal:5,cat:'เครื่องดื่ม',visible:true},
-  {id:'b57',icon:'🥤',name:'น้ำอัดลม',unit:'กระป๋อง (330ml)',grams:330,cal:140,cat:'เครื่องดื่ม',visible:true},
-  {id:'b58',icon:'🧃',name:'น้ำส้มคั้น',unit:'แก้ว (200ml)',grams:200,cal:90,cat:'เครื่องดื่ม',visible:true},
-  {id:'b59',icon:'💧',name:'น้ำเปล่า',unit:'แก้ว (240ml)',grams:240,cal:0,cat:'เครื่องดื่ม',visible:true},
-  {id:'b60',icon:'🍵',name:'ชาเขียว (ไม่หวาน)',unit:'แก้ว (240ml)',grams:240,cal:2,cat:'เครื่องดื่ม',visible:true},
-];
-
 // ── INIT ──
 async function init() {
   loadProfile();
@@ -347,28 +276,26 @@ async function init() {
   renderMeal();
 }
 
-// ── FOODS: merge builtin + supabase custom ──
+// ── FOODS: load from Supabase DB ──
 async function loadFoods() {
-  let dbFoods = [];
+  document.getElementById('foodGrid').innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spinner"></div> กำลังโหลด...</div>';
   try {
-    const { data } = await db.from('food_items').select('*').order('created_at');
-    dbFoods = (data || []).map(r => ({
-      id: r.id, icon: r.icon||'🍽', name: r.name, unit: r.unit,
-      grams: r.grams, cal: r.cal, cat: r.category, visible: r.visible !== false
+    const { data, error } = await db.from('food_items').select('*').eq('visible', true).order('category').order('name');
+    if(error) throw error;
+    allFoods = (data || []).map(r => ({
+      id: r.id,
+      icon: r.icon || '🍽',
+      name: r.name,
+      unit: r.unit || '',
+      grams: r.grams || 0,
+      cal: r.cal || 0,
+      cat: r.category || 'อื่นๆ',
+      visible: true
     }));
-  } catch(e) { /* no table yet, use builtin only */ }
-
-  // Load visibility overrides from portfolio_config
-  let vis = {};
-  try {
-    const { data } = await db.from('portfolio_config').select('value').eq('key','food_visibility').single();
-    if(data?.value) vis = JSON.parse(data.value);
-  } catch(e) {}
-
-  allFoods = [
-    ...BUILTIN_FOODS.map(f => ({ ...f, visible: vis[f.id] !== undefined ? vis[f.id] : f.visible })),
-    ...dbFoods
-  ];
+  } catch(e) {
+    console.error('loadFoods error:', e);
+    allFoods = [];
+  }
   applyFilter();
 }
 
