@@ -438,10 +438,15 @@ select.form-input option{background:var(--surface2)}
       </div>
 
       <!-- Filter -->
-      <div class="filter-bar" id="debtFilters">
-        <button class="filter-btn active" onclick="filterDebt('all',this)">All</button>
-        <button class="filter-btn" onclick="filterDebt('unpaid',this)">Unpaid</button>
-        <button class="filter-btn" onclick="filterDebt('paid',this)">Paid</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <div class="filter-bar" id="debtFilters" style="margin-bottom:0;flex-wrap:nowrap">
+          <button class="filter-btn active" onclick="filterDebt('all',this)">All</button>
+          <button class="filter-btn" onclick="filterDebt('unpaid',this)">Unpaid</button>
+          <button class="filter-btn" onclick="filterDebt('paid',this)">Paid</button>
+        </div>
+        <select id="debtCardFilter" class="form-input" style="width:auto;font-size:.72rem;padding:5px 10px;font-family:'Space Mono',monospace" onchange="setDebtCardFilter(this.value)">
+          <option value="all">All Cards</option>
+        </select>
       </div>
 
       <!-- Table -->
@@ -449,10 +454,12 @@ select.form-input option{background:var(--surface2)}
         <table>
           <thead>
             <tr>
-              <th>Date</th><th>Card</th><th>Amount</th>
+              <th style="cursor:pointer;user-select:none" onclick="sortDebt('txn_date')">Date <span id="sort_txn_date">↓</span></th>
+              <th>Card</th>
+              <th style="cursor:pointer;user-select:none" onclick="sortDebt('amount')">Amount <span id="sort_amount">↕</span></th>
               <th class="col-hide-mobile">Category</th>
               <th class="col-show-mobile">Description</th>
-              <th class="col-hide-mobile">Pay Month</th>
+              <th class="col-hide-mobile" style="cursor:pointer;user-select:none" onclick="sortDebt('pay_month')">Pay Month <span id="sort_pay_month">↕</span></th>
               <th class="col-hide-mobile">Status</th><th></th>
             </tr>
           </thead>
@@ -593,7 +600,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentMonth = new Date();
 currentMonth.setDate(1);
 let allSources = [], allAccounts = [], allCategories = [];
-let allTransactions = [], debtFilter = 'all';
+let allTransactions = [], debtFilter = 'all', debtCardFilter = 'all', debtSort = {col:'txn_date', dir:'desc'};
 let billingWarnMonth = null; // for edge case override
 
 // ── MONTH HELPERS ──
@@ -757,7 +764,7 @@ async function loadDashboard(){
   const remainDebt = plannedDebt - paidDebt;
 
   const allocTotal = (alloc.data||[]).reduce((s,r)=>s+toNum(r.amount),0);
-  const flexible = income - fixedTotal - remainDebt;
+  const flexible = income - fixedTotal - remainDebt; // ใช้ remainDebt (unpaid only)
   const dailyFund = flexible - allocTotal;
 
   // cycle — use override if exists, else auto 26→25
@@ -1073,6 +1080,7 @@ async function loadDebt(){
     const pm = computePaymentMonth(t.txn_date,t.source_name,t.payment_month_override);
     return pm===mk;
   });
+  populateCardFilter();
   renderDebtTable();
 
   // unpaid badge
@@ -1091,6 +1099,19 @@ function renderDebtTable(){
   let rows = allTransactions;
   if(debtFilter==='paid') rows=rows.filter(t=>t.paid_flag);
   if(debtFilter==='unpaid') rows=rows.filter(t=>!t.paid_flag);
+  if(debtCardFilter!=='all') rows=rows.filter(t=>t.source_name===debtCardFilter);
+  // Sort
+  rows = [...rows].sort((a,b)=>{
+    const dir = debtSort.dir==='asc' ? 1 : -1;
+    if(debtSort.col==='txn_date') return dir*(a.txn_date>b.txn_date?1:-1);
+    if(debtSort.col==='amount')   return dir*(toNum(a.amount)-toNum(b.amount));
+    if(debtSort.col==='pay_month'){
+      const pa=computePaymentMonth(a.txn_date,a.source_name,a.payment_month_override);
+      const pb=computePaymentMonth(b.txn_date,b.source_name,b.payment_month_override);
+      return dir*(pa>pb?1:-1);
+    }
+    return 0;
+  });
 
   if(!rows.length){
     document.getElementById('debtTable').innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No transactions</div></div></td></tr>';
@@ -1123,6 +1144,35 @@ function filterDebt(f, btn){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderDebtTable();
+}
+
+function setDebtCardFilter(val){
+  debtCardFilter = val;
+  renderDebtTable();
+}
+
+function sortDebt(col){
+  if(debtSort.col===col) debtSort.dir = debtSort.dir==='asc'?'desc':'asc';
+  else { debtSort.col=col; debtSort.dir='desc'; }
+  // Update sort icons
+  ['txn_date','amount','pay_month'].forEach(c=>{
+    const el=document.getElementById('sort_'+c);
+    if(!el) return;
+    if(c===debtSort.col) el.textContent = debtSort.dir==='asc'?'↑':'↓';
+    else el.textContent='↕';
+  });
+  renderDebtTable();
+}
+
+function populateCardFilter(){
+  const sel = document.getElementById('debtCardFilter');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="all">All Cards</option>';
+  // Get unique cards from current month transactions
+  const cards = [...new Set(allTransactions.map(t=>t.source_name).filter(Boolean))].sort();
+  cards.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+  sel.value = current;
 }
 
 async function addTransaction(){
