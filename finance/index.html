@@ -969,13 +969,16 @@ function renderInstSummary(currentMonthDebts, allDebt) {
   const active = rows.filter(r => r.transactions.filter(t=>!t.paid_flag).length > 0);
   document.getElementById('instSummaryLabel').textContent = active.length + ' active';
 
+  // Store installment data globally for edit access
+  window._instRows = rows;
+
   document.getElementById('instSummaryTable').innerHTML = `<table>
     <thead><tr>
       <th>Item</th><th>Card</th><th>Per Month</th>
-      <th>Progress</th><th>Remaining</th>
+      <th>Progress</th><th>Remaining</th><th></th>
     </tr></thead>
     <tbody>
-    ${rows.map(r => {
+    ${rows.map((r, idx) => {
       const paid   = r.transactions.filter(t=>t.paid_flag).length;
       const unpaid = r.transactions.filter(t=>!t.paid_flag).length;
       const pct    = Math.round((paid/r.total)*100);
@@ -997,11 +1000,157 @@ function renderInstSummary(currentMonthDebts, allDebt) {
           ${isDone ? '—' : fmtBaht(remaining)}
           ${!isDone ? `<div style="font-size:.62rem;color:var(--text3);font-weight:400">${unpaid} งวด</div>` : ''}
         </td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="openEditInstalment(${idx})" title="Edit installment">✏️</button>
+        </td>
       </tr>`;
     }).join('')}
     </tbody>
   </table>`;
 }
+
+// ── EDIT INSTALLMENT ──
+function openEditInstalment(idx) {
+  const r = window._instRows?.[idx];
+  if(!r) return;
+
+  const paid   = r.transactions.filter(t=>t.paid_flag);
+  const unpaid = r.transactions.filter(t=>!t.paid_flag);
+
+  // Find earliest txn_date as reference start date
+  const earliestDate = r.transactions.map(t=>t.txn_date).sort()[0];
+
+  // Build paid list for warning
+  const paidList = paid.length ? paid.map(t=>`
+    <div style="display:flex;justify-content:space-between;font-size:.72rem;padding:4px 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--text2)">${t.description||'—'}</span>
+      <span style="color:var(--green);font-family:'Space Mono',monospace">${fmtBaht(toNum(t.amount))}</span>
+    </div>`).join('') : '';
+
+  document.getElementById('modalTitle').textContent = '✏️ Edit Installment';
+  document.getElementById('modalBody').innerHTML = `
+    ${paid.length > 0 ? `
+    <div style="background:var(--yellow-dim);border:1px solid rgba(251,191,36,.25);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:.75rem;font-weight:700;color:var(--yellow);margin-bottom:8px">
+        ⚠️ การแก้ไขจะ Reset paid status ทั้งหมด (${paid.length} งวด)
+      </div>
+      <div style="max-height:120px;overflow-y:auto">
+        ${paidList}
+      </div>
+    </div>` : ''}
+    <div class="f-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label class="form-label">Start Date (วันที่ซื้อ)</label>
+        <input type="date" id="ei_date" class="form-input" value="${earliestDate}" onchange="calcEditInstalment()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Card</label>
+        <select id="ei_source" class="form-input" onchange="calcEditInstalment()">
+          ${allSources.map(s=>`<option value="${s.source_name}" ${s.source_name===r.source?'selected':''}>${s.source_name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Total Amount (฿)</label>
+        <input type="number" id="ei_total" class="form-input" value="${(r.amount_per * r.total).toFixed(2)}" step="0.01" oninput="calcEditInstalment()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">จำนวนเดือน</label>
+        <input type="number" id="ei_months" class="form-input" value="${r.total}" min="2" max="60" oninput="calcEditInstalment()">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Description</label>
+        <input type="text" id="ei_desc" class="form-input" value="${r.base}" placeholder="e.g. MacBook Pro">
+      </div>
+      <div id="ei_preview" style="grid-column:1/-1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text2);display:none"></div>
+    </div>
+  `;
+
+  // Store transaction IDs for deletion
+  window._editInstIds = r.transactions.map(t=>t.id);
+  window._editInstPaidCount = paid.length;
+
+  document.getElementById('modalSaveBtn').textContent = paid.length > 0 ? '⚠️ Confirm & Reset' : 'Save Changes';
+  document.getElementById('modalSaveBtn').onclick = () => confirmEditInstalment();
+  document.getElementById('modalOverlay').classList.add('show');
+  calcEditInstalment();
+}
+
+function calcEditInstalment() {
+  const total  = parseFloat(document.getElementById('ei_total')?.value)||0;
+  const months = parseInt(document.getElementById('ei_months')?.value)||0;
+  const startDate = document.getElementById('ei_date')?.value;
+  const source = document.getElementById('ei_source')?.value;
+  const preview = document.getElementById('ei_preview');
+  if(!preview) return;
+
+  if(!total||!months||!startDate||!source){ preview.style.display='none'; return; }
+
+  const monthly = total/months;
+  const src = allSources.find(s=>s.source_name===source);
+  const billingDay = src?.billing_day||1;
+  const d = new Date(startDate);
+  let baseMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  if(d.getDate() >= billingDay) baseMonth = new Date(d.getFullYear(), d.getMonth()+1, 1);
+
+  const last = new Date(baseMonth.getFullYear(), baseMonth.getMonth()+months-1, 1);
+  const firstLabel = baseMonth.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  const lastLabel  = last.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+
+  preview.style.display = 'block';
+  preview.innerHTML = `฿${fmtBaht(monthly)}/month · ${months} งวด · ${firstLabel} → ${lastLabel} · รวม ฿${fmtBaht(total)}`;
+}
+
+async function confirmEditInstalment() {
+  const total    = parseFloat(document.getElementById('ei_total').value)||0;
+  const months   = parseInt(document.getElementById('ei_months').value)||0;
+  const startDate= document.getElementById('ei_date').value;
+  const source   = document.getElementById('ei_source').value;
+  const desc     = document.getElementById('ei_desc').value.trim();
+  const ids      = window._editInstIds||[];
+
+  if(!total||!months||!startDate||!source||!desc){
+    showToast('กรุณากรอกข้อมูลให้ครบ','error'); return;
+  }
+
+  // Disable save btn to prevent double-click
+  document.getElementById('modalSaveBtn').disabled = true;
+  document.getElementById('modalSaveBtn').textContent = 'Saving...';
+
+  // 1. Delete all old transactions
+  const { error: delErr } = await db.from('debt_transactions').delete().in('id', ids);
+  if(delErr){ showToast('Error deleting: '+delErr.message,'error'); document.getElementById('modalSaveBtn').disabled=false; return; }
+
+  // 2. Re-generate
+  const monthly = parseFloat((total/months).toFixed(2));
+  const src = allSources.find(s=>s.source_name===source);
+  const billingDay = src?.billing_day||1;
+  const d = new Date(startDate);
+  let baseMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  if(d.getDate() >= billingDay) baseMonth = new Date(d.getFullYear(), d.getMonth()+1, 1);
+
+  const rows = [];
+  for(let i=0;i<months;i++){
+    const payM = new Date(baseMonth.getFullYear(), baseMonth.getMonth()+i, 1);
+    rows.push({
+      txn_date: startDate,
+      source_name: source,
+      amount: monthly,
+      expense_group: 'Installment',
+      description: `${desc} (${i+1}/${months})`,
+      paid_flag: false,
+      payment_month_override: fmt(payM)
+    });
+  }
+
+  const { error: insErr } = await db.from('debt_transactions').insert(rows);
+  if(insErr){ showToast('Error inserting: '+insErr.message,'error'); document.getElementById('modalSaveBtn').disabled=false; return; }
+
+  showToast(`✓ Updated — ${months} instalments regenerated`,'success');
+  document.getElementById('modalOverlay').classList.remove('show');
+  loadDebt();
+  loadDashboard();
+}
+
 
 // ── TRANSFER SUMMARY ──
 async function loadTransfer(){
