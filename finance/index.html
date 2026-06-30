@@ -390,8 +390,9 @@ select.form-input option{background:var(--surface2)}
         <div class="quick-add-title">📅 Add Installment</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">Start Date (วันที่ซื้อ)</label>
+            <label class="form-label">Transaction Date (วันที่ซื้อ/ตัดบัตร)</label>
             <input type="date" id="inst_date" class="form-input" onchange="calcInstalment()">
+            <div class="f-hint" style="font-size:.62rem;color:var(--text3);margin-top:3px">เหมือน Debt Log ทั่วไป — ใช้คำนวณรอบบิลตามวันตัดบัตรของ Card นี้</div>
           </div>
           <div class="form-group">
             <label class="form-label">Card</label>
@@ -1040,7 +1041,7 @@ function openEditInstalment(idx) {
     </div>` : ''}
     <div class="f-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="form-group">
-        <label class="form-label">Start Date (วันที่ซื้อ)</label>
+        <label class="form-label">Transaction Date (วันที่ซื้อ/ตัดบัตร)</label>
         <input type="date" id="ei_date" class="form-input" value="${earliestDate}" onchange="calcEditInstalment()">
       </div>
       <div class="form-group">
@@ -1946,6 +1947,7 @@ async function addInstalment(){
   showToast(`✓ Added ${months} instalment transactions`,'success');
   clearInstForm();
   loadDebt();
+  loadDashboard();
 }
 
 function clearInstForm(){
