@@ -256,6 +256,22 @@ body{
 .lib-empty{text-align:center;padding:40px 20px;color:var(--text3);grid-column:1/-1}
 .lib-empty-icon{font-size:2rem;opacity:.4;margin-bottom:10px}
 .lib-count{font-family:'Cinzel',serif;font-size:.62rem;color:var(--text3);letter-spacing:.1em;margin-bottom:12px}
+.lib-filter-banner{
+  background:rgba(255,255,255,0.6);
+  border:1px solid rgba(26,58,92,0.1);
+  border-radius:var(--radius-sm);
+  padding:8px 14px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  backdrop-filter:blur(8px);
+  animation:fadeSlideDown .2s ease;
+}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.lib-filter-banner-icon{font-size:1rem;flex-shrink:0}
+.lib-filter-banner-text{font-size:.75rem;color:var(--text2);font-weight:300;line-height:1.5}
+.lib-filter-banner-title{font-family:'Cinzel',serif;font-size:.68rem;color:var(--navy);font-weight:600;margin-bottom:2px;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -357,6 +373,7 @@ body{
       <button class="lib-filter-btn" onclick="setLibFilter('Swords',this)">Swords</button>
       <button class="lib-filter-btn" onclick="setLibFilter('Pentacles',this)">Pentacles</button>
     </div>
+    <div id="libBanner"></div>
     <div class="lib-count" id="libCount"></div>
     <div class="lib-grid" id="libGrid">
       <div class="lib-empty" style="grid-column:1/-1">
@@ -670,6 +687,7 @@ function setLibFilter(f, btn) {
   libFilter = f;
   document.querySelectorAll('.lib-filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  renderLibBanner();
   filterLibrary();
 }
 
@@ -742,7 +760,31 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
+const LIB_FILTER_INFO = {
+  'all':       { icon: '✦', title: 'ไพ่ทั้งหมด', desc: 'Major และ Minor Arcana ครบ 78 ใบ — ภาพรวมทั้ง Deck' },
+  'Major':     { icon: '🌙', title: 'Major Arcana', desc: 'บทเรียนใหญ่ของชีวิต พลังจักรวาล และเส้นทางชีวิต 22 ใบ (The Fool ถึง The World)' },
+  'Minor':     { icon: '✦', title: 'Minor Arcana', desc: 'เหตุการณ์ประจำวัน อารมณ์ ความคิด และสถานการณ์รอบตัว 56 ใบ' },
+  'Wands':     { icon: '🔥', title: 'Wands — ไฟ', desc: 'พลังงาน ความกล้าหาญ แรงบันดาลใจ ความคิดสร้างสรรค์ และการลงมือทำ' },
+  'Cups':      { icon: '💧', title: 'Cups — น้ำ', desc: 'อารมณ์ ความรัก ความสัมพันธ์ จิตใต้สำนึก และความฝัน' },
+  'Swords':    { icon: '🌬️', title: 'Swords — ลม', desc: 'ความคิด การตัดสินใจ ความจริง ความขัดแย้ง และสติปัญญา' },
+  'Pentacles': { icon: '🌱', title: 'Pentacles — ดิน', desc: 'การงาน การเงิน ความมั่นคง ร่างกาย และโลกวัตถุ' },
+};
 
+function renderLibBanner() {
+  const el = document.getElementById('libBanner');
+  if(!el) return;
+  const info = LIB_FILTER_INFO[libFilter];
+  if(!info || libFilter === 'all') { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="lib-filter-banner">
+      <span class="lib-filter-banner-icon">${info.icon}</span>
+      <div>
+        <div class="lib-filter-banner-title">${info.title}</div>
+        <div class="lib-filter-banner-text">${info.desc}</div>
+      </div>
+    </div>`;
+}
+  
 init();
 </script>
 </body>
