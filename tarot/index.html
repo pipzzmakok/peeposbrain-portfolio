@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Celestial Draw — Tarot</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky1:#b8dff5; --sky2:#d4eef9; --sky3:#e8f4fd; --sky4:#f0f8ff;
+  --navy:#1a3a5c; --navy2:#2c5f8a; --navy3:#4a7a9b;
+  --gold:#f9c74f; --gold2:#c8860a; --gold3:#fde68a;
+  --cloud:rgba(255,255,255,0.75);
+  --glass:rgba(255,255,255,0.65);
+  --glass-border:rgba(26,58,92,0.15);
+  --text:#1a3a5c; --text2:#4a7a9b; --text3:#7aadcc;
+  --radius:14px; --radius-sm:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 40%,var(--sky3) 75%,var(--sky4) 100%);
+  min-height:100vh;min-height:100dvh;
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+/* ── CLOUDS ── */
+.cloud-layer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.cloud{position:absolute;background:white;border-radius:50px;opacity:0.55;filter:blur(0.5px)}
+.cloud::before,.cloud::after{content:'';position:absolute;background:white;border-radius:50%}
+.c1{width:160px;height:46px;top:8%;left:-180px;animation:drift 45s linear infinite}
+.c1::before{width:65px;height:65px;top:-32px;left:20px}
+.c1::after{width:48px;height:48px;top:-24px;left:68px}
+.c2{width:110px;height:36px;top:15%;right:-130px;animation:drift2 55s linear 12s infinite;opacity:0.4}
+.c2::before{width:50px;height:50px;top:-25px;left:14px}
+.c3{width:200px;height:58px;top:4%;left:-220px;animation:drift 52s linear 28s infinite;opacity:0.45}
+.c3::before{width:80px;height:80px;top:-40px;left:32px}
+.c3::after{width:60px;height:60px;top:-30px;left:92px}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(calc(100vw+300px))}}
+@keyframes drift2{from{transform:translateX(0)}to{transform:translateX(calc(-100vw - 300px))}}
+
+/* ── SPARKLES ── */
+.sparkle{position:fixed;pointer-events:none;color:var(--gold);font-size:13px;z-index:0;animation:twinkle 3s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:.8;transform:scale(1.1)}}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(184,223,245,0.75);backdrop-filter:blur(20px);border-bottom:1px solid rgba(26,58,92,0.1);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:'Cinzel',serif;font-size:.88rem;color:var(--navy);letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.brand-star{color:var(--gold2);font-size:1rem}
+.back-btn{font-size:.7rem;color:var(--text3);text-decoration:none;font-family:'Cinzel',serif;padding:6px 12px;border:1px solid var(--glass-border);border-radius:var(--radius-sm);background:var(--glass);transition:all .2s;letter-spacing:.04em}
+.back-btn:hover{background:white;color:var(--navy)}
+
+/* ── WRAP ── */
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:24px 16px;padding-bottom:max(48px,env(safe-area-inset-bottom))}
+
+/* ── SCREEN MANAGEMENT ── */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── SECTION TITLE ── */
+.section-title{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);text-align:center;margin-bottom:12px}
+
+/* ── DECK CARDS ── */
+.deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.deck-card{background:var(--glass);border:1.5px solid var(--glass-border);border-radius:var(--radius);padding:16px 14px;cursor:pointer;transition:all .25s;text-align:center;position:relative;overflow:hidden}
+.deck-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));opacity:0;transition:opacity .2s}
+.deck-card:hover,.deck-card.selected{background:white;border-color:rgba(249,199,79,.5);box-shadow:0 4px 20px rgba(26,58,92,.1)}
+.deck-card:hover::before,.deck-card.selected::before{opacity:1}
+.deck-icon{font-size:2rem;margin-bottom:8px;display:block}
+.deck-name{font-family:'Cinzel',serif;font-size:.8rem;color:var(--navy);font-weight:600;letter-spacing:.03em}
+.deck-desc{font-size:.7rem;color:var(--text2);margin-top:4px;font-weight:300;line-height:1.5}
+
+/* ── COUNT CHIPS ── */
+.count-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.count-chip{width:48px;height:48px;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid var(--glass-border);background:var(--glass);color:var(--navy);font-family:'DM Sans',sans-serif}
+.count-chip.selected{background:var(--gold);border-color:var(--gold2);color:var(--gold2);box-shadow:0 3px 12px rgba(249,199,79,.4)}
+.count-chip:hover:not(.selected){background:white}
+
+/* ── QUESTION BOX ── */
+.question-box{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px;margin-bottom:24px;backdrop-filter:blur(8px)}
+.q-label{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.q-textarea{width:100%;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--navy);line-height:1.7;resize:none;min-height:72px;font-weight:300}
+.q-textarea::placeholder{color:var(--text3)}
+
+/* ── DRAW MODE ── */
+.draw-mode-row{display:flex;gap:10px;margin-bottom:24px}
+.draw-mode-btn{flex:1;padding:12px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--glass-border);background:var(--glass);font-family:'Cinzel',serif;font-size:.72rem;color:var(--navy);cursor:pointer;transition:all .2s;letter-spacing:.04em;text-align:center}
+.draw-mode-btn.selected{background:var(--navy);color:white;border-color:var(--navy)}
+.draw-mode-btn:hover:not(.selected){background:white}
+
+/* ── START BTN ── */
+.start-btn{width:100%;padding:15px;border-radius:var(--radius);background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;font-family:'Cinzel',serif;font-size:1rem;font-weight:600;border:none;cursor:pointer;letter-spacing:.08em;box-shadow:0 4px 20px rgba(26,58,92,.25);transition:all .25s}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,58,92,.3)}
+.start-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── DRAW SCREEN ── */
+.draw-header{text-align:center;margin-bottom:32px}
+.draw-title{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--navy);letter-spacing:.06em;margin-bottom:6px}
+.draw-question{font-size:.85rem;color:var(--text2);font-style:italic;font-weight:300;max-width:400px;margin:0 auto;line-height:1.6}
+.draw-progress{font-family:'Cinzel',serif;font-size:.68rem;color:var(--gold2);letter-spacing:.12em;margin-top:12px}
+
+/* ── CARD FLIP ── */
+.cards-stage{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:32px}
+.card-slot{position:relative}
+.card-wrap{
+  width:110px;
+  perspective:900px;
+  cursor:pointer;
+}
+.card-inner{
+  position:relative;
+  width:100%;
+  padding-bottom:175%;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.4,0,.2,1);
+}
+.card-wrap.flipped .card-inner{transform:rotateY(180deg)}
+.card-wrap.reversed .card-inner{transform:rotateY(180deg) rotateZ(180deg)}
+.card-face{
+  position:absolute;inset:0;
+  border-radius:10px;
+  backface-visibility:hidden;
+  overflow:hidden;
+}
+.card-back{
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(249,199,79,.3);
+}
+.card-back-pattern{
+  font-size:2.5rem;
+  opacity:.3;
+  animation:pulse-slow 3s ease-in-out infinite;
+}
+@keyframes pulse-slow{0%,100%{opacity:.2}50%{opacity:.4}}
+.card-front{
+  transform:rotateY(180deg);
+  border:2px solid rgba(249,199,79,.5);
+  box-shadow:0 6px 24px rgba(26,58,92,.2);
+}
+.card-front img{width:100%;height:100%;object-fit:cover;display:block}
+.card-glow{
+  position:absolute;inset:0;border-radius:10px;
+  border:2px solid rgba(249,199,79,.7);
+  box-shadow:0 0 16px rgba(249,199,79,.3);
+  pointer-events:none;
+  opacity:0;transition:opacity .5s;
+}
+.card-wrap.flipped .card-glow,.card-wrap.reversed .card-glow{opacity:1}
+.card-label{margin-top:8px;text-align:center}
+.card-label-name{font-family:'Cinzel',serif;font-size:.68rem;color:var(--navy);font-weight:600;line-height:1.3}
+.card-label-badge{display:inline-block;font-size:.58rem;padding:2px 8px;border-radius:8px;margin-top:4px;font-weight:500;letter-spacing:.04em}
+.badge-up{background:rgba(249,199,79,.2);color:var(--gold2)}
+.badge-rev{background:rgba(26,58,92,.1);color:var(--navy2)}
+.card-tap-hint{font-size:.65rem;color:var(--text3);text-align:center;margin-top:6px;font-family:'Cinzel',serif;letter-spacing:.08em;animation:fadeHint 2s ease-in-out infinite}
+@keyframes fadeHint{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* ── DRAW ALL BTN ── */
+.draw-all-btn{display:block;width:100%;padding:13px;border-radius:var(--radius);background:linear-gradient(135deg,var(--gold),var(--gold2));color:white;font-family:'Cinzel',serif;font-size:.88rem;font-weight:600;border:none;cursor:pointer;letter-spacing:.06em;box-shadow:0 4px 16px rgba(200,134,10,.3);transition:all .25s;margin-bottom:16px}
+.draw-all-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,134,10,.35)}
+
+/* ── MEANING CARDS ── */
+.meanings-section{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+.meaning-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);overflow:hidden;backdrop-filter:blur(8px);opacity:0;transform:translateY(16px);transition:all .5s ease}
+.meaning-card.visible{opacity:1;transform:translateY(0)}
+.meaning-header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--glass-border)}
+.meaning-img{width:44px;height:72px;object-fit:cover;border-radius:6px;border:1px solid rgba(249,199,79,.4);flex-shrink:0}
+.meaning-img.rev-img{transform:rotate(180deg)}
+.meaning-title-wrap{flex:1}
+.meaning-card-name{font-family:'Cinzel',serif;font-size:.95rem;color:var(--navy);font-weight:600;margin-bottom:4px}
+.meaning-badges{display:flex;gap:6px;flex-wrap:wrap}
+.meaning-body{padding:14px 16px}
+.meaning-text{font-size:.84rem;color:var(--text2);line-height:1.75;font-weight:300}
+.meaning-keyword{font-family:'Cinzel',serif;font-size:.68rem;color:var(--gold2);letter-spacing:.1em;margin-bottom:6px;text-transform:uppercase}
+
+/* ── ACTION ROW ── */
+.action-row{display:flex;gap:10px}
+.action-btn{flex:1;padding:12px;border-radius:var(--radius-sm);font-family:'Cinzel',serif;font-size:.78rem;cursor:pointer;transition:all .2s;letter-spacing:.05em;border:none}
+.btn-reset{background:var(--glass);border:1.5px solid var(--glass-border);color:var(--navy)}
+.btn-reset:hover{background:white}
+.btn-new{background:linear-gradient(135deg,var(--navy),var(--navy2));color:white}
+.btn-new:hover{transform:translateY(-1px)}
+
+/* ── LOADING ── */
+.loading-wrap{text-align:center;padding:48px 20px}
+.loading-star{font-size:2rem;display:block;animation:spin-slow 3s linear infinite;margin-bottom:12px}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.loading-text{font-family:'Cinzel',serif;font-size:.8rem;color:var(--text3);letter-spacing:.12em}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--navy);color:white;border-radius:var(--radius-sm);padding:10px 20px;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.06em;z-index:200;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── DIVIDER ── */
+.sky-divider{display:flex;align-items:center;gap:12px;margin:20px 0}
+.sky-divider-line{flex:1;height:1px;background:rgba(26,58,92,.1)}
+.sky-divider-star{font-size:.8rem;color:var(--gold2)}
+
+@media(max-width:480px){
+  .deck-grid{grid-template-columns:1fr 1fr}
+  .card-wrap{width:90px}
+}
+</style>
+</head>
+<body>
+
+<div class="cloud-layer">
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+</div>
+<span class="sparkle" style="top:18%;left:72%;animation-delay:.5s">✦</span>
+<span class="sparkle" style="top:8%;left:28%;animation-delay:1.4s">✦</span>
+<span class="sparkle" style="top:30%;left:55%;animation-delay:2.2s">✦</span>
+<span class="sparkle" style="top:12%;left:85%;animation-delay:.8s">✦</span>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-star">✦</span> Celestial Draw</div>
+  <a href="../" class="back-btn">← Portal</a>
+</header>
+
+<div class="wrap">
+
+  <!-- SETUP SCREEN -->
+  <div id="screen-setup" class="screen active">
+    <div class="loading-wrap" id="setupLoading">
+      <span class="loading-star">✦</span>
+      <div class="loading-text">กำลังโหลด...</div>
+    </div>
+    <div id="setupContent" style="display:none">
+      <div class="sky-divider" style="margin-top:0">
+        <div class="sky-divider-line"></div>
+        <div class="sky-divider-star">✦</div>
+        <div class="sky-divider-line"></div>
+      </div>
+
+      <div class="section-title">เลือก Deck</div>
+      <div class="deck-grid" id="deckGrid"></div>
+
+      <div class="section-title">จำนวนใบ</div>
+      <div class="count-row" id="countRow">
+        <button class="count-chip selected" onclick="selectCount(1,this)">1</button>
+        <button class="count-chip" onclick="selectCount(3,this)">3</button>
+        <button class="count-chip" onclick="selectCount(5,this)">5</button>
+        <button class="count-chip" onclick="selectCount(7,this)">7</button>
+        <button class="count-chip" onclick="selectCount(10,this)">10</button>
+      </div>
+
+      <div class="question-box">
+        <div class="q-label">✦ ตั้งจิตอธิษฐาน / คำถาม</div>
+        <textarea id="questionInput" class="q-textarea" placeholder="พิมพ์คำถามในใจ หรือ ตั้งจิตอธิษฐานเงียบๆ ก็ได้..." rows="3"></textarea>
+      </div>
+
+      <div class="section-title">วิธีเปิด</div>
+      <div class="draw-mode-row">
+        <button class="draw-mode-btn selected" id="modeOne" onclick="selectMode('one',this)">✦ ทีละใบ<br><span style="font-size:.62rem;opacity:.7;font-family:'DM Sans'">สัมผัสแต่ละใบ</span></button>
+        <button class="draw-mode-btn" id="modeAll" onclick="selectMode('all',this)">✦ ทีเดียว<br><span style="font-size:.62rem;opacity:.7;font-family:'DM Sans'">เปิดพร้อมกัน</span></button>
+      </div>
+
+      <button class="start-btn" id="startBtn" onclick="startDraw()">✦ สุ่มไพ่ ✦</button>
+    </div>
+  </div>
+
+  <!-- DRAW SCREEN -->
+  <div id="screen-draw" class="screen">
+    <div class="draw-header">
+      <div class="draw-title">✦ ไพ่ของคุณ ✦</div>
+      <div class="draw-question" id="drawQuestion"></div>
+      <div class="draw-progress" id="drawProgress"></div>
+    </div>
+
+    <div class="cards-stage" id="cardsStage"></div>
+
+    <div id="drawAllWrap" style="display:none">
+      <button class="draw-all-btn" onclick="revealAll()">✦ เปิดทั้งหมด ✦</button>
+    </div>
+
+    <div class="meanings-section" id="meaningsSection"></div>
+
+    <div class="action-row" id="actionRow" style="display:none">
+      <button class="action-btn btn-reset" onclick="goSetup()">← เริ่มใหม่</button>
+      <button class="action-btn btn-new" onclick="reshuffleSameDeck()">✦ สุ่มใหม่</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://qquxotxrwnzxyutzlwim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdXhvdHhyd256eHl1dHpsd2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNzU5MDEsImV4cCI6MjA5NDY1MTkwMX0.vEu40LwSAhWhu1T4Mm_uFeWD3YRjptg0q0VshnYUXHM';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allDecks = [];
+let selectedDeck = null;
+let selectedCount = 1;
+let drawMode = 'one';
+let drawnCards = [];
+let revealedCount = 0;
+
+// ── INIT ──
+async function init() {
+  const { data, error } = await db.from('tarot_decks').select('*').eq('is_active', true).order('created_at');
+  if (error || !data?.length) {
+    document.getElementById('setupLoading').innerHTML = '<div style="color:var(--text3);font-family:Cinzel,serif;font-size:.8rem">ไม่พบ Deck — กรุณาเพิ่มใน Admin</div>';
+    return;
+  }
+  allDecks = data;
+  renderDecks();
+  document.getElementById('setupLoading').style.display = 'none';
+  document.getElementById('setupContent').style.display = 'block';
+}
+
+// ── DECKS ──
+function renderDecks() {
+  const icons = ['🌙','☀️','⭐','🌟','✨','🔮'];
+  document.getElementById('deckGrid').innerHTML = allDecks.map((d, i) => `
+    <div class="deck-card ${i===0?'selected':''}" onclick="selectDeck('${d.id}',this)">
+      <span class="deck-icon">${d.cover_image_url ? `<img src="${d.cover_image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:8px">` : icons[i % icons.length]}</span>
+      <div class="deck-name">${d.name}</div>
+      <div class="deck-desc">${d.description||'Tarot Deck'}</div>
+    </div>`).join('');
+  if (allDecks.length) selectedDeck = allDecks[0].id;
+}
+
+function selectDeck(id, el) {
+  selectedDeck = id;
+  document.querySelectorAll('.deck-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectCount(n, el) {
+  selectedCount = n;
+  document.querySelectorAll('.count-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectMode(mode, el) {
+  drawMode = mode;
+  document.querySelectorAll('.draw-mode-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── SHUFFLE & DRAW ──
+async function startDraw() {
+  if (!selectedDeck) { showToast('กรุณาเลือก Deck'); return; }
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  btn.textContent = '✦ กำลังสุ่ม... ✦';
+
+  const { data, error } = await db.from('tarot_cards')
+    .select('*').eq('deck_id', selectedDeck);
+
+  if (error || !data?.length) {
+    showToast('ไม่พบไพ่ใน Deck นี้');
+    btn.disabled = false; btn.textContent = '✦ สุ่มไพ่ ✦';
+    return;
+  }
+
+  // Fisher-Yates shuffle
+  const shuffled = [...data];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  drawnCards = shuffled.slice(0, selectedCount).map(c => ({
+    ...c,
+    reversed: Math.random() < 0.35 // 35% chance reversed
+  }));
+  revealedCount = 0;
+
+  showScreen('draw');
+  renderDrawScreen();
+  btn.disabled = false;
+  btn.textContent = '✦ สุ่มไพ่ ✦';
+}
+
+// ── DRAW SCREEN ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderDrawScreen() {
+  const q = document.getElementById('questionInput').value.trim();
+  document.getElementById('drawQuestion').textContent = q || 'ฟังเสียงจากจักรวาล...';
+  updateProgress();
+
+  const stage = document.getElementById('cardsStage');
+  stage.innerHTML = drawnCards.map((c, i) => `
+    <div class="card-slot">
+      <div class="card-wrap" id="card-${i}" onclick="flipCard(${i})">
+        <div class="card-inner">
+          <div class="card-face card-back">
+            <div class="card-back-pattern">✦</div>
+          </div>
+          <div class="card-face card-front">
+            <img src="${c.image_url}" alt="${c.name}" loading="lazy"
+              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22110%22 height=%22190%22><rect fill=%22%231a3a5c%22 width=%22110%22 height=%22190%22/><text x=%2255%22 y=%2295%22 text-anchor=%22middle%22 fill=%22%23f9c74f%22 font-size=%2224%22>✦</text></svg>'">
+          </div>
+          <div class="card-glow"></div>
+        </div>
+      </div>
+      <div class="card-label" id="label-${i}" style="display:none">
+        <div class="card-label-name">${c.name}</div>
+        <span class="card-label-badge ${c.reversed?'badge-rev':'badge-up'}">${c.reversed?'↓ Reversed':'↑ Upright'}</span>
+      </div>
+    </div>
+    ${drawMode==='one' && i < drawnCards.length-1 ? '' : ''}
+  `).join('');
+
+  document.getElementById('meaningsSection').innerHTML = '';
+  document.getElementById('actionRow').style.display = 'none';
+
+  if (drawMode === 'all') {
+    document.getElementById('drawAllWrap').style.display = 'block';
+  } else {
+    document.getElementById('drawAllWrap').style.display = 'none';
+    // Show tap hint on first card only
+    const hint = document.createElement('div');
+    hint.className = 'card-tap-hint';
+    hint.textContent = '✦ แตะที่ไพ่เพื่อเปิด';
+    hint.id = 'tapHint';
+    document.getElementById('cardsStage').appendChild(hint);
+  }
+}
+
+function updateProgress() {
+  const el = document.getElementById('drawProgress');
+  if (drawMode === 'one') {
+    el.textContent = `เปิดแล้ว ${revealedCount} / ${drawnCards.length} ใบ`;
+  } else {
+    el.textContent = `${drawnCards.length} ใบ`;
+  }
+}
+
+function flipCard(i) {
+  if (drawMode === 'all') return;
+  const wrap = document.getElementById('card-'+i);
+  if (wrap.classList.contains('flipped') || wrap.classList.contains('reversed')) return;
+
+  const card = drawnCards[i];
+  if (card.reversed) wrap.classList.add('reversed');
+  else wrap.classList.add('flipped');
+
+  document.getElementById('label-'+i).style.display = 'block';
+  revealedCount++;
+  updateProgress();
+
+  // Remove tap hint after first flip
+  const hint = document.getElementById('tapHint');
+  if (hint) hint.remove();
+
+  // Show meaning with delay
+  setTimeout(() => showMeaning(i), 500);
+
+  if (revealedCount === drawnCards.length) {
+    setTimeout(() => {
+      document.getElementById('actionRow').style.display = 'flex';
+    }, 800);
+  }
+}
+
+function revealAll() {
+  document.getElementById('drawAllWrap').style.display = 'none';
+  drawnCards.forEach((card, i) => {
+    setTimeout(() => {
+      const wrap = document.getElementById('card-'+i);
+      if (card.reversed) wrap.classList.add('reversed');
+      else wrap.classList.add('flipped');
+      document.getElementById('label-'+i).style.display = 'block';
+    }, i * 200);
+  });
+  setTimeout(() => {
+    drawnCards.forEach((_, i) => {
+      setTimeout(() => showMeaning(i), i * 150);
+    });
+    setTimeout(() => {
+      document.getElementById('actionRow').style.display = 'flex';
+    }, drawnCards.length * 150 + 600);
+  }, drawnCards.length * 200 + 300);
+}
+
+function showMeaning(i) {
+  const card = drawnCards[i];
+  const meaning = card.reversed ? card.meaning_reversed : card.meaning_upright;
+  const keywords = meaning ? meaning.split(' ').slice(0,4).join(' · ') : '';
+  const section = document.getElementById('meaningsSection');
+  const el = document.createElement('div');
+  el.className = 'meaning-card';
+  el.innerHTML = `
+    <div class="meaning-header">
+      <img class="meaning-img ${card.reversed?'rev-img':''}" src="${card.image_url}" alt="${card.name}"
+        onerror="this.style.display='none'">
+      <div class="meaning-title-wrap">
+        <div class="meaning-card-name">${card.name}</div>
+        <div class="meaning-badges">
+          <span class="card-label-badge ${card.reversed?'badge-rev':'badge-up'}">${card.reversed?'↓ Reversed':'↑ Upright'}</span>
+          ${card.arcana==='Major'?'<span class="card-label-badge" style="background:rgba(26,58,92,.08);color:var(--navy2)">Major Arcana</span>':''}
+          ${card.suit?`<span class="card-label-badge" style="background:rgba(26,58,92,.06);color:var(--text3)">${card.suit}</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="meaning-body">
+      ${keywords?`<div class="meaning-keyword">${keywords}</div>`:''}
+      <div class="meaning-text">${meaning || '—'}</div>
+    </div>`;
+  section.appendChild(el);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => el.classList.add('visible'));
+  });
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function reshuffleSameDeck() {
+  startDraw();
+}
+
+function goSetup() {
+  showScreen('setup');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>
