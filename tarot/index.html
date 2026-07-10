@@ -203,6 +203,59 @@ body{
   .deck-grid{grid-template-columns:1fr 1fr}
   .card-wrap{width:90px}
 }
+
+/* ── LIBRARY ── */
+.topbar-nav{display:flex;align-items:center;gap:6px}
+.nav-tab{font-family:'Cinzel',serif;font-size:.68rem;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--glass-border);background:var(--glass);color:var(--text3);cursor:pointer;transition:all .2s;letter-spacing:.05em}
+.nav-tab.active,.nav-tab:hover{background:var(--navy);color:white;border-color:var(--navy)}
+
+.lib-search-row{display:flex;gap:8px;margin-bottom:12px}
+.lib-search{flex:1;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;backdrop-filter:blur(8px)}
+.lib-search:focus{border-color:rgba(26,58,92,.35)}
+.lib-search::placeholder{color:var(--text3)}
+.lib-filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.lib-filter-row::-webkit-scrollbar{display:none}
+.lib-filter-btn{font-family:'Cinzel',serif;font-size:.58rem;padding:5px 12px;border-radius:100px;border:1px solid var(--glass-border);background:transparent;color:var(--text3);cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;letter-spacing:.06em}
+.lib-filter-btn.active{background:var(--navy);color:white;border-color:var(--navy)}
+.lib-filter-btn:hover:not(.active){background:var(--glass);color:var(--navy)}
+
+.lib-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.lib-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:12px;backdrop-filter:blur(8px)}
+.lib-card:hover{background:white;border-color:rgba(26,58,92,.2);transform:translateY(-1px)}
+.lib-card-img{width:36px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(249,199,79,.3);flex-shrink:0}
+.lib-card-img-placeholder{width:36px;height:60px;border-radius:6px;background:linear-gradient(135deg,var(--navy),var(--navy2));display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;color:rgba(249,199,79,.5)}
+.lib-card-info{flex:1;min-width:0}
+.lib-card-name{font-family:'Cinzel',serif;font-size:.72rem;color:var(--navy);font-weight:600;line-height:1.3;margin-bottom:3px}
+.lib-card-meta{font-size:.6rem;color:var(--text3);font-family:'DM Sans',sans-serif}
+
+/* ── CARD DETAIL MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,58,92,.35);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal-sheet{background:linear-gradient(180deg,#e8f4fd 0%,#f5f9ff 100%);border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);padding-bottom:max(28px,env(safe-area-inset-bottom))}
+.modal-overlay.show .modal-sheet{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:rgba(26,58,92,.2);border-radius:2px;margin:12px auto 0}
+.modal-header{display:flex;gap:16px;padding:20px 20px 16px;border-bottom:1px solid rgba(26,58,92,.08)}
+.modal-card-img{width:70px;height:116px;object-fit:cover;border-radius:10px;border:2px solid rgba(249,199,79,.5);flex-shrink:0;box-shadow:0 4px 16px rgba(26,58,92,.15)}
+.modal-card-img-placeholder{width:70px;height:116px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--navy2));display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;color:rgba(249,199,79,.5)}
+.modal-card-title{flex:1}
+.modal-card-name{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--navy);font-weight:600;margin-bottom:6px}
+.modal-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.modal-badge{font-family:'Cinzel',serif;font-size:.58rem;padding:3px 9px;border-radius:100px;letter-spacing:.06em}
+.badge-major-light{background:rgba(167,139,250,.15);color:#5b21b6}
+.badge-minor-light{background:rgba(26,58,92,.1);color:var(--navy2)}
+.badge-suit{background:rgba(249,199,79,.2);color:var(--gold2)}
+.modal-body{padding:16px 20px}
+.meaning-section{margin-bottom:16px;background:rgba(255,255,255,.65);border:1px solid rgba(26,58,92,.08);border-radius:var(--radius-sm);padding:14px;backdrop-filter:blur(8px)}
+.meaning-section-label{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.label-up{color:var(--gold2)}
+.label-rev{color:var(--navy3)}
+.meaning-section-text{font-size:.84rem;color:var(--text2);line-height:1.75;font-weight:300}
+.meaning-keywords{font-family:'Cinzel',serif;font-size:.68rem;color:var(--gold2);letter-spacing:.1em;margin-bottom:6px}
+.modal-close{display:block;width:100%;margin-top:4px;padding:12px;border-radius:var(--radius-sm);background:var(--navy);color:white;font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.06em;border:none;cursor:pointer}
+
+.lib-empty{text-align:center;padding:40px 20px;color:var(--text3);grid-column:1/-1}
+.lib-empty-icon{font-size:2rem;opacity:.4;margin-bottom:10px}
+.lib-count{font-family:'Cinzel',serif;font-size:.62rem;color:var(--text3);letter-spacing:.1em;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -219,7 +272,11 @@ body{
 
 <header class="topbar">
   <div class="brand"><span class="brand-star">✦</span> Celestial Draw</div>
-  <a href="../" class="back-btn">← Portal</a>
+  <div class="topbar-nav">
+    <button class="nav-tab active" id="tabDraw" onclick="switchTab('draw')">✦ สุ่มไพ่</button>
+    <button class="nav-tab" id="tabLib" onclick="switchTab('library')">📖 ค้นหา</button>
+    <a href="../" class="back-btn">← Portal</a>
+  </div>
 </header>
 
 <div class="wrap">
@@ -286,6 +343,58 @@ body{
     </div>
   </div>
 
+  <!-- LIBRARY SCREEN -->
+  <div id="screen-library" class="screen">
+    <div class="lib-search-row">
+      <input type="text" class="lib-search" id="libSearch" placeholder="🔍 ค้นหาชื่อไพ่..." oninput="filterLibrary()">
+    </div>
+    <div class="lib-filter-row">
+      <button class="lib-filter-btn active" onclick="setLibFilter('all',this)">✦ ทั้งหมด</button>
+      <button class="lib-filter-btn" onclick="setLibFilter('Major',this)">Major Arcana</button>
+      <button class="lib-filter-btn" onclick="setLibFilter('Minor',this)">Minor Arcana</button>
+      <button class="lib-filter-btn" onclick="setLibFilter('Wands',this)">Wands</button>
+      <button class="lib-filter-btn" onclick="setLibFilter('Cups',this)">Cups</button>
+      <button class="lib-filter-btn" onclick="setLibFilter('Swords',this)">Swords</button>
+      <button class="lib-filter-btn" onclick="setLibFilter('Pentacles',this)">Pentacles</button>
+    </div>
+    <div class="lib-count" id="libCount"></div>
+    <div class="lib-grid" id="libGrid">
+      <div class="lib-empty" style="grid-column:1/-1">
+        <div class="lib-empty-icon">🎴</div>
+        <div>เลือก Deck ก่อนเพื่อดูไพ่</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD DETAIL MODAL -->
+  <div class="modal-overlay" id="cardModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div id="modalImgWrap"></div>
+        <div class="modal-card-title">
+          <div class="modal-card-name" id="modalName"></div>
+          <div class="modal-card-badges" id="modalBadges"></div>
+          <div style="font-size:.72rem;color:var(--text3);font-family:'Cinzel',serif;letter-spacing:.06em" id="modalNum"></div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="meaning-section">
+          <div class="meaning-section-label label-up">↑ Upright — ไพ่ตรง</div>
+          <div class="meaning-keywords" id="modalUpKeywords"></div>
+          <div class="meaning-section-text" id="modalUpText"></div>
+        </div>
+        <div class="meaning-section">
+          <div class="meaning-section-label label-rev">↓ Reversed — ไพ่กลับหัว</div>
+          <div class="meaning-keywords" id="modalRevKeywords"></div>
+          <div class="meaning-section-text" id="modalRevText"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✦ ปิด</button>
+      </div>
+    </div>
+  </div>
+
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -325,7 +434,7 @@ function renderDecks() {
       <div class="deck-name">${d.name}</div>
       <div class="deck-desc">${d.description||'Tarot Deck'}</div>
     </div>`).join('');
-  if (allDecks.length) selectedDeck = allDecks[0].id;
+  if (allDecks.length) { selectedDeck = allDecks[0].id; loadLibrary(allDecks[0].id); }
 }
 
 function selectDeck(id, el) {
@@ -534,6 +643,104 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ── LIBRARY ──
+let libCards = [];
+let libFilter = 'all';
+let libDeckId = null;
+
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  showScreen(tab === 'draw' ? 'setup' : 'library');
+  if(tab === 'library' && libCards.length === 0 && selectedDeck) loadLibrary(selectedDeck);
+}
+
+async function loadLibrary(deck_id) {
+  if(!deck_id) return;
+  libDeckId = deck_id;
+  document.getElementById('libGrid').innerHTML = '<div class="lib-empty" style="grid-column:1/-1"><div class="lib-empty-icon" style="animation:spin-slow 2s linear infinite">✦</div><div>กำลังโหลด...</div></div>';
+  const { data } = await db.from('tarot_cards').select('*').eq('deck_id', deck_id).order('card_number');
+  libCards = data || [];
+  filterLibrary();
+}
+
+function setLibFilter(f, btn) {
+  libFilter = f;
+  document.querySelectorAll('.lib-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterLibrary();
+}
+
+function filterLibrary() {
+  const q = (document.getElementById('libSearch')?.value || '').toLowerCase().trim();
+  let cards = libCards;
+  if(libFilter === 'Major') cards = cards.filter(c => c.arcana === 'Major');
+  else if(libFilter === 'Minor') cards = cards.filter(c => c.arcana === 'Minor');
+  else if(['Wands','Cups','Swords','Pentacles'].includes(libFilter)) cards = cards.filter(c => c.suit === libFilter);
+  if(q) cards = cards.filter(c => c.name.toLowerCase().includes(q));
+
+  const count = document.getElementById('libCount');
+  count.textContent = cards.length + ' ใบ' + (q ? ` — "${q}"` : '');
+
+  const grid = document.getElementById('libGrid');
+  if(!cards.length) {
+    grid.innerHTML = '<div class="lib-empty"><div class="lib-empty-icon">🔍</div><div>ไม่พบไพ่ที่ค้นหา</div></div>';
+    return;
+  }
+
+  grid.innerHTML = cards.map(c => {
+    const imgEl = c.image_url
+      ? `<img class="lib-card-img" src="${c.image_url}" alt="${c.name}" loading="lazy" onerror="this.style.display='none'">`
+      : `<div class="lib-card-img-placeholder">✦</div>`;
+    return `<div class="lib-card" onclick="openCardDetail('${c.id}')">
+      ${imgEl}
+      <div class="lib-card-info">
+        <div class="lib-card-name">${c.name}</div>
+        <div class="lib-card-meta">${c.arcana === 'Major' ? 'Major Arcana' : (c.suit || 'Minor')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCardDetail(id) {
+  const c = libCards.find(x => x.id === id);
+  if(!c) return;
+
+  // Image
+  const imgWrap = document.getElementById('modalImgWrap');
+  imgWrap.innerHTML = c.image_url
+    ? `<img class="modal-card-img" src="${c.image_url}" alt="${c.name}" onerror="this.outerHTML='<div class=modal-card-img-placeholder>✦</div>'">`
+    : `<div class="modal-card-img-placeholder">✦</div>`;
+
+  document.getElementById('modalName').textContent = c.name;
+  document.getElementById('modalNum').textContent = 'Card No. ' + c.card_number;
+
+  // Badges
+  let badges = `<span class="modal-badge ${c.arcana === 'Major' ? 'badge-major-light' : 'badge-minor-light'}">${c.arcana} Arcana</span>`;
+  if(c.suit) badges += `<span class="modal-badge badge-suit">${c.suit}</span>`;
+  document.getElementById('modalBadges').innerHTML = badges;
+
+  // Meanings
+  const up = c.meaning_upright || '—';
+  const rev = c.meaning_reversed || '—';
+  const upKw = up !== '—' ? up.split(' ').slice(0, 4).join(' · ') : '';
+  const revKw = rev !== '—' ? rev.split(' ').slice(0, 4).join(' · ') : '';
+
+  document.getElementById('modalUpKeywords').textContent = upKw;
+  document.getElementById('modalUpText').textContent = up;
+  document.getElementById('modalRevKeywords').textContent = revKw;
+  document.getElementById('modalRevText').textContent = rev;
+
+  document.getElementById('cardModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('cardModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
 
 init();
 </script>
