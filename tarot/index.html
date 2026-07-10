@@ -256,22 +256,30 @@ body{
 .lib-empty{text-align:center;padding:40px 20px;color:var(--text3);grid-column:1/-1}
 .lib-empty-icon{font-size:2rem;opacity:.4;margin-bottom:10px}
 .lib-count{font-family:'Cinzel',serif;font-size:.62rem;color:var(--text3);letter-spacing:.1em;margin-bottom:12px}
-.lib-filter-banner{
-  background:rgba(255,255,255,0.6);
-  border:1px solid rgba(26,58,92,0.1);
-  border-radius:var(--radius-sm);
-  padding:8px 14px;
-  margin-bottom:14px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  backdrop-filter:blur(8px);
-  animation:fadeSlideDown .2s ease;
-}
-@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.lib-filter-banner-icon{font-size:1rem;flex-shrink:0}
-.lib-filter-banner-text{font-size:.75rem;color:var(--text2);font-weight:300;line-height:1.5}
-.lib-filter-banner-title{font-family:'Cinzel',serif;font-size:.68rem;color:var(--navy);font-weight:600;margin-bottom:2px;letter-spacing:.04em}
+
+/* ── SPREAD & POSITION ── */
+.spread-selector{margin-bottom:20px}
+.spread-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.spread-chip{font-family:'Cinzel',serif;font-size:.62rem;padding:6px 12px;border-radius:100px;border:1.5px solid var(--glass-border);background:var(--glass);color:var(--text3);cursor:pointer;transition:all .2s;letter-spacing:.04em;white-space:nowrap}
+.spread-chip.selected{background:var(--navy);color:white;border-color:var(--navy)}
+.spread-chip:hover:not(.selected){background:white;color:var(--navy)}
+.spread-hint{font-size:.7rem;color:var(--text3);margin-top:6px;font-family:'DM Sans',sans-serif;font-style:italic}
+
+.card-position-label{font-family:'Cinzel',serif;font-size:.62rem;color:var(--gold2);letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:4px}
+
+/* ── AI SUMMARY ── */
+.ai-summary-wrap{background:linear-gradient(135deg,rgba(26,58,92,.06),rgba(249,199,79,.06));border:1px solid rgba(26,58,92,.12);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;backdrop-filter:blur(8px)}
+.ai-summary-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ai-summary-icon{font-size:1.1rem}
+.ai-summary-title{font-family:'Cinzel',serif;font-size:.78rem;color:var(--navy);font-weight:600;letter-spacing:.06em}
+.ai-summary-text{font-size:.88rem;color:var(--text2);line-height:1.85;font-weight:300}
+.ai-summary-text p{margin-bottom:10px}
+.ai-summary-text p:last-child{margin-bottom:0}
+.ai-loading{display:flex;align-items:center;gap:10px;color:var(--text3);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.08em}
+.ai-loading-star{animation:spin-slow 2s linear infinite;font-size:1rem}
+.btn-ai{width:100%;padding:13px;border-radius:var(--radius-sm);background:linear-gradient(135deg,rgba(26,58,92,.08),rgba(249,199,79,.1));border:1px solid rgba(26,58,92,.15);color:var(--navy);font-family:'Cinzel',serif;font-size:.8rem;cursor:pointer;transition:all .25s;letter-spacing:.06em;margin-bottom:12px}
+.btn-ai:hover{background:white;border-color:rgba(26,58,92,.25)}
+.btn-ai:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -313,13 +321,17 @@ body{
       <div class="section-title">เลือก Deck</div>
       <div class="deck-grid" id="deckGrid"></div>
 
-      <div class="section-title">จำนวนใบ</div>
+      <div class="section-title">จำนวนใบ & รูปแบบ Spread</div>
       <div class="count-row" id="countRow">
         <button class="count-chip selected" onclick="selectCount(1,this)">1</button>
         <button class="count-chip" onclick="selectCount(3,this)">3</button>
         <button class="count-chip" onclick="selectCount(5,this)">5</button>
         <button class="count-chip" onclick="selectCount(7,this)">7</button>
         <button class="count-chip" onclick="selectCount(10,this)">10</button>
+      </div>
+      <div class="spread-selector">
+        <div id="spreadChips" class="spread-chips"></div>
+        <div class="spread-hint" id="spreadHint"></div>
       </div>
 
       <div class="question-box">
@@ -353,6 +365,8 @@ body{
 
     <div class="meanings-section" id="meaningsSection"></div>
 
+    <button class="btn-ai" id="btnAI" style="display:none" onclick="getAISummary()">✦ ตีความรวมด้วย AI ✦</button>
+    <div class="ai-summary-wrap" id="aiSummaryWrap" style="display:none"></div>
     <div class="action-row" id="actionRow" style="display:none">
       <button class="action-btn btn-reset" onclick="goSetup()">← เริ่มใหม่</button>
       <button class="action-btn btn-new" onclick="reshuffleSameDeck()">✦ สุ่มใหม่</button>
@@ -373,7 +387,6 @@ body{
       <button class="lib-filter-btn" onclick="setLibFilter('Swords',this)">Swords</button>
       <button class="lib-filter-btn" onclick="setLibFilter('Pentacles',this)">Pentacles</button>
     </div>
-    <div id="libBanner"></div>
     <div class="lib-count" id="libCount"></div>
     <div class="lib-grid" id="libGrid">
       <div class="lib-empty" style="grid-column:1/-1">
@@ -429,6 +442,53 @@ let drawMode = 'one';
 let drawnCards = [];
 let revealedCount = 0;
 
+
+// ── SPREADS ──
+const SPREADS = {
+  1: [
+    { id:'single', name:'ไพ่ใบเดียว', positions:['ข้อความสำคัญ'], hint:'คำตอบหรือพลังงานหลักของสถานการณ์' },
+  ],
+  3: [
+    { id:'past-present-future', name:'Past · Present · Future', positions:['อดีต','ปัจจุบัน','อนาคต'], hint:'เส้นทางของสถานการณ์จากอดีตสู่อนาคต' },
+    { id:'mind-body-spirit',    name:'Mind · Body · Spirit',    positions:['ความคิด','ร่างกาย/การกระทำ','จิตวิญญาณ'], hint:'ความสมดุลของตัวเองในสามมิติ' },
+    { id:'situation-action-outcome', name:'Situation · Action · Outcome', positions:['สถานการณ์','การกระทำที่ควรทำ','ผลลัพธ์'], hint:'วิเคราะห์ปัญหาและทางออก' },
+  ],
+  5: [
+    { id:'cross5', name:'Cross Spread', positions:['ศูนย์กลาง','อุปสรรค','รากเหง้า','แนวโน้ม','ผลลัพธ์'], hint:'ภาพรวมสถานการณ์แบบลึก' },
+    { id:'path5',  name:'Path of Life', positions:['ตัวเอง','สิ่งที่ช่วย','ความท้าทาย','บทเรียน','เป้าหมาย'], hint:'เส้นทางชีวิตและการเติบโต' },
+  ],
+  7: [
+    { id:'week7', name:'7 วันข้างหน้า', positions:['วันจันทร์','วันอังคาร','วันพุธ','วันพฤหัส','วันศุกร์','วันเสาร์','วันอาทิตย์'], hint:'พลังงานของแต่ละวันในสัปดาห์นี้' },
+    { id:'horseshoe7', name:'Horseshoe', positions:['อดีต','ปัจจุบัน','อนาคต','คำแนะนำ','ปัจจัยภายนอก','ความหวัง/กลัว','ผลลัพธ์'], hint:'การอ่านแบบเต็มรูปแบบ' },
+  ],
+  10: [
+    { id:'celtic', name:'Celtic Cross', positions:['ตัวเอง','อุปสรรค','รากเหง้า','อดีต','มงกุฎ/เป้าหมาย','อนาคต','ตัวเอง(มุมมอง)','คนรอบข้าง','ความหวัง/กลัว','ผลลัพธ์สุดท้าย'], hint:'Spread คลาสสิกที่ครอบคลุมที่สุด' },
+  ],
+};
+
+let selectedSpread = null;
+
+function updateSpreadSelector() {
+  const spreads = SPREADS[selectedCount] || [];
+  const el = document.getElementById('spreadChips');
+  const hint = document.getElementById('spreadHint');
+  if(!spreads.length) { el.innerHTML=''; hint.textContent=''; selectedSpread=null; return; }
+  // Auto-select first
+  selectedSpread = spreads[0];
+  el.innerHTML = spreads.map((s,i) => `
+    <button class="spread-chip ${i===0?'selected':''}" onclick="selectSpread('${s.id}',this)">${s.name}</button>
+  `).join('');
+  hint.textContent = selectedSpread.hint;
+}
+
+function selectSpread(id, btn) {
+  const spreads = SPREADS[selectedCount] || [];
+  selectedSpread = spreads.find(s => s.id === id);
+  document.querySelectorAll('.spread-chip').forEach(c => c.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('spreadHint').textContent = selectedSpread?.hint || '';
+}
+
 // ── INIT ──
 async function init() {
   const { data, error } = await db.from('tarot_decks').select('*').eq('is_active', true).order('created_at');
@@ -438,6 +498,7 @@ async function init() {
   }
   allDecks = data;
   renderDecks();
+  updateSpreadSelector();
   document.getElementById('setupLoading').style.display = 'none';
   document.getElementById('setupContent').style.display = 'block';
 }
@@ -464,6 +525,7 @@ function selectCount(n, el) {
   selectedCount = n;
   document.querySelectorAll('.count-chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
+  updateSpreadSelector();
 }
 
 function selectMode(mode, el) {
@@ -520,8 +582,10 @@ function renderDrawScreen() {
   updateProgress();
 
   const stage = document.getElementById('cardsStage');
+  const positions = selectedSpread?.positions || [];
   stage.innerHTML = drawnCards.map((c, i) => `
     <div class="card-slot">
+      ${positions[i] ? `<div class="card-position-label">${positions[i]}</div>` : ''}
       <div class="card-wrap" id="card-${i}" onclick="flipCard(${i})">
         <div class="card-inner">
           <div class="card-face card-back">
@@ -544,6 +608,8 @@ function renderDrawScreen() {
 
   document.getElementById('meaningsSection').innerHTML = '';
   document.getElementById('actionRow').style.display = 'none';
+  document.getElementById('btnAI').style.display = 'none';
+  document.getElementById('aiSummaryWrap').style.display = 'none';
 
   if (drawMode === 'all') {
     document.getElementById('drawAllWrap').style.display = 'block';
@@ -590,6 +656,8 @@ function flipCard(i) {
   if (revealedCount === drawnCards.length) {
     setTimeout(() => {
       document.getElementById('actionRow').style.display = 'flex';
+      document.getElementById('btnAI').style.display = 'block';
+      document.getElementById('aiSummaryWrap').style.display = 'none';
     }, 800);
   }
 }
@@ -610,6 +678,8 @@ function revealAll() {
     });
     setTimeout(() => {
       document.getElementById('actionRow').style.display = 'flex';
+      document.getElementById('btnAI').style.display = 'block';
+      document.getElementById('aiSummaryWrap').style.display = 'none';
     }, drawnCards.length * 150 + 600);
   }, drawnCards.length * 200 + 300);
 }
@@ -668,8 +738,7 @@ let libDeckId = null;
 
 function switchTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  const tabId = tab === 'draw' ? 'tabDraw' : 'tabLib';
-  document.getElementById(tabId).classList.add('active');
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
   showScreen(tab === 'draw' ? 'setup' : 'library');
   if(tab === 'library' && libCards.length === 0 && selectedDeck) loadLibrary(selectedDeck);
 }
@@ -687,7 +756,6 @@ function setLibFilter(f, btn) {
   libFilter = f;
   document.querySelectorAll('.lib-filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderLibBanner();
   filterLibrary();
 }
 
@@ -760,31 +828,69 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-const LIB_FILTER_INFO = {
-  'all':       { icon: '✦', title: 'ไพ่ทั้งหมด', desc: 'Major และ Minor Arcana ครบ 78 ใบ — ภาพรวมทั้ง Deck' },
-  'Major':     { icon: '🌙', title: 'Major Arcana', desc: 'บทเรียนใหญ่ของชีวิต พลังจักรวาล และเส้นทางชีวิต 22 ใบ (The Fool ถึง The World)' },
-  'Minor':     { icon: '✦', title: 'Minor Arcana', desc: 'เหตุการณ์ประจำวัน อารมณ์ ความคิด และสถานการณ์รอบตัว 56 ใบ' },
-  'Wands':     { icon: '🔥', title: 'Wands — ไฟ', desc: 'พลังงาน ความกล้าหาญ แรงบันดาลใจ ความคิดสร้างสรรค์ และการลงมือทำ' },
-  'Cups':      { icon: '💧', title: 'Cups — น้ำ', desc: 'อารมณ์ ความรัก ความสัมพันธ์ จิตใต้สำนึก และความฝัน' },
-  'Swords':    { icon: '🌬️', title: 'Swords — ลม', desc: 'ความคิด การตัดสินใจ ความจริง ความขัดแย้ง และสติปัญญา' },
-  'Pentacles': { icon: '🌱', title: 'Pentacles — ดิน', desc: 'การงาน การเงิน ความมั่นคง ร่างกาย และโลกวัตถุ' },
-};
 
-function renderLibBanner() {
-  const el = document.getElementById('libBanner');
-  if(!el) return;
-  const info = LIB_FILTER_INFO[libFilter];
-  if(!info || libFilter === 'all') { el.innerHTML = ''; return; }
-  el.innerHTML = `
-    <div class="lib-filter-banner">
-      <span class="lib-filter-banner-icon">${info.icon}</span>
-      <div>
-        <div class="lib-filter-banner-title">${info.title}</div>
-        <div class="lib-filter-banner-text">${info.desc}</div>
+// ── AI SUMMARY ──
+async function getAISummary() {
+  const btn = document.getElementById('btnAI');
+  const wrap = document.getElementById('aiSummaryWrap');
+  btn.disabled = true;
+  btn.textContent = '✦ กำลังตีความ... ✦';
+  wrap.style.display = 'block';
+  wrap.innerHTML = `<div class="ai-summary-header"><span class="ai-summary-icon">✦</span><div class="ai-summary-title">กำลังตีความ...</div></div><div class="ai-loading"><span class="ai-loading-star">✦</span> AI กำลังอ่านพลังงานของไพ่...</div>`;
+
+  const question = document.getElementById('questionInput')?.value?.trim() || '';
+  const spreadName = selectedSpread?.name || 'General Reading';
+  const positions = selectedSpread?.positions || [];
+
+  const cardLines = drawnCards.map((c, i) => {
+    const pos = positions[i] ? `[${positions[i]}]` : `[ใบที่ ${i+1}]`;
+    const dir = c.reversed ? 'Reversed (กลับหัว)' : 'Upright (ตรง)';
+    const meaning = c.reversed ? c.meaning_reversed : c.meaning_upright;
+    return `${pos} ${c.name} — ${dir}\nความหมาย: ${meaning || '—'}`;
+  }).join('\n\n');
+
+  const prompt = `คุณคือนักอ่านไพ่ทาโรต์ที่มีประสบการณ์ ตีความไพ่ที่เปิดได้อย่างอบอุ่น เข้าใจง่าย และลึกซึ้ง
+
+Spread: ${spreadName}
+${question ? `คำถาม/เจตนา: ${question}` : 'ไม่ได้ระบุคำถาม — ตีความเป็นภาพรวมพลังงานในช่วงนี้'}
+
+ไพ่ที่เปิดได้:
+${cardLines}
+
+กรุณาตีความรวมทั้ง Spread เป็นภาษาไทย โดย:
+1. เชื่อมโยงความหมายของไพ่แต่ละใบเข้าด้วยกันตามตำแหน่ง
+2. บอก theme หลักและข้อความสำคัญที่ไพ่ต้องการสื่อ
+3. ให้คำแนะนำที่นำไปปฏิบัติได้จริง
+4. ใช้ภาษาอบอุ่น เข้าใจง่าย ไม่ตัดสิน
+5. ความยาวประมาณ 3-4 ย่อหน้า`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || 'ไม่สามารถตีความได้';
+    const html = text.split('\n\n').filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('');
+    wrap.innerHTML = `
+      <div class="ai-summary-header">
+        <span class="ai-summary-icon">✦</span>
+        <div class="ai-summary-title">การตีความรวม — ${spreadName}</div>
       </div>
-    </div>`;
+      <div class="ai-summary-text">${html}</div>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="ai-summary-header"><span class="ai-summary-icon">⚠️</span><div class="ai-summary-title">ไม่สามารถเชื่อมต่อได้</div></div><div class="ai-summary-text">กรุณาลองใหม่อีกครั้ง</div>`;
+  }
+  btn.disabled = false;
+  btn.textContent = '✦ ตีความใหม่อีกครั้ง ✦';
 }
-  
+
+
 init();
 </script>
 </body>
