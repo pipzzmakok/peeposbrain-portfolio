@@ -797,7 +797,8 @@ let libDeckId = null;
 
 function switchTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  const tabId = tab === 'draw' ? 'tabDraw' : 'tabLib';
+  document.getElementById(tabId).classList.add('active');
   showScreen(tab === 'draw' ? 'setup' : 'library');
   if(tab === 'library' && libCards.length === 0 && selectedDeck) loadLibrary(selectedDeck);
 }
