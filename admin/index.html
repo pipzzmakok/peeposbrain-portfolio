@@ -113,6 +113,23 @@ textarea.f-input{resize:none}
 .food-search:focus{border-color:var(--blue)}
 .food-search::placeholder{color:var(--text3)}
 @media(max-width:480px){.food-admin-grid{grid-template-columns:1fr}}
+
+/* ── TAROT MANAGEMENT ── */
+.tarot-card-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .15s}
+.tarot-card-row:last-child{border-bottom:none}
+.tarot-card-row:hover{background:rgba(255,255,255,.02)}
+.tarot-card-thumb{width:28px;height:46px;object-fit:cover;border-radius:4px;border:1px solid var(--border);flex-shrink:0;background:var(--surface3)}
+.tarot-card-info{flex:1;min-width:0}
+.tarot-card-name{font-size:.8rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tarot-card-meta{font-size:.62rem;color:var(--text3);font-family:"Space Mono",monospace;margin-top:2px}
+.tarot-card-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-icon{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:.75rem}
+.btn-icon:hover{background:var(--surface2);color:var(--text)}
+.badge{display:inline-block;font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:100px;font-family:"Space Mono",monospace}
+.badge-active{background:var(--green-dim);color:var(--green)}
+.badge-inactive{background:var(--red-dim);color:var(--red)}
+.badge-major{background:rgba(167,139,250,.12);color:var(--purple)}
+.badge-minor{background:rgba(74,158,255,.1);color:var(--blue)}
 </style>
 </head>
 <body>
@@ -308,6 +325,86 @@ textarea.f-input{resize:none}
       </div>
     </div>
 
+
+    <!-- TAROT MANAGEMENT -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-title" style="--section-color:var(--purple)">&#127924; Tarot Management</div>
+      </div>
+
+      <!-- Add Deck -->
+      <div class="form-card" style="margin-bottom:12px">
+        <div class="form-card-header" onclick="toggleCard(this)">&#43; เพิ่ม Deck ใหม่ <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="f-grid">
+            <div class="f-group"><label class="f-label">ชื่อ Deck</label><input id="td_name" class="f-input" placeholder="e.g. Thoth Tarot"></div>
+            <div class="f-group"><label class="f-label">Cover Image URL</label><input id="td_cover" class="f-input" placeholder="https://..."></div>
+            <div class="f-group full"><label class="f-label">Description</label><input id="td_desc" class="f-input" placeholder="คำอธิบาย Deck"></div>
+            <div class="f-actions"><button class="btn-primary" onclick="addTarotDeck()">&#43; เพิ่ม Deck</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manage Decks -->
+      <div class="form-card" style="margin-bottom:12px">
+        <div class="form-card-header" onclick="toggleCard(this)">&#128218; จัดการ Decks <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body" style="padding:0">
+          <div id="tarotDeckList"><div style="padding:16px;text-align:center;color:var(--text3);font-size:.78rem">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- Add Card -->
+      <div class="form-card" style="margin-bottom:12px">
+        <div class="form-card-header" onclick="toggleCard(this)">&#43; เพิ่มไพ่ใหม่ <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body">
+          <div class="f-grid">
+            <div class="f-group"><label class="f-label">Deck</label>
+              <select id="tc_deck" class="f-input"><option value="">เลือก Deck...</option></select>
+            </div>
+            <div class="f-group"><label class="f-label">Card Number (0-77)</label><input type="number" id="tc_num" class="f-input" placeholder="0" min="0" max="77"></div>
+            <div class="f-group"><label class="f-label">ชื่อไพ่</label><input id="tc_name" class="f-input" placeholder="e.g. The Fool"></div>
+            <div class="f-group"><label class="f-label">Arcana</label>
+              <select id="tc_arcana" class="f-input">
+                <option value="Major">Major Arcana</option>
+                <option value="Minor">Minor Arcana</option>
+              </select>
+            </div>
+            <div class="f-group"><label class="f-label">Suit (Minor เท่านั้น)</label>
+              <select id="tc_suit" class="f-input">
+                <option value="">&#8212; (Major Arcana)</option>
+                <option value="Wands">Wands</option>
+                <option value="Cups">Cups</option>
+                <option value="Swords">Swords</option>
+                <option value="Pentacles">Pentacles</option>
+              </select>
+            </div>
+            <div class="f-group"><label class="f-label">Image URL</label><input id="tc_img" class="f-input" placeholder="https://..."></div>
+            <div class="f-group full"><label class="f-label">Meaning Upright</label><textarea id="tc_up" class="f-input" rows="2" placeholder="ความหมายเมื่อไพ่ตรง..."></textarea></div>
+            <div class="f-group full"><label class="f-label">Meaning Reversed</label><textarea id="tc_rev" class="f-input" rows="2" placeholder="ความหมายเมื่อไพ่กลับหัว..."></textarea></div>
+            <div class="f-actions"><button class="btn-primary" onclick="addTarotCard()">&#43; เพิ่มไพ่</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Browse Cards -->
+      <div class="form-card">
+        <div class="form-card-header" onclick="toggleCard(this)">&#127183; ดูไพ่ทั้งหมด <span class="toggle-arrow">&#9662;</span></div>
+        <div class="form-card-body" style="padding:0">
+          <div style="padding:12px 14px 0;display:flex;gap:8px;flex-wrap:wrap">
+            <select id="tc_browse_deck" class="f-input" style="flex:1;min-width:140px" onchange="loadTarotCards()">
+              <option value="">เลือก Deck...</option>
+            </select>
+            <select id="tc_browse_arcana" class="f-input" style="width:auto" onchange="filterTarotCards()">
+              <option value="all">All Arcana</option>
+              <option value="Major">Major</option>
+              <option value="Minor">Minor</option>
+            </select>
+          </div>
+          <div id="tarotCardList" style="padding:12px 14px"><div style="text-align:center;color:var(--text3);font-size:.78rem;padding:20px 0">เลือก Deck เพื่อดูไพ่</div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SYSTEM -->
     <div class="admin-section">
       <div class="section-header">
@@ -389,6 +486,7 @@ function changePassword(){
 
 async function loadAll(){
   loadFoodAdmin();
+  loadTarotAdmin();
   const{data}=await db.from('portfolio_config').select('key,value');
   if(!data)return;
   const cfg={};
@@ -622,6 +720,128 @@ async function deleteCustomFood(id) {
   await db.from('food_items').delete().eq('id',id);
   showToast('ลบแล้ว','info');
   loadCustomFoods();
+}
+
+
+
+// ── TAROT MANAGEMENT ──
+let allTarotDecks = [];
+let allTarotCards = [];
+
+async function loadTarotAdmin() {
+  const { data } = await db.from('tarot_decks').select('*').order('created_at');
+  allTarotDecks = data || [];
+  renderTarotDecks();
+  populateTarotDeckSelects();
+}
+
+function populateTarotDeckSelects() {
+  const opts = allTarotDecks.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  ['tc_deck','tc_browse_deck'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = '<option value="">เลือก Deck...</option>' + opts;
+  });
+}
+
+function renderTarotDecks() {
+  const el = document.getElementById('tarotDeckList');
+  if(!allTarotDecks.length) {
+    el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text3);font-size:.78rem">ยังไม่มี Deck</div>';
+    return;
+  }
+  el.innerHTML = allTarotDecks.map(d => `
+    <div class="settings-row">
+      <div class="settings-row-info">
+        <div class="settings-row-name">&#127924; ${d.name}</div>
+        <div class="settings-row-sub">${d.description||'—'}</div>
+      </div>
+      <div class="settings-row-actions">
+        <span class="badge ${d.is_active?'badge-active':'badge-inactive'}">${d.is_active?'Active':'Hidden'}</span>
+        <button class="btn-icon" onclick="toggleTarotDeck('${d.id}',${d.is_active})" title="Toggle">&#128065;</button>
+        <button class="btn-icon" onclick="deleteTarotDeck('${d.id}')" title="Delete" style="color:var(--red)">&#10005;</button>
+      </div>
+    </div>`).join('');
+}
+
+async function addTarotDeck() {
+  const name = document.getElementById('td_name').value.trim();
+  const desc = document.getElementById('td_desc').value.trim();
+  const cover = document.getElementById('td_cover').value.trim();
+  if(!name) { showToast('กรุณาใส่ชื่อ Deck','error'); return; }
+  const { error } = await db.from('tarot_decks').insert({ name, description: desc||null, cover_image_url: cover||null, is_active: true });
+  if(error) { showToast('Error: '+error.message,'error'); return; }
+  showToast('เพิ่ม Deck: '+name,'success');
+  ['td_name','td_desc','td_cover'].forEach(id => document.getElementById(id).value = '');
+  loadTarotAdmin();
+}
+
+async function toggleTarotDeck(id, current) {
+  await db.from('tarot_decks').update({ is_active: !current }).eq('id', id);
+  loadTarotAdmin();
+}
+
+async function deleteTarotDeck(id) {
+  const deck = allTarotDecks.find(d => d.id === id);
+  if(!confirm('ลบ Deck "'+deck?.name+'"? ไพ่ทั้งหมดใน Deck นี้จะถูกลบด้วย')) return;
+  await db.from('tarot_decks').delete().eq('id', id);
+  showToast('ลบ Deck แล้ว','info');
+  loadTarotAdmin();
+}
+
+async function addTarotCard() {
+  const deck_id = document.getElementById('tc_deck').value;
+  const card_number = parseInt(document.getElementById('tc_num').value);
+  const name = document.getElementById('tc_name').value.trim();
+  const arcana = document.getElementById('tc_arcana').value;
+  const suit = document.getElementById('tc_suit').value || null;
+  const image_url = document.getElementById('tc_img').value.trim() || null;
+  const meaning_upright = document.getElementById('tc_up').value.trim() || null;
+  const meaning_reversed = document.getElementById('tc_rev').value.trim() || null;
+  if(!deck_id || !name || isNaN(card_number)) { showToast('กรุณากรอก Deck, ชื่อ และ Card Number','error'); return; }
+  const { error } = await db.from('tarot_cards').insert({ deck_id, card_number, name, arcana, suit, image_url, meaning_upright, meaning_reversed });
+  if(error) { showToast('Error: '+error.message,'error'); return; }
+  showToast('เพิ่มไพ่: '+name,'success');
+  ['tc_num','tc_name','tc_img','tc_up','tc_rev'].forEach(id => document.getElementById(id).value = '');
+  if(document.getElementById('tc_browse_deck').value === deck_id) loadTarotCards();
+}
+
+async function loadTarotCards() {
+  const deck_id = document.getElementById('tc_browse_deck').value;
+  const el = document.getElementById('tarotCardList');
+  if(!deck_id) { el.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:.78rem;padding:20px 0">เลือก Deck เพื่อดูไพ่</div>'; return; }
+  el.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:.78rem;padding:20px 0">Loading...</div>';
+  const { data } = await db.from('tarot_cards').select('*').eq('deck_id', deck_id).order('card_number');
+  allTarotCards = data || [];
+  filterTarotCards();
+}
+
+function filterTarotCards() {
+  const arcana = document.getElementById('tc_browse_arcana').value;
+  const cards = arcana === 'all' ? allTarotCards : allTarotCards.filter(c => c.arcana === arcana);
+  const el = document.getElementById('tarotCardList');
+  if(!cards.length) { el.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:.78rem;padding:20px 0">ไม่พบไพ่</div>'; return; }
+  el.innerHTML = cards.map(c => `
+    <div class="tarot-card-row">
+      ${c.image_url ? `<img class="tarot-card-thumb" src="${c.image_url}" alt="${c.name}" onerror="this.style.display='none'">` : ''}
+      <div class="tarot-card-info">
+        <div class="tarot-card-name">${c.card_number}. ${c.name}</div>
+        <div class="tarot-card-meta">
+          <span class="badge ${c.arcana==='Major'?'badge-major':'badge-minor'}">${c.arcana}</span>
+          ${c.suit ? '<span style="margin-left:4px">'+c.suit+'</span>' : ''}
+        </div>
+      </div>
+      <div class="tarot-card-actions">
+        <button class="btn-icon" onclick="deleteTarotCard('${c.id}')" title="Delete" style="color:var(--red)">&#10005;</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteTarotCard(id) {
+  const card = allTarotCards.find(c => c.id === id);
+  if(!confirm('ลบไพ่ "'+card?.name+'"?')) return;
+  await db.from('tarot_cards').delete().eq('id', id);
+  showToast('ลบไพ่แล้ว','info');
+  loadTarotCards();
 }
 
 
