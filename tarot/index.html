@@ -280,6 +280,22 @@ body{
 .btn-ai{width:100%;padding:13px;border-radius:var(--radius-sm);background:linear-gradient(135deg,rgba(26,58,92,.08),rgba(249,199,79,.1));border:1px solid rgba(26,58,92,.15);color:var(--navy);font-family:'Cinzel',serif;font-size:.8rem;cursor:pointer;transition:all .25s;letter-spacing:.06em;margin-bottom:12px}
 .btn-ai:hover{background:white;border-color:rgba(26,58,92,.25)}
 .btn-ai:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── EXTENDED CARD INFO ── */
+.yn-badge{display:inline-flex;align-items:center;gap:4px;font-family:'Cinzel',serif;font-size:.62rem;padding:3px 10px;border-radius:100px;letter-spacing:.08em;font-weight:600}
+.yn-yes{background:rgba(52,211,153,.15);color:#059669}
+.yn-no{background:rgba(248,113,113,.15);color:#dc2626}
+.yn-maybe{background:rgba(249,199,79,.2);color:var(--gold2)}
+.card-keywords{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 4px}
+.kw-chip{font-family:'Cinzel',serif;font-size:.58rem;padding:3px 9px;border-radius:100px;background:rgba(249,199,79,.12);color:var(--gold2);border:1px solid rgba(249,199,79,.25);letter-spacing:.04em}
+.meaning-tabs{display:flex;gap:0;margin-bottom:12px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid rgba(26,58,92,.1)}
+.meaning-tab{flex:1;padding:8px;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.08em;background:transparent;border:none;cursor:pointer;color:var(--text3);transition:all .2s}
+.meaning-tab.active{background:var(--navy);color:white}
+.meaning-tab-content{display:none}
+.meaning-tab-content.active{display:block}
+.advice-box{background:linear-gradient(135deg,rgba(249,199,79,.08),rgba(26,58,92,.06));border:1px solid rgba(249,199,79,.2);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px}
+.advice-label{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);margin-bottom:6px}
+.advice-text{font-size:.84rem;color:var(--text2);line-height:1.7;font-weight:300;font-style:italic}
 </style>
 </head>
 <body>
@@ -409,15 +425,39 @@ body{
         </div>
       </div>
       <div class="modal-body">
-        <div class="meaning-section">
-          <div class="meaning-section-label label-up">↑ Upright — ไพ่ตรง</div>
-          <div class="meaning-keywords" id="modalUpKeywords"></div>
-          <div class="meaning-section-text" id="modalUpText"></div>
+        <div class="card-keywords" id="modalKeywords"></div>
+        <div class="meaning-tabs">
+          <button class="meaning-tab active" onclick="switchMeaningTab('general',this)">✦ ทั่วไป</button>
+          <button class="meaning-tab" onclick="switchMeaningTab('love',this)">❤️ ความรัก</button>
+          <button class="meaning-tab" onclick="switchMeaningTab('career',this)">💼 การงาน</button>
         </div>
-        <div class="meaning-section">
-          <div class="meaning-section-label label-rev">↓ Reversed — ไพ่กลับหัว</div>
-          <div class="meaning-keywords" id="modalRevKeywords"></div>
-          <div class="meaning-section-text" id="modalRevText"></div>
+        <div class="meaning-tab-content active" id="tabGeneral">
+          <div class="meaning-section">
+            <div class="meaning-section-label label-up">↑ Upright — ไพ่ตรง</div>
+            <div class="meaning-keywords" id="modalUpKeywords"></div>
+            <div class="meaning-section-text" id="modalUpText"></div>
+          </div>
+          <div class="meaning-section">
+            <div class="meaning-section-label label-rev">↓ Reversed — ไพ่กลับหัว</div>
+            <div class="meaning-keywords" id="modalRevKeywords"></div>
+            <div class="meaning-section-text" id="modalRevText"></div>
+          </div>
+        </div>
+        <div class="meaning-tab-content" id="tabLove">
+          <div class="meaning-section">
+            <div class="meaning-section-label" style="color:#e11d48">❤️ ด้านความรัก</div>
+            <div class="meaning-section-text" id="modalLoveText"></div>
+          </div>
+        </div>
+        <div class="meaning-tab-content" id="tabCareer">
+          <div class="meaning-section">
+            <div class="meaning-section-label" style="color:var(--navy2)">💼 ด้านการงาน/การเงิน</div>
+            <div class="meaning-section-text" id="modalCareerText"></div>
+          </div>
+        </div>
+        <div class="advice-box" id="modalAdviceBox" style="display:none">
+          <div class="advice-label">✦ คำแนะนำ</div>
+          <div class="advice-text" id="modalAdviceText"></div>
         </div>
         <button class="modal-close" onclick="closeModal()">✦ ปิด</button>
       </div>
@@ -687,7 +727,24 @@ function revealAll() {
 function showMeaning(i) {
   const card = drawnCards[i];
   const meaning = card.reversed ? card.meaning_reversed : card.meaning_upright;
-  const keywords = meaning ? meaning.split(' ').slice(0,4).join(' · ') : '';
+  const positions = selectedSpread?.positions || [];
+  const posLabel = positions[i] ? `<span class="card-label-badge" style="background:rgba(249,199,79,.15);color:var(--gold2)">${positions[i]}</span>` : '';
+
+  // Keywords chips from DB
+  let kwHtml = '';
+  if(card.keywords) {
+    const kws = card.keywords.split('·').map(k=>k.trim()).filter(Boolean);
+    kwHtml = `<div class="card-keywords">${kws.map(k=>`<span class="kw-chip">${k}</span>`).join('')}</div>`;
+  }
+
+  // Yes/No badge
+  let ynHtml = '';
+  if(card.yes_no) {
+    const ynClass = card.yes_no==='Yes'?'yn-yes':card.yes_no==='No'?'yn-no':'yn-maybe';
+    const ynIcon = card.yes_no==='Yes'?'✓':card.yes_no==='No'?'✗':'~';
+    ynHtml = `<span class="yn-badge ${ynClass}">${ynIcon} ${card.yes_no}</span>`;
+  }
+
   const section = document.getElementById('meaningsSection');
   const el = document.createElement('div');
   el.className = 'meaning-card';
@@ -698,15 +755,17 @@ function showMeaning(i) {
       <div class="meaning-title-wrap">
         <div class="meaning-card-name">${card.name}</div>
         <div class="meaning-badges">
+          ${posLabel}
           <span class="card-label-badge ${card.reversed?'badge-rev':'badge-up'}">${card.reversed?'↓ Reversed':'↑ Upright'}</span>
           ${card.arcana==='Major'?'<span class="card-label-badge" style="background:rgba(26,58,92,.08);color:var(--navy2)">Major Arcana</span>':''}
-          ${card.suit?`<span class="card-label-badge" style="background:rgba(26,58,92,.06);color:var(--text3)">${card.suit}</span>`:''}
+          ${ynHtml}
         </div>
       </div>
     </div>
     <div class="meaning-body">
-      ${keywords?`<div class="meaning-keyword">${keywords}</div>`:''}
+      ${kwHtml}
       <div class="meaning-text">${meaning || '—'}</div>
+      ${card.advice?`<div class="advice-box"><div class="advice-label">✦ คำแนะนำ</div><div class="advice-text">${card.advice}</div></div>`:''}
     </div>`;
   section.appendChild(el);
   requestAnimationFrame(() => {
@@ -803,24 +862,58 @@ function openCardDetail(id) {
   document.getElementById('modalName').textContent = c.name;
   document.getElementById('modalNum').textContent = 'Card No. ' + c.card_number;
 
-  // Badges
+  // Badges + Yes/No
   let badges = `<span class="modal-badge ${c.arcana === 'Major' ? 'badge-major-light' : 'badge-minor-light'}">${c.arcana} Arcana</span>`;
   if(c.suit) badges += `<span class="modal-badge badge-suit">${c.suit}</span>`;
+  if(c.yes_no) {
+    const ynClass = c.yes_no==='Yes'?'yn-yes':c.yes_no==='No'?'yn-no':'yn-maybe';
+    const ynIcon = c.yes_no==='Yes'?'✓':c.yes_no==='No'?'✗':'~';
+    badges += `<span class="yn-badge ${ynClass}">${ynIcon} ${c.yes_no}</span>`;
+  }
   document.getElementById('modalBadges').innerHTML = badges;
 
-  // Meanings
+  // Keywords chips
+  const kwEl = document.getElementById('modalKeywords');
+  if(c.keywords) {
+    const kws = c.keywords.split('·').map(k=>k.trim()).filter(Boolean);
+    kwEl.innerHTML = kws.map(k=>`<span class="kw-chip">${k}</span>`).join('');
+    kwEl.style.display = 'flex';
+  } else { kwEl.innerHTML=''; kwEl.style.display='none'; }
+
+  // General meanings
   const up = c.meaning_upright || '—';
   const rev = c.meaning_reversed || '—';
   const upKw = up !== '—' ? up.split(' ').slice(0, 4).join(' · ') : '';
   const revKw = rev !== '—' ? rev.split(' ').slice(0, 4).join(' · ') : '';
-
   document.getElementById('modalUpKeywords').textContent = upKw;
   document.getElementById('modalUpText').textContent = up;
   document.getElementById('modalRevKeywords').textContent = revKw;
   document.getElementById('modalRevText').textContent = rev;
 
+  // Love & Career
+  document.getElementById('modalLoveText').textContent = c.meaning_love || '—';
+  document.getElementById('modalCareerText').textContent = c.meaning_career || '—';
+
+  // Advice
+  const advBox = document.getElementById('modalAdviceBox');
+  if(c.advice) {
+    document.getElementById('modalAdviceText').textContent = c.advice;
+    advBox.style.display = 'block';
+  } else { advBox.style.display = 'none'; }
+
+  // Reset tabs to general
+  switchMeaningTab('general', document.querySelector('.meaning-tab'));
+
   document.getElementById('cardModal').classList.add('show');
   document.body.style.overflow = 'hidden';
+}
+
+function switchMeaningTab(tab, btn) {
+  document.querySelectorAll('.meaning-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.meaning-tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const map = {general:'tabGeneral', love:'tabLove', career:'tabCareer'};
+  document.getElementById(map[tab]).classList.add('active');
 }
 
 function closeModal() {
