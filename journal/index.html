@@ -465,13 +465,23 @@ function renderTimeline() {
   el.innerHTML = allLogs.slice(0,30).map(l=>{
     const d = new Date(l.created_at);
     const dateStr = d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    if(l.type==='evidence') {
+  if(l.type==='evidence') {
       const chips = (l.strengths||[]).map(s=>`<span class="tl-chip chip-strength">${s}</span>`).join('');
       return `<div class="tl-item">
-        <div class="tl-date">${dateStr} · <span class="tl-chip chip-evidence" style="display:inline;padding:2px 8px">⭐ Evidence</span></div>
-        <div class="tl-event">${l.event||'—'}</div>
-        ${l.self_credit?`<div class="tl-reflection">ให้เครดิตตัวเอง: ${l.self_credit}</div>`:''}
-        ${chips?`<div class="tl-chips">${chips}</div>`:''}
+        <div class="tl-date" style="margin-bottom:10px">${dateStr} · <span class="tl-chip chip-evidence" style="display:inline;padding:2px 8px">⭐ Evidence</span></div>
+        <div class="tl-event" style="font-family:'Instrument Serif',serif;font-size:1rem;margin-bottom:12px">${l.event||'—'}</div>
+        ${l.event?`<div style="margin-bottom:8px">
+          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">✓ What happened</div>
+          <div style="font-size:.84rem;color:var(--text2);font-weight:300">${l.event}</div>
+        </div>`:''}
+        ${chips?`<div style="margin-bottom:8px">
+          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">✨ What it says about me</div>
+          <div class="tl-chips">${chips}</div>
+        </div>`:''}
+        ${l.self_credit?`<div style="background:rgba(249,168,37,.08);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 var(--radius-xs) var(--radius-xs) 0;margin-top:4px">
+          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">🌱 One sentence</div>
+          <div style="font-size:.84rem;color:var(--navy);font-style:italic;font-weight:400">${l.self_credit}</div>
+        </div>`:''}
       </div>`;
     } else {
       return `<div class="tl-item">
