@@ -287,7 +287,7 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;min-height:100dvh;color:v
     <div id="ev-step3" style="display:none">
       <div class="form-card">
         <div class="form-step">Step 3 / 4</div>
-        <div class="form-q">วันนี้ฉันขอให้เครดิตตัวเองเรื่อง...</div>
+        <div class="form-q">วันนี้ฉันภูมิใจในตัวเองเรื่อง...</div>
         <textarea id="ev_credit" class="form-input" rows="2" placeholder="เช่น ไม่ยอมแพ้, ลงมือทำแม้จะเหนื่อย, รักษาคำมั่นสัญญา..."></textarea>
         <button class="btn-next" onclick="evNext(3)">ต่อไป →</button>
         <button class="btn-ghost" onclick="evBack(2)">← กลับ</button>
@@ -466,23 +466,27 @@ function renderTimeline() {
     const d = new Date(l.created_at);
     const dateStr = d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
   if(l.type==='evidence') {
-      const chips = (l.strengths||[]).map(s=>`<span class="tl-chip chip-strength">${s}</span>`).join('');
-      return `<div class="tl-item">
-        <div class="tl-date" style="margin-bottom:10px">${dateStr} · <span class="tl-chip chip-evidence" style="display:inline;padding:2px 8px">⭐ Evidence</span></div>
-        <div class="tl-event" style="font-family:'Instrument Serif',serif;font-size:1rem;margin-bottom:12px">${l.event||'—'}</div>
-        ${l.event?`<div style="margin-bottom:8px">
-          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">✓ What happened</div>
-          <div style="font-size:.84rem;color:var(--text2);font-weight:300">${l.event}</div>
-        </div>`:''}
-        ${chips?`<div style="margin-bottom:8px">
-          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">✨ What it says about me</div>
-          <div class="tl-chips">${chips}</div>
-        </div>`:''}
-        ${l.self_credit?`<div style="background:rgba(249,168,37,.08);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 var(--radius-xs) var(--radius-xs) 0;margin-top:4px">
-          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">🌱 One sentence</div>
-          <div style="font-size:.84rem;color:var(--navy);font-style:italic;font-weight:400">${l.self_credit}</div>
-        </div>`:''}
-      </div>`;
+    const strLines = (l.strengths||[]).map(s=>`<div style="font-size:.84rem;color:var(--navy);font-weight:500">✔ ${s}</div>`).join('');
+    return `<div class="tl-item">
+      <div class="tl-date" style="margin-bottom:10px">${dateStr} · <span class="tl-chip chip-evidence" style="display:inline;padding:2px 8px">⭐ Evidence</span></div>
+      <div style="font-family:'Instrument Serif',serif;font-size:.95rem;color:var(--gold2);margin-bottom:12px">✨ Today's Evidence</div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">วันนี้เกิดอะไรขึ้น</div>
+        <div style="font-size:.88rem;color:var(--navy);line-height:1.6">${l.event||'—'}</div>
+      </div>
+      ${strLines?`<div style="margin-bottom:10px">
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">สิ่งนี้สะท้อนว่า</div>
+        ${strLines}
+      </div>`:''}
+      ${l.self_credit?`<div style="margin-bottom:10px">
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">ฉันอยากขอบคุณตัวเองที่</div>
+        <div style="font-size:.88rem;color:var(--navy2);font-weight:400">${l.self_credit}</div>
+      </div>`:''}
+      ${l.friend_compliment?`<div style="background:rgba(249,168,37,.08);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 var(--radius-xs) var(--radius-xs) 0">
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">ถ้าเป็นเพื่อน</div>
+        <div style="font-size:.88rem;color:var(--navy);font-style:italic">"${l.friend_compliment}"</div>
+      </div>`:''}
+    </div>`;
     } else {
       return `<div class="tl-item">
         <div class="tl-date">${dateStr} · <span class="tl-chip chip-critic" style="display:inline;padding:2px 8px">💭 Inner Critic</span></div>
@@ -557,6 +561,8 @@ async function evSubmit() {
   if(creditText) reflectionHtml += `<p style="margin-top:6px">${creditText}</p>`;
   reflectionHtml += `<p style="margin-top:10px;font-size:.8rem;color:var(--text3)">ดังนั้น คุณก็สมควรได้รับคำชมนี้เช่นกัน</p>`;
   document.getElementById('evReflectionText').innerHTML = reflectionHtml;
+  const closing = getClosingMessage(strs, event);
+  document.getElementById('evReflectionText').innerHTML += `<div style="margin-top:14px;padding:12px 14px;background:rgba(26,58,92,.05);border-radius:var(--radius-xs);border-left:3px solid var(--navy);font-size:.82rem;color:var(--navy);line-height:1.75;font-weight:300;font-style:italic">${closing}</div>`;
   document.getElementById('evReflectionQuote').textContent = friend ? `"${friend}"` : '✨';
   showStep('evidence','ev-result');
   await loadData();
@@ -621,6 +627,42 @@ function showToast(msg) {
   setTimeout(()=>t.classList.remove('show'),2500);
 }
 
+function getClosingMessage(strengths, event) {
+  const str = (strengths||[]).map(s=>s.toLowerCase());
+  const ev = (event||'').toLowerCase();
+
+  // Pattern matching — most specific first
+  if(str.includes('discipline') || str.includes('consistency') || str.includes('focus'))
+    return 'ความสม่ำเสมอดูเหมือนเรื่องธรรมดา แต่คนส่วนใหญ่ทำไม่ได้ทุกวัน การที่คุณทำได้คือหลักฐานที่พูดดังกว่าคำชมใดๆ';
+  if(str.includes('courage') || str.includes('resilience'))
+    return 'การกล้าทำสิ่งที่ยากไม่ใช่เรื่องที่ "ทุกคนก็ทำ" — มีคนจำนวนมากที่เลือกไม่ทำ คุณไม่ได้เป็นคนนั้น';
+  if(str.includes('kindness') || str.includes('empathy'))
+    return 'ความเมตตาที่มีต่อผู้อื่นเป็นสิ่งที่ต้องใช้พลังงานจริงๆ คนที่ทำได้ทุกวันไม่ใช่เรื่องธรรมดาเลย';
+  if(str.includes('responsibility') || str.includes('honesty'))
+    return 'การรับผิดชอบในสิ่งที่ทำเป็นคุณสมบัติที่หายากขึ้นทุกวัน สิ่งที่คุณทำวันนี้คือตัวอย่างของมัน';
+  if(str.includes('growth') || str.includes('curiosity') || str.includes('creativity'))
+    return 'การพัฒนาตัวเองทีละนิดทุกวันดูเหมือนเล็กน้อย แต่ถ้ามองย้อนกลับไปสักปีหนึ่ง คุณจะเห็นว่ามันสร้างความต่างได้มากแค่ไหน';
+  if(str.includes('self-care') || str.includes('patience'))
+    return 'การดูแลตัวเองไม่ใช่ความอ่อนแอ แต่คือปัญญา คนที่รู้จักพักและดูแลตัวเองได้ดีคือคนที่ไปได้ไกลกว่า';
+
+  // Keyword in event
+  if(/วิ่ง|ออกกำลัง|exercise|gym/.test(ev))
+    return 'การออกกำลังกายในวันที่ไม่อยากทำคือชัยชนะที่ยิ่งใหญ่กว่าวันที่รู้สึกดีพร้อมด้วยซ้ำ';
+  if(/ทำงาน|งาน|โปรเจกต์|project|task/.test(ev))
+    return 'คนอื่นอาจทำงานเสร็จได้เหมือนกัน แต่นั่นไม่ได้ลดคุณค่าของสิ่งที่คุณทำลงเลย — ความพยายามของคุณเป็นของคุณเสมอ';
+  if(/ช่วย|เพื่อน|ครอบครัว/.test(ev))
+    return 'การที่คุณนึกถึงคนอื่นและลงมือช่วย คือหลักฐานที่บอกว่าคุณเป็นคนที่ใส่ใจ — ไม่ใช่ทุกคนทำแบบนี้';
+
+  // Default — always valid
+  const defaults = [
+    'สิ่งที่คุณทำวันนี้ดูเหมือนธรรมดา แต่ "ธรรมดา" ที่ทำได้สม่ำเสมอคือสิ่งที่ผู้คนส่วนใหญ่ทำไม่ได้',
+    'คนอื่นอาจทำสิ่งนี้ได้เหมือนกัน แต่นั่นไม่ได้ทำให้สิ่งที่คุณทำมีคุณค่าน้อยลงเลย',
+    'ทุกหลักฐานเล็กๆ ที่คุณเก็บในวันนี้คือสิ่งที่สมองมักจะลืมในวันที่รู้สึกแย่ ดีที่คุณบันทึกมันไว้',
+    'ไม่ต้องทำสิ่งพิเศษทุกวัน การทำสิ่งธรรมดาอย่างสม่ำเสมอคือสิ่งที่พิเศษที่สุดในระยะยาว',
+  ];
+  return defaults[Math.floor(Math.random() * defaults.length)];
+} 
+  
 init();
 </script>
 </body>
