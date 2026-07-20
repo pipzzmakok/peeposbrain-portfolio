@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Evidence Journal — kittisap.me</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky1:#c9e8f7; --sky2:#ddf0fb; --sky3:#eef7fd; --sky4:#f7fbff;
+  --warm1:#fff8f0; --warm2:#fef3e2;
+  --navy:#1a3a5c; --navy2:#2c5282; --navy3:#4a7a9b;
+  --gold:#f9a825; --gold2:#e65100; --gold3:#fff3cd;
+  --green:#2e7d52; --green-bg:rgba(46,125,82,.1);
+  --red:#c0392b; --red-bg:rgba(192,57,43,.08);
+  --glass:rgba(255,255,255,0.72); --glass2:rgba(255,255,255,0.9);
+  --border:rgba(26,58,92,0.12); --border2:rgba(26,58,92,0.2);
+  --text:#1a2e3b; --text2:#4a6a7c; --text3:#8aaabb;
+  --radius:16px; --radius-sm:10px; --radius-xs:8px;
+  --shadow:rgba(26,58,92,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;min-height:100dvh;color:var(--text);overflow-x:hidden;
+  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 30%,var(--sky3) 65%,var(--warm2) 100%)}
+
+/* ── CLOUDS ── */
+.clouds{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.cl{position:absolute;background:white;border-radius:50px;filter:blur(.5px)}
+.cl::before,.cl::after{content:'';position:absolute;background:white;border-radius:50%}
+.cl1{width:180px;height:52px;top:6%;left:-200px;opacity:.6;animation:drift 50s linear infinite}
+.cl1::before{width:72px;height:72px;top:-36px;left:22px}
+.cl1::after{width:52px;height:52px;top:-26px;left:76px}
+.cl2{width:120px;height:38px;top:14%;right:-140px;opacity:.4;animation:driftR 58s linear 14s infinite}
+.cl2::before{width:54px;height:54px;top:-27px;left:16px}
+.cl3{width:220px;height:62px;top:3%;left:-240px;opacity:.45;animation:drift 56s linear 30s infinite}
+.cl3::before{width:88px;height:88px;top:-44px;left:34px}
+.cl3::after{width:64px;height:64px;top:-32px;left:98px}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 300px))}}
+@keyframes driftR{from{transform:translateX(0)}to{transform:translateX(calc(-100vw - 300px))}}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:50;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  background:rgba(201,232,247,0.82);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.topbar-brand{font-family:'Instrument Serif',serif;font-size:1.05rem;color:var(--navy);display:flex;align-items:center;gap:8px}
+.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.back-btn{font-size:.7rem;color:var(--text3);text-decoration:none;font-family:'DM Sans',sans-serif;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--glass);transition:all .2s}
+.back-btn:hover{background:white;color:var(--navy)}
+.tab-btn{font-size:.72rem;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;font-weight:500}
+.tab-btn.active{background:var(--navy);color:white;border-color:var(--navy)}
+.tab-btn:hover:not(.active){background:var(--glass);color:var(--navy)}
+
+/* ── WRAP ── */
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:20px 16px;padding-bottom:max(40px,env(safe-area-inset-bottom))}
+
+/* ── SCREEN ── */
+.screen{display:none}.screen.active{display:block}
+
+/* ── DASHBOARD ── */
+.greeting{margin-bottom:20px}
+.greeting-time{font-size:.7rem;color:var(--text3);font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.greeting-name{font-family:'Instrument Serif',serif;font-size:1.8rem;color:var(--navy);line-height:1.2;margin-bottom:6px}
+.greeting-sub{font-size:.88rem;color:var(--text2);font-weight:300}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;backdrop-filter:blur(8px)}
+.stat-val{font-family:'Instrument Serif',serif;font-size:1.8rem;color:var(--navy);line-height:1}
+.stat-label{font-size:.62rem;color:var(--text3);margin-top:4px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.stat-icon{font-size:1rem;margin-bottom:4px;display:block}
+
+.add-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.add-btn{padding:16px 12px;border-radius:var(--radius);border:none;cursor:pointer;transition:all .25s;text-align:left;font-family:'DM Sans',sans-serif}
+.add-btn-ev{background:linear-gradient(135deg,var(--navy),var(--navy2));color:white}
+.add-btn-cr{background:linear-gradient(135deg,rgba(249,168,37,.2),rgba(249,168,37,.1));border:1.5px solid rgba(249,168,37,.4);color:var(--navy)}
+.add-btn-icon{font-size:1.4rem;margin-bottom:8px;display:block}
+.add-btn-title{font-size:.88rem;font-weight:600;margin-bottom:3px}
+.add-btn-sub{font-size:.7rem;opacity:.75;font-weight:300;line-height:1.4}
+.add-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow)}
+
+.section-label{font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-label::before{content:'';width:3px;height:12px;background:var(--gold);border-radius:2px;display:inline-block}
+
+/* ── STRENGTH BARS ── */
+.strength-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.strength-row{display:flex;align-items:center;gap:10px}
+.strength-name{font-size:.8rem;color:var(--navy);font-weight:500;min-width:110px}
+.strength-bar-wrap{flex:1;height:8px;background:rgba(26,58,92,.08);border-radius:4px;overflow:hidden}
+.strength-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),#ff8f00);transition:width .8s cubic-bezier(.16,1,.3,1)}
+.strength-count{font-size:.7rem;color:var(--text3);font-family:'DM Sans',sans-serif;min-width:24px;text-align:right}
+
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.tl-item{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;backdrop-filter:blur(8px);transition:all .2s}
+.tl-item:hover{background:var(--glass2);border-color:var(--border2)}
+.tl-date{font-size:.62rem;color:var(--text3);font-weight:500;letter-spacing:.06em;margin-bottom:6px}
+.tl-event{font-size:.9rem;color:var(--navy);font-weight:500;margin-bottom:6px;line-height:1.5}
+.tl-reflection{font-size:.8rem;color:var(--text2);font-style:italic;font-weight:300;line-height:1.6;margin-bottom:8px}
+.tl-chips{display:flex;flex-wrap:wrap;gap:5px}
+.tl-chip{font-size:.62rem;padding:3px 10px;border-radius:100px;font-weight:500}
+.chip-strength{background:rgba(249,168,37,.15);color:#b45309;border:1px solid rgba(249,168,37,.3)}
+.chip-critic{background:var(--red-bg);color:var(--red);border:1px solid rgba(192,57,43,.2)}
+.chip-evidence{background:rgba(46,125,82,.1);color:var(--green);border:1px solid rgba(46,125,82,.2)}
+.tl-empty{text-align:center;padding:32px 20px;color:var(--text3);font-size:.88rem}
+
+/* ── EVIDENCE BALANCE ── */
+.balance-card{background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,248,240,.9));border:1px solid rgba(249,168,37,.25);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;backdrop-filter:blur(8px)}
+.balance-header{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.balance-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.balance-side{text-align:center;flex:1}
+.balance-val{font-family:'Instrument Serif',serif;font-size:2rem;color:var(--navy);line-height:1}
+.balance-lbl{font-size:.62rem;color:var(--text3);margin-top:3px;font-weight:500}
+.balance-vs{font-size:.72rem;color:var(--text3);font-weight:300;font-style:italic}
+.balance-msg{margin-top:12px;font-size:.82rem;color:var(--text2);line-height:1.7;font-weight:300;padding-top:12px;border-top:1px solid var(--border)}
+.balance-msg strong{color:var(--navy);font-weight:600}
+
+/* ── FORM ── */
+.form-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;backdrop-filter:blur(8px)}
+.form-step{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);margin-bottom:6px}
+.form-q{font-family:'Instrument Serif',serif;font-size:1.1rem;color:var(--navy);margin-bottom:14px;line-height:1.4}
+.form-input{width:100%;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;resize:none;line-height:1.6}
+.form-input:focus{border-color:rgba(26,58,92,.35);background:white}
+.form-input::placeholder{color:var(--text3)}
+.strength-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.str-chip{padding:7px 14px;border-radius:100px;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .2s;border:1.5px solid var(--border);background:rgba(255,255,255,.7);color:var(--text2)}
+.str-chip.sel{background:var(--navy);color:white;border-color:var(--navy)}
+.str-chip:hover:not(.sel){background:white;border-color:var(--navy2);color:var(--navy)}
+.form-hint{font-size:.72rem;color:var(--text3);margin-top:6px;font-style:italic;line-height:1.5}
+.btn-next{width:100%;padding:13px;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;margin-top:8px}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--shadow)}
+.btn-next:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-ghost{width:100%;padding:11px;border-radius:var(--radius-sm);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;border:1px solid var(--border);cursor:pointer;transition:all .2s;margin-top:8px}
+.btn-ghost:hover{background:var(--glass2);color:var(--navy)}
+.form-progress{display:flex;gap:6px;margin-bottom:20px}
+.fp-dot{flex:1;height:3px;border-radius:2px;background:rgba(26,58,92,.12)}
+.fp-dot.done{background:var(--navy)}
+.fp-dot.active{background:var(--gold)}
+
+/* ── REFLECTION RESULT ── */
+.reflection-card{background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,248,240,.95));border:1px solid rgba(249,168,37,.3);border-radius:var(--radius);padding:22px;margin-bottom:16px;text-align:center}
+.ref-title{font-family:'Instrument Serif',serif;font-size:1rem;color:var(--gold2);margin-bottom:16px;letter-spacing:.04em}
+.ref-text{font-size:.92rem;color:var(--navy);line-height:1.85;font-weight:400}
+.ref-text strong{color:var(--gold2)}
+.ref-quote{font-family:'Instrument Serif',serif;font-size:1.1rem;color:var(--navy);font-style:italic;margin:16px 0;padding:14px;background:rgba(255,255,255,.8);border-radius:var(--radius-sm);border-left:3px solid var(--gold)}
+
+/* ── CRITIC CHALLENGE ── */
+.critic-bubble{background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.15);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.critic-label{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:6px}
+.critic-text{font-size:.92rem;color:var(--text);font-style:italic;line-height:1.6}
+.challenge-box{background:rgba(46,125,82,.06);border:1px solid rgba(46,125,82,.15);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.challenge-label{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
+.challenge-q{font-size:.9rem;color:var(--navy);font-weight:500;line-height:1.5}
+.challenge-hint{font-size:.75rem;color:var(--text3);margin-top:6px;font-style:italic}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--navy);color:white;border-radius:var(--radius-sm);padding:10px 20px;font-size:.78rem;z-index:200;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── LOADING ── */
+.spin{display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:400px){.stats-row{grid-template-columns:1fr 1fr 1fr}.add-btn-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="clouds">
+  <div class="cl cl1"></div><div class="cl cl2"></div><div class="cl cl3"></div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-brand"><div class="brand-dot"></div> Evidence Journal</div>
+  <div class="topbar-right">
+    <button class="tab-btn active" id="tabHome" onclick="switchTab('home')">🏠 Home</button>
+    <button class="tab-btn" id="tabTimeline" onclick="switchTab('timeline')">📖 Timeline</button>
+    <a href="../" class="back-btn">← Portal</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ── DASHBOARD ── -->
+  <div id="screen-home" class="screen active">
+    <div class="greeting">
+      <div class="greeting-time" id="greetTime"></div>
+      <div class="greeting-name" id="greetName">สวัสดีครับ 🌤️</div>
+      <div class="greeting-sub" id="greetSub">วันนี้คุณได้ให้เครดิตตัวเองหรือยัง?</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-icon">🔥</span>
+        <div class="stat-val" id="statStreak">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">✨</span>
+        <div class="stat-val" id="statEvidence">0</div>
+        <div class="stat-label">Evidence</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">💭</span>
+        <div class="stat-val" id="statCritic">0</div>
+        <div class="stat-label">Challenged</div>
+      </div>
+    </div>
+
+    <div class="balance-card" id="balanceCard" style="display:none">
+      <div class="balance-header">Evidence Balance</div>
+      <div class="balance-row">
+        <div class="balance-side">
+          <div class="balance-val" id="balCritic">0</div>
+          <div class="balance-lbl">เสียงในหัว</div>
+        </div>
+        <div class="balance-vs">vs</div>
+        <div class="balance-side">
+          <div class="balance-val" id="balEvidence">0</div>
+          <div class="balance-lbl">หลักฐาน</div>
+        </div>
+      </div>
+      <div class="balance-msg" id="balMsg"></div>
+    </div>
+
+    <div class="add-btn-row">
+      <button class="add-btn add-btn-ev" onclick="startEvidence()">
+        <span class="add-btn-icon">⭐</span>
+        <div class="add-btn-title">Add Evidence</div>
+        <div class="add-btn-sub">บันทึกสิ่งดีที่เกิดขึ้น<br>ให้เครดิตตัวเอง</div>
+      </button>
+      <button class="add-btn add-btn-cr" onclick="startCritic()">
+        <span class="add-btn-icon">💭</span>
+        <div class="add-btn-title">Inner Critic</div>
+        <div class="add-btn-sub">พิมพ์เสียงในหัว<br>แล้ว challenge กลับ</div>
+      </button>
+    </div>
+
+    <div class="section-label">Top Strengths</div>
+    <div class="strength-list" id="strengthList">
+      <div class="tl-empty">ยังไม่มีข้อมูล — เพิ่ม Evidence แรกได้เลย ⭐</div>
+    </div>
+  </div>
+
+  <!-- ── TIMELINE ── -->
+  <div id="screen-timeline" class="screen">
+    <div class="section-label">ประวัติทั้งหมด</div>
+    <div class="timeline" id="timelineList">
+      <div class="tl-empty">ยังไม่มีบันทึก — เริ่มจาก Home ได้เลยครับ 🌤️</div>
+    </div>
+  </div>
+
+  <!-- ── EVIDENCE FORM ── -->
+  <div id="screen-evidence" class="screen">
+    <div class="form-progress" id="evProgress">
+      <div class="fp-dot active"></div>
+      <div class="fp-dot"></div>
+      <div class="fp-dot"></div>
+      <div class="fp-dot"></div>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="ev-step1">
+      <div class="form-card">
+        <div class="form-step">Step 1 / 4</div>
+        <div class="form-q">วันนี้เกิดอะไรขึ้น?</div>
+        <textarea id="ev_event" class="form-input" rows="3" placeholder="เช่น วิ่ง 5 กม., ช่วยเพื่อนแก้ปัญหา, ทำโปรเจกต์เสร็จทันเวลา..."></textarea>
+        <div class="form-hint">เล็กหรือใหญ่ก็ได้ ทุกอย่างมีคุณค่า</div>
+        <button class="btn-next" onclick="evNext(1)">ต่อไป →</button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="ev-step2" style="display:none">
+      <div class="form-card">
+        <div class="form-step">Step 2 / 4</div>
+        <div class="form-q">สิ่งนี้สะท้อนคุณสมบัติอะไรในตัวคุณ?</div>
+        <div class="strength-chips" id="strChips"></div>
+        <div class="form-hint">เลือกได้หลายอย่าง หรือเพิ่มเองด้านล่าง</div>
+        <input id="ev_custom_str" class="form-input" style="margin-top:10px" placeholder="+ เพิ่ม strength เอง...">
+        <button class="btn-next" onclick="evNext(2)">ต่อไป →</button>
+        <button class="btn-ghost" onclick="evBack(1)">← กลับ</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="ev-step3" style="display:none">
+      <div class="form-card">
+        <div class="form-step">Step 3 / 4</div>
+        <div class="form-q">วันนี้ฉันขอให้เครดิตตัวเองเรื่อง...</div>
+        <textarea id="ev_credit" class="form-input" rows="2" placeholder="เช่น ไม่ยอมแพ้, ลงมือทำแม้จะเหนื่อย, รักษาคำมั่นสัญญา..."></textarea>
+        <button class="btn-next" onclick="evNext(3)">ต่อไป →</button>
+        <button class="btn-ghost" onclick="evBack(2)">← กลับ</button>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div id="ev-step4" style="display:none">
+      <div class="form-card">
+        <div class="form-step">Step 4 / 4</div>
+        <div class="form-q">ถ้าเพื่อนทำแบบนี้<br>คุณจะชมเขาว่าอะไร?</div>
+        <textarea id="ev_friend" class="form-input" rows="2" placeholder="เช่น แกเก่งมากนะ, ทำได้ดีมาก, ฉันภูมิใจในตัวแก..."></textarea>
+        <div class="form-hint">จินตนาการว่าเพื่อนที่รักที่สุดทำสิ่งนี้</div>
+        <button class="btn-next" onclick="evSubmit()">✨ บันทึก Evidence</button>
+        <button class="btn-ghost" onclick="evBack(3)">← กลับ</button>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="ev-result" style="display:none">
+      <div class="reflection-card">
+        <div class="ref-title">✨ Today's Reflection</div>
+        <div class="ref-text" id="evReflectionText"></div>
+        <div class="ref-quote" id="evReflectionQuote"></div>
+      </div>
+      <button class="btn-next" onclick="goHome()">🏠 กลับ Home</button>
+      <button class="btn-ghost" onclick="startEvidence()">+ เพิ่ม Evidence อีกอัน</button>
+    </div>
+  </div>
+
+  <!-- ── CRITIC FORM ── -->
+  <div id="screen-critic" class="screen">
+    <div id="cr-step1">
+      <div class="form-card">
+        <div class="form-step">Inner Critic</div>
+        <div class="form-q">เสียงในหัวพูดว่าอะไร?</div>
+        <textarea id="cr_text" class="form-input" rows="3" placeholder="เช่น คนอื่นก็ทำได้, ฉันไม่ดีพอ, ทำไมถึงช้าแบบนี้..."></textarea>
+        <div class="form-hint">พิมพ์ออกมาได้เลย — ไม่มีการตัดสิน</div>
+        <button class="btn-next" onclick="crNext(1)">Challenge กลับ →</button>
+        <button class="btn-ghost" onclick="goHome()">← กลับ</button>
+      </div>
+    </div>
+
+    <div id="cr-step2" style="display:none">
+      <div class="critic-bubble">
+        <div class="critic-label">💭 เสียงในหัวบอกว่า</div>
+        <div class="critic-text" id="crTextDisplay"></div>
+      </div>
+
+      <div class="challenge-box">
+        <div class="challenge-label">🧠 ลองถามตัวเองดู</div>
+        <div class="challenge-q" id="crChallengeQ"></div>
+        <div class="challenge-hint" id="crChallengeHint"></div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-q" id="crResponseQ">มีหลักฐานอะไรที่บอกว่า...</div>
+        <textarea id="cr_response" class="form-input" rows="3" placeholder="ลองนึกดู..."></textarea>
+        <button class="btn-next" onclick="crSubmit()">บันทึก</button>
+        <button class="btn-ghost" onclick="crBack()">← กลับ</button>
+      </div>
+    </div>
+
+    <div id="cr-result" style="display:none">
+      <div class="challenge-box" style="margin-bottom:16px">
+        <div class="challenge-label">✓ Challenge สำเร็จ</div>
+        <div class="challenge-q" id="crResultText"></div>
+      </div>
+      <button class="btn-next" onclick="goHome()">🏠 กลับ Home</button>
+      <button class="btn-ghost" onclick="startCritic()">+ Challenge อีกอัน</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://qquxotxrwnzxyutzlwim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdXhvdHhyd256eHl1dHpsd2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNzU5MDEsImV4cCI6MjA5NDY1MTkwMX0.vEu40LwSAhWhu1T4Mm_uFeWD3YRjptg0q0VshnYUXHM';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const STRENGTHS = ['Discipline','Courage','Responsibility','Patience',
+  'Kindness','Curiosity','Creativity','Honesty','Growth','Self-care',
+  'Resilience','Focus','Empathy','Consistency'];
+
+const CRITIC_PATTERNS = [
+  { match: /คนอื่นก็|ทุกคนก็|เขาก็|แกก็/, q:'การที่คนอื่นทำได้ ทำให้สิ่งที่คุณทำหมดคุณค่าจริงไหม?', hint:'ลองนึกถึงคุณค่าของสิ่งที่ทำ โดยไม่เปรียบกับใคร', rq:'มีหลักฐานอะไรที่บอกว่ามันมีคุณค่าสำหรับคุณ?' },
+  { match: /ไม่ดีพอ|ไม่เก่งพอ|แย่เกินไป/, q:'หลักฐานอะไรที่บอกว่าคุณ "ไม่ดีพอ"?', hint:'ความคิดนี้เป็นข้อเท็จจริงหรือเป็นแค่ความรู้สึก?', rq:'มีหลักฐานอะไรบ้างที่บอกว่าคุณ "ดีพอ" แล้ว?' },
+  { match: /ช้าเกิน|ช้ามาก|เสียเวลา/, q:'ช้าหรือเร็ว วัดจากมาตรฐานของใคร?', hint:'ทุกคนมีจังหวะของตัวเอง', rq:'สิ่งที่ทำอยู่ มีคุณค่าหรือเปล่าแม้จะใช้เวลา?' },
+  { match: /ล้มเหลว|พัง|ไม่สำเร็จ/, q:'นี่คือ "ความล้มเหลว" จริงๆ หรือแค่บทเรียน?', hint:'บอกความต่างระหว่างสองอย่างนี้ให้ตัวเองฟัง', rq:'คุณได้เรียนรู้อะไรจากสิ่งที่เกิดขึ้น?' },
+  { match: /.*/, q:'เสียงนี้พยายามบอกอะไรคุณ?', hint:'บางครั้งเสียงในหัวต้องการปกป้องเรา ไม่ใช่ทำร้าย', rq:'มีหลักฐานอะไรที่โต้แย้งเสียงนี้ได้?' },
+];
+
+let evSelectedStr = [];
+let allLogs = [];
+
+// ── INIT ──
+async function init() {
+  setGreeting();
+  await loadData();
+}
+
+function setGreeting() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'อรุณสวัสดิ์' : h < 17 ? 'สวัสดีตอนบ่าย' : 'สวัสดีตอนเย็น';
+  const sub = h < 12 ? 'เริ่มวันใหม่ด้วยการให้เครดิตตัวเอง ☀️' : h < 17 ? 'วันนี้เป็นยังไงบ้างครับ?' : 'วันนี้คุณได้ให้เครดิตตัวเองหรือยัง? 🌤️';
+  const timeStr = new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('greetTime').textContent = timeStr;
+  document.getElementById('greetName').textContent = greet + ' 🌤️';
+  document.getElementById('greetSub').textContent = sub;
+}
+
+async function loadData() {
+  const { data } = await db.from('evidence_logs').select('*').order('created_at', {ascending:false});
+  allLogs = data || [];
+  renderStats();
+  renderStrengths();
+  renderTimeline();
+}
+
+function renderStats() {
+  const evidence = allLogs.filter(l => l.type === 'evidence');
+  const critic = allLogs.filter(l => l.type === 'critic');
+  document.getElementById('statEvidence').textContent = evidence.length;
+  document.getElementById('statCritic').textContent = critic.length;
+
+  // Streak
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = new Set(allLogs.map(l => new Date(l.created_at).toDateString()));
+  for(let i=0;i<365;i++){
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    if(days.has(d.toDateString())) streak++;
+    else if(i>0) break;
+  }
+  document.getElementById('statStreak').textContent = streak;
+
+  // Balance card
+  if(evidence.length > 0 || critic.length > 0) {
+    document.getElementById('balanceCard').style.display = 'block';
+    document.getElementById('balCritic').textContent = critic.length;
+    document.getElementById('balEvidence').textContent = evidence.length;
+    const ratio = critic.length > 0 ? (evidence.length / critic.length).toFixed(1) : '∞';
+    const msg = evidence.length === 0
+      ? 'เริ่มเก็บ Evidence แรกได้เลยครับ ⭐'
+      : critic.length === 0
+      ? `<strong>${evidence.length} หลักฐาน</strong> ที่บอกว่าคุณมีคุณค่า ✨`
+      : `สมองบอกว่าไม่ดีพอ <strong>${critic.length} ครั้ง</strong> แต่คุณมีหลักฐาน <strong>${evidence.length} ชิ้น</strong> ที่บอกว่าคุณดีกว่าที่คิดไว้`;
+    document.getElementById('balMsg').innerHTML = msg;
+  }
+}
+
+function renderStrengths() {
+  const strCount = {};
+  allLogs.filter(l=>l.type==='evidence' && l.strengths?.length).forEach(l=>{
+    l.strengths.forEach(s=>{ strCount[s]=(strCount[s]||0)+1; });
+  });
+  const sorted = Object.entries(strCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const el = document.getElementById('strengthList');
+  if(!sorted.length){ el.innerHTML='<div class="tl-empty">ยังไม่มีข้อมูล — เพิ่ม Evidence แรกได้เลย ⭐</div>'; return; }
+  const max = sorted[0][1];
+  el.innerHTML = sorted.map(([name,count])=>`
+    <div class="strength-row">
+      <div class="strength-name">${name}</div>
+      <div class="strength-bar-wrap"><div class="strength-bar" style="width:${(count/max)*100}%"></div></div>
+      <div class="strength-count">${count}</div>
+    </div>`).join('');
+}
+
+function renderTimeline() {
+  const el = document.getElementById('timelineList');
+  if(!allLogs.length){ el.innerHTML='<div class="tl-empty">ยังไม่มีบันทึก — เริ่มจาก Home ได้เลยครับ 🌤️</div>'; return; }
+  el.innerHTML = allLogs.slice(0,30).map(l=>{
+    const d = new Date(l.created_at);
+    const dateStr = d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    if(l.type==='evidence') {
+      const chips = (l.strengths||[]).map(s=>`<span class="tl-chip chip-strength">${s}</span>`).join('');
+      return `<div class="tl-item">
+        <div class="tl-date">${dateStr} · <span class="tl-chip chip-evidence" style="display:inline;padding:2px 8px">⭐ Evidence</span></div>
+        <div class="tl-event">${l.event||'—'}</div>
+        ${l.self_credit?`<div class="tl-reflection">ให้เครดิตตัวเอง: ${l.self_credit}</div>`:''}
+        ${chips?`<div class="tl-chips">${chips}</div>`:''}
+      </div>`;
+    } else {
+      return `<div class="tl-item">
+        <div class="tl-date">${dateStr} · <span class="tl-chip chip-critic" style="display:inline;padding:2px 8px">💭 Inner Critic</span></div>
+        <div class="tl-event" style="color:var(--text2);font-style:italic">"${l.critic_text||'—'}"</div>
+        ${l.challenge_response?`<div class="tl-reflection">✓ Challenge: ${l.challenge_response}</div>`:''}
+      </div>`;
+    }
+  }).join('');
+}
+
+// ── EVIDENCE FLOW ──
+function startEvidence() {
+  evSelectedStr = [];
+  ['ev_event','ev_credit','ev_friend','ev_custom_str'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  renderStrChips();
+  showStep('evidence','ev-step1');
+  updateEvProgress(0);
+  showScreen('evidence');
+}
+
+function renderStrChips() {
+  document.getElementById('strChips').innerHTML = STRENGTHS.map(s=>`
+    <div class="str-chip" onclick="toggleStr('${s}',this)">${s}</div>`).join('');
+}
+
+function toggleStr(s, el) {
+  if(evSelectedStr.includes(s)){ evSelectedStr=evSelectedStr.filter(x=>x!==s); el.classList.remove('sel'); }
+  else { evSelectedStr.push(s); el.classList.add('sel'); }
+}
+
+function updateEvProgress(step) {
+  const dots = document.querySelectorAll('#evProgress .fp-dot');
+  dots.forEach((d,i)=>{ d.className='fp-dot'+(i<step?' done':i===step?' active':''); });
+}
+
+function showStep(screen, step) {
+  document.querySelectorAll(`#screen-${screen} > div`).forEach(d=>d.style.display='none');
+  document.getElementById(step).style.display='block';
+}
+
+function evNext(step) {
+  if(step===1){
+    if(!document.getElementById('ev_event').value.trim()){ showToast('กรุณาพิมพ์สิ่งที่เกิดขึ้น'); return; }
+    showStep('evidence','ev-step2'); updateEvProgress(1);
+  } else if(step===2){
+    const custom = document.getElementById('ev_custom_str').value.trim();
+    if(custom && !evSelectedStr.includes(custom)) evSelectedStr.push(custom);
+    showStep('evidence','ev-step3'); updateEvProgress(2);
+  } else if(step===3){
+    showStep('evidence','ev-step4'); updateEvProgress(3);
+  }
+}
+function evBack(to) {
+  showStep('evidence','ev-step'+to); updateEvProgress(to-1);
+}
+
+async function evSubmit() {
+  const event = document.getElementById('ev_event').value.trim();
+  const credit = document.getElementById('ev_credit').value.trim();
+  const friend = document.getElementById('ev_friend').value.trim();
+  const strs = [...evSelectedStr];
+  const { error } = await db.from('evidence_logs').insert({
+    type:'evidence', event, strengths:strs, self_credit:credit||null, friend_compliment:friend||null
+  });
+  if(error){ showToast('เกิดข้อผิดพลาด'); return; }
+
+  // Build reflection
+  const strText = strs.length ? `สิ่งนี้สะท้อนว่าคุณมี<strong>${strs.join(', ')}</strong>` : '';
+  const creditText = credit ? `คุณขอให้เครดิตตัวเองเรื่อง<strong>${credit}</strong>` : '';
+  let reflectionHtml = `<p>วันนี้คุณ${event}</p>`;
+  if(strText) reflectionHtml += `<p style="margin-top:10px">${strText}</p>`;
+  if(creditText) reflectionHtml += `<p style="margin-top:6px">${creditText}</p>`;
+  reflectionHtml += `<p style="margin-top:10px;font-size:.8rem;color:var(--text3)">ดังนั้น คุณก็สมควรได้รับคำชมนี้เช่นกัน</p>`;
+  document.getElementById('evReflectionText').innerHTML = reflectionHtml;
+  document.getElementById('evReflectionQuote').textContent = friend ? `"${friend}"` : '✨';
+  showStep('evidence','ev-result');
+  await loadData();
+  showToast('✓ บันทึก Evidence แล้ว');
+}
+
+// ── CRITIC FLOW ──
+function startCritic() {
+  document.getElementById('cr_text').value = '';
+  document.getElementById('cr_response').value = '';
+  showStep('critic','cr-step1');
+  showScreen('critic');
+}
+
+function crNext(step) {
+  const text = document.getElementById('cr_text').value.trim();
+  if(!text){ showToast('พิมพ์เสียงในหัวก่อนนะครับ'); return; }
+  document.getElementById('crTextDisplay').textContent = `"${text}"`;
+  const pattern = CRITIC_PATTERNS.find(p=>p.match.test(text)) || CRITIC_PATTERNS[CRITIC_PATTERNS.length-1];
+  document.getElementById('crChallengeQ').textContent = pattern.q;
+  document.getElementById('crChallengeHint').textContent = pattern.hint;
+  document.getElementById('crResponseQ').textContent = pattern.rq;
+  showStep('critic','cr-step2');
+}
+function crBack(){ showStep('critic','cr-step1'); }
+
+async function crSubmit() {
+  const text = document.getElementById('cr_text').value.trim();
+  const response = document.getElementById('cr_response').value.trim();
+  const { error } = await db.from('evidence_logs').insert({
+    type:'critic', critic_text:text, challenge_response:response||null
+  });
+  if(error){ showToast('เกิดข้อผิดพลาด'); return; }
+  const resultText = response
+    ? `คุณ challenge เสียงในหัวได้สำเร็จ ✓\n\n"${response}"\n\nนี่คือหลักฐานที่จิตใจคุณมอบให้ตัวเอง`
+    : `คุณรับรู้และท้าทายเสียงนั้นได้แล้ว ✓\nนั่นคือความกล้าหาญแบบหนึ่ง`;
+  document.getElementById('crResultText').textContent = resultText;
+  showStep('critic','cr-result');
+  await loadData();
+  showToast('✓ Challenge สำเร็จ');
+}
+
+// ── NAV ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab'+(tab==='home'?'Home':'Timeline')).classList.add('active');
+  showScreen(tab);
+}
+
+function goHome() { switchTab('home'); }
+
+// ── TOAST ──
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+init();
+</script>
+</body>
+</html>
