@@ -162,6 +162,43 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;min-height:100dvh;color:v
 @keyframes spin{to{transform:rotate(360deg)}}
 
 @media(max-width:400px){.stats-row{grid-template-columns:1fr 1fr 1fr}.add-btn-row{grid-template-columns:1fr}}
+
+/* ── TIMELINE CONTROLS ── */
+.tl-controls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.tl-search{flex:1;min-width:140px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;transition:border-color .2s}
+.tl-search:focus{border-color:var(--border2);background:white}
+.tl-search::placeholder{color:var(--text3)}
+.tl-date-input{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;cursor:pointer}
+.tl-date-input:focus{border-color:var(--border2)}
+.tl-filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.tl-filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+.tl-fchip{font-size:.65rem;padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;font-weight:500}
+.tl-fchip.active{background:var(--navy);color:white;border-color:var(--navy)}
+.tl-fchip:hover:not(.active){background:var(--glass);color:var(--navy)}
+.tl-count{font-size:.68rem;color:var(--text3);font-weight:500;white-space:nowrap}
+
+/* ── DATE GROUP ── */
+.date-group{margin-bottom:20px}
+.date-group-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.date-group-line{flex:1;height:1px;background:rgba(26,58,92,.1)}
+.date-group-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);white-space:nowrap;font-family:'DM Sans',sans-serif}
+
+/* ── SELECT MODE ── */
+.tl-item{cursor:pointer;position:relative;transition:all .2s}
+.tl-item.selected{border-color:var(--navy);background:rgba(26,58,92,.05)}
+.tl-item.selected::before{content:'✓';position:absolute;top:10px;right:12px;width:22px;height:22px;background:var(--navy);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;line-height:22px;text-align:center}
+.export-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(26,58,92,.95);backdrop-filter:blur(16px);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;z-index:40;transform:translateY(100%);transition:transform .3s;padding-bottom:max(14px,env(safe-area-inset-bottom))}
+.export-bar.show{transform:translateY(0)}
+.export-bar-info{font-size:.82rem;color:rgba(255,255,255,.8);font-weight:500}
+.export-bar-info strong{color:white}
+.export-bar-btns{display:flex;gap:8px}
+.btn-export{font-size:.72rem;padding:8px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;font-weight:600}
+.btn-export-txt{background:white;color:var(--navy)}
+.btn-export-cancel{background:rgba(255,255,255,.15);color:white}
+.btn-export-txt:hover{background:var(--warm1)}
+.select-mode-btn{font-size:.7rem;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .2s;white-space:nowrap}
+.select-mode-btn.active{background:var(--navy);color:white;border-color:var(--navy)}
+.select-mode-btn:hover:not(.active){background:var(--glass);color:var(--navy)}
 </style>
 </head>
 <body>
@@ -244,9 +281,30 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;min-height:100dvh;color:v
 
   <!-- ── TIMELINE ── -->
   <div id="screen-timeline" class="screen">
-    <div class="section-label">ประวัติทั้งหมด</div>
-    <div class="timeline" id="timelineList">
+    <div class="tl-controls">
+      <input type="text" class="tl-search" id="tlSearch" placeholder="🔍 ค้นหา..." oninput="renderTimeline()">
+      <input type="date" class="tl-date-input" id="tlDateFilter" onchange="renderTimeline()" title="Filter by date">
+      <button class="select-mode-btn" id="selectModeBtn" onclick="toggleSelectMode()">☑ เลือก</button>
+    </div>
+    <div class="tl-filter-row">
+      <div class="tl-filter-chips">
+        <button class="tl-fchip active" onclick="setTlFilter('all',this)">ทั้งหมด</button>
+        <button class="tl-fchip" onclick="setTlFilter('evidence',this)">⭐ Evidence</button>
+        <button class="tl-fchip" onclick="setTlFilter('critic',this)">💭 Critic</button>
+      </div>
+      <div class="tl-count" id="tlCount"></div>
+    </div>
+    <div id="timelineList">
       <div class="tl-empty">ยังไม่มีบันทึก — เริ่มจาก Home ได้เลยครับ 🌤️</div>
+    </div>
+  </div>
+
+  <!-- EXPORT BAR -->
+  <div class="export-bar" id="exportBar">
+    <div class="export-bar-info">เลือกแล้ว <strong id="exportCount">0</strong> รายการ</div>
+    <div class="export-bar-btns">
+      <button class="btn-export btn-export-cancel" onclick="clearSelection()">ยกเลิก</button>
+      <button class="btn-export btn-export-txt" onclick="exportSelected()">📋 Export Text</button>
     </div>
   </div>
 
@@ -287,7 +345,7 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;min-height:100dvh;color:v
     <div id="ev-step3" style="display:none">
       <div class="form-card">
         <div class="form-step">Step 3 / 4</div>
-        <div class="form-q">วันนี้ฉันภูมิใจในตัวเองเรื่อง...</div>
+        <div class="form-q">วันนี้ฉันขอให้เครดิตตัวเองเรื่อง...</div>
         <textarea id="ev_credit" class="form-input" rows="2" placeholder="เช่น ไม่ยอมแพ้, ลงมือทำแม้จะเหนื่อย, รักษาคำมั่นสัญญา..."></textarea>
         <button class="btn-next" onclick="evNext(3)">ต่อไป →</button>
         <button class="btn-ghost" onclick="evBack(2)">← กลับ</button>
@@ -385,6 +443,9 @@ const CRITIC_PATTERNS = [
 
 let evSelectedStr = [];
 let allLogs = [];
+let tlFilter = 'all';
+let tlSelectMode = false;
+let tlSelected = new Set();
 
 // ── INIT ──
 async function init() {
@@ -459,41 +520,170 @@ function renderStrengths() {
     </div>`).join('');
 }
 
+function setTlFilter(f, btn) {
+  tlFilter = f;
+  document.querySelectorAll('.tl-fchip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTimeline();
+}
+
+function toggleSelectMode() {
+  tlSelectMode = !tlSelectMode;
+  tlSelected.clear();
+  const btn = document.getElementById('selectModeBtn');
+  btn.classList.toggle('active', tlSelectMode);
+  btn.textContent = tlSelectMode ? '✕ ยกเลิก' : '☑ เลือก';
+  document.getElementById('exportBar').classList.toggle('show', false);
+  renderTimeline();
+}
+
+function toggleSelectItem(id) {
+  if(!tlSelectMode) return;
+  if(tlSelected.has(id)) tlSelected.delete(id);
+  else tlSelected.add(id);
+  document.getElementById('exportCount').textContent = tlSelected.size;
+  document.getElementById('exportBar').classList.toggle('show', tlSelected.size > 0);
+  renderTimeline();
+}
+
+function clearSelection() {
+  tlSelected.clear();
+  tlSelectMode = false;
+  document.getElementById('selectModeBtn').classList.remove('active');
+  document.getElementById('selectModeBtn').textContent = '☑ เลือก';
+  document.getElementById('exportBar').classList.remove('show');
+  renderTimeline();
+}
+
+function exportSelected() {
+  const logs = allLogs.filter(l => tlSelected.has(l.id));
+  if(!logs.length) return;
+  const lines = logs.map(l => {
+    const d = new Date(l.created_at);
+    const dateStr = d.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+    if(l.type==='evidence') {
+      const strs = (l.strengths||[]).map(s=>`  ✔ ${s}`).join('\n');
+      return [
+        `✨ Evidence — ${dateStr}`,
+        ``,
+        `วันนี้เกิดอะไรขึ้น`,
+        l.event||'—',
+        ``,
+        strs ? `สิ่งนี้สะท้อนว่า\n${strs}` : '',
+        l.self_credit ? `\nฉันภูมิใจในตัวเองที่\n${l.self_credit}` : '',
+        l.friend_compliment ? `\nถ้าเป็นเพื่อน\n"${l.friend_compliment}"` : '',
+        `\n${'─'.repeat(40)}`,
+      ].filter(Boolean).join('\n');
+    } else {
+      return [
+        `💭 Inner Critic — ${dateStr}`,
+        ``,
+        `เสียงในหัวบอกว่า`,
+        `"${l.critic_text||'—'}"`,
+        l.challenge_response ? `\n✓ Challenge:\n${l.challenge_response}` : '',
+        `\n${'─'.repeat(40)}`,
+      ].filter(Boolean).join('\n');
+    }
+  }).join('\n\n');
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(lines).then(()=>{
+    showToast('✓ คัดลอกไปยัง clipboard แล้ว');
+    clearSelection();
+  }).catch(()=>{
+    // Fallback: open in new window
+    const w = window.open('','_blank');
+    w.document.write('<pre style="font-family:sans-serif;padding:20px;white-space:pre-wrap">'+lines+'</pre>');
+    w.document.close();
+  });
+}
+
 function renderTimeline() {
   const el = document.getElementById('timelineList');
-  if(!allLogs.length){ el.innerHTML='<div class="tl-empty">ยังไม่มีบันทึก — เริ่มจาก Home ได้เลยครับ 🌤️</div>'; return; }
-  el.innerHTML = allLogs.slice(0,30).map(l=>{
+  const q = (document.getElementById('tlSearch')?.value||'').toLowerCase().trim();
+  const dateFilter = document.getElementById('tlDateFilter')?.value || '';
+
+  let logs = [...allLogs];
+  // Filter by type
+  if(tlFilter !== 'all') logs = logs.filter(l=>l.type===tlFilter);
+  // Filter by search
+  if(q) logs = logs.filter(l=>{
+    const text = [l.event,l.self_credit,l.friend_compliment,l.critic_text,l.challenge_response,...(l.strengths||[])].join(' ').toLowerCase();
+    return text.includes(q);
+  });
+  // Filter by date
+  if(dateFilter) logs = logs.filter(l=>{
     const d = new Date(l.created_at);
-    const dateStr = d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-  if(l.type==='evidence') {
-    const strLines = (l.strengths||[]).map(s=>`<div style="font-size:.84rem;color:var(--navy);font-weight:500">✔ ${s}</div>`).join('');
-    return `<div class="tl-item">
-      <div class="tl-date" style="margin-bottom:10px">${dateStr} · <span class="tl-chip chip-evidence" style="display:inline;padding:2px 8px">⭐ Evidence</span></div>
-      <div style="font-family:'Instrument Serif',serif;font-size:.95rem;color:var(--gold2);margin-bottom:12px">✨ Today's Evidence</div>
-      <div style="margin-bottom:10px">
-        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">วันนี้เกิดอะไรขึ้น</div>
-        <div style="font-size:.88rem;color:var(--navy);line-height:1.6">${l.event||'—'}</div>
+    const lDate = d.toISOString().slice(0,10);
+    return lDate === dateFilter;
+  });
+
+  document.getElementById('tlCount').textContent = logs.length + ' รายการ';
+
+  if(!logs.length){
+    el.innerHTML='<div class="tl-empty">ไม่พบบันทึก</div>';
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  logs.forEach(l=>{
+    const d = new Date(l.created_at);
+    const key = d.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(l);
+  });
+
+  el.innerHTML = Object.entries(groups).map(([date, items])=>{
+    const itemsHtml = items.map(l=>{
+      const d = new Date(l.created_at);
+      const timeStr = d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+      const isSel = tlSelected.has(l.id);
+      const selClick = tlSelectMode ? `onclick="toggleSelectItem('${l.id}')"` : '';
+      const selClass = isSel ? 'selected' : '';
+
+      if(l.type==='evidence') {
+        const strLines = (l.strengths||[]).map(s=>`<div style="font-size:.84rem;color:var(--navy);font-weight:500">✔ ${s}</div>`).join('');
+        return `<div class="tl-item ${selClass}" ${selClick}>
+          <div class="tl-date" style="margin-bottom:10px">${timeStr} · <span class="tl-chip chip-evidence" style="display:inline;padding:2px 8px">⭐ Evidence</span></div>
+          <div style="font-family:'Instrument Serif',serif;font-size:.95rem;color:var(--gold2);margin-bottom:12px">✨ Today's Evidence</div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">วันนี้เกิดอะไรขึ้น</div>
+            <div style="font-size:.88rem;color:var(--navy);line-height:1.6">${l.event||'—'}</div>
+          </div>
+          ${strLines?`<div style="margin-bottom:10px">
+            <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">สิ่งนี้สะท้อนว่า</div>
+            ${strLines}
+          </div>`:''}
+          ${l.self_credit?`<div style="margin-bottom:10px">
+            <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">ฉันภูมิใจในตัวเองที่</div>
+            <div style="font-size:.88rem;color:var(--navy2);font-weight:400">${l.self_credit}</div>
+          </div>`:''}
+          ${l.friend_compliment?`<div style="background:rgba(249,168,37,.08);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 var(--radius-xs) var(--radius-xs) 0">
+            <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">ถ้าเป็นเพื่อน</div>
+            <div style="font-size:.88rem;color:var(--navy);font-style:italic">"${l.friend_compliment}"</div>
+          </div>`:''}
+        </div>`;
+      } else {
+        return `<div class="tl-item ${selClass}" ${selClick}>
+          <div class="tl-date" style="margin-bottom:8px">${timeStr} · <span class="tl-chip chip-critic" style="display:inline;padding:2px 8px">💭 Inner Critic</span></div>
+          <div style="font-size:.88rem;color:var(--text2);font-style:italic;margin-bottom:8px">"${l.critic_text||'—'}"</div>
+          ${l.challenge_response?`<div style="background:var(--green-bg);border-left:3px solid var(--green);padding:8px 12px;border-radius:0 var(--radius-xs) var(--radius-xs) 0">
+            <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:4px">✓ Challenge</div>
+            <div style="font-size:.84rem;color:var(--navy);line-height:1.6">${l.challenge_response}</div>
+          </div>`:''}
+        </div>`;
+      }
+    }).join('');
+
+    return `<div class="date-group">
+      <div class="date-group-header">
+        <div class="date-group-line"></div>
+        <div class="date-group-label">${date}</div>
+        <div class="date-group-line"></div>
       </div>
-      ${strLines?`<div style="margin-bottom:10px">
-        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">สิ่งนี้สะท้อนว่า</div>
-        ${strLines}
-      </div>`:''}
-      ${l.self_credit?`<div style="margin-bottom:10px">
-        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">ฉันอยากขอบคุณตัวเองที่</div>
-        <div style="font-size:.88rem;color:var(--navy2);font-weight:400">${l.self_credit}</div>
-      </div>`:''}
-      ${l.friend_compliment?`<div style="background:rgba(249,168,37,.08);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 var(--radius-xs) var(--radius-xs) 0">
-        <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">ถ้าเป็นเพื่อน</div>
-        <div style="font-size:.88rem;color:var(--navy);font-style:italic">"${l.friend_compliment}"</div>
-      </div>`:''}
+      <div class="timeline">${itemsHtml}</div>
     </div>`;
-    } else {
-      return `<div class="tl-item">
-        <div class="tl-date">${dateStr} · <span class="tl-chip chip-critic" style="display:inline;padding:2px 8px">💭 Inner Critic</span></div>
-        <div class="tl-event" style="color:var(--text2);font-style:italic">"${l.critic_text||'—'}"</div>
-        ${l.challenge_response?`<div class="tl-reflection">✓ Challenge: ${l.challenge_response}</div>`:''}
-      </div>`;
-    }
   }).join('');
 }
 
@@ -561,8 +751,6 @@ async function evSubmit() {
   if(creditText) reflectionHtml += `<p style="margin-top:6px">${creditText}</p>`;
   reflectionHtml += `<p style="margin-top:10px;font-size:.8rem;color:var(--text3)">ดังนั้น คุณก็สมควรได้รับคำชมนี้เช่นกัน</p>`;
   document.getElementById('evReflectionText').innerHTML = reflectionHtml;
-  const closing = getClosingMessage(strs, event);
-  document.getElementById('evReflectionText').innerHTML += `<div style="margin-top:14px;padding:12px 14px;background:rgba(26,58,92,.05);border-radius:var(--radius-xs);border-left:3px solid var(--navy);font-size:.82rem;color:var(--navy);line-height:1.75;font-weight:300;font-style:italic">${closing}</div>`;
   document.getElementById('evReflectionQuote').textContent = friend ? `"${friend}"` : '✨';
   showStep('evidence','ev-result');
   await loadData();
@@ -627,42 +815,6 @@ function showToast(msg) {
   setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-function getClosingMessage(strengths, event) {
-  const str = (strengths||[]).map(s=>s.toLowerCase());
-  const ev = (event||'').toLowerCase();
-
-  // Pattern matching — most specific first
-  if(str.includes('discipline') || str.includes('consistency') || str.includes('focus'))
-    return 'ความสม่ำเสมอดูเหมือนเรื่องธรรมดา แต่คนส่วนใหญ่ทำไม่ได้ทุกวัน การที่คุณทำได้คือหลักฐานที่พูดดังกว่าคำชมใดๆ';
-  if(str.includes('courage') || str.includes('resilience'))
-    return 'การกล้าทำสิ่งที่ยากไม่ใช่เรื่องที่ "ทุกคนก็ทำ" — มีคนจำนวนมากที่เลือกไม่ทำ คุณไม่ได้เป็นคนนั้น';
-  if(str.includes('kindness') || str.includes('empathy'))
-    return 'ความเมตตาที่มีต่อผู้อื่นเป็นสิ่งที่ต้องใช้พลังงานจริงๆ คนที่ทำได้ทุกวันไม่ใช่เรื่องธรรมดาเลย';
-  if(str.includes('responsibility') || str.includes('honesty'))
-    return 'การรับผิดชอบในสิ่งที่ทำเป็นคุณสมบัติที่หายากขึ้นทุกวัน สิ่งที่คุณทำวันนี้คือตัวอย่างของมัน';
-  if(str.includes('growth') || str.includes('curiosity') || str.includes('creativity'))
-    return 'การพัฒนาตัวเองทีละนิดทุกวันดูเหมือนเล็กน้อย แต่ถ้ามองย้อนกลับไปสักปีหนึ่ง คุณจะเห็นว่ามันสร้างความต่างได้มากแค่ไหน';
-  if(str.includes('self-care') || str.includes('patience'))
-    return 'การดูแลตัวเองไม่ใช่ความอ่อนแอ แต่คือปัญญา คนที่รู้จักพักและดูแลตัวเองได้ดีคือคนที่ไปได้ไกลกว่า';
-
-  // Keyword in event
-  if(/วิ่ง|ออกกำลัง|exercise|gym/.test(ev))
-    return 'การออกกำลังกายในวันที่ไม่อยากทำคือชัยชนะที่ยิ่งใหญ่กว่าวันที่รู้สึกดีพร้อมด้วยซ้ำ';
-  if(/ทำงาน|งาน|โปรเจกต์|project|task/.test(ev))
-    return 'คนอื่นอาจทำงานเสร็จได้เหมือนกัน แต่นั่นไม่ได้ลดคุณค่าของสิ่งที่คุณทำลงเลย — ความพยายามของคุณเป็นของคุณเสมอ';
-  if(/ช่วย|เพื่อน|ครอบครัว/.test(ev))
-    return 'การที่คุณนึกถึงคนอื่นและลงมือช่วย คือหลักฐานที่บอกว่าคุณเป็นคนที่ใส่ใจ — ไม่ใช่ทุกคนทำแบบนี้';
-
-  // Default — always valid
-  const defaults = [
-    'สิ่งที่คุณทำวันนี้ดูเหมือนธรรมดา แต่ "ธรรมดา" ที่ทำได้สม่ำเสมอคือสิ่งที่ผู้คนส่วนใหญ่ทำไม่ได้',
-    'คนอื่นอาจทำสิ่งนี้ได้เหมือนกัน แต่นั่นไม่ได้ทำให้สิ่งที่คุณทำมีคุณค่าน้อยลงเลย',
-    'ทุกหลักฐานเล็กๆ ที่คุณเก็บในวันนี้คือสิ่งที่สมองมักจะลืมในวันที่รู้สึกแย่ ดีที่คุณบันทึกมันไว้',
-    'ไม่ต้องทำสิ่งพิเศษทุกวัน การทำสิ่งธรรมดาอย่างสม่ำเสมอคือสิ่งที่พิเศษที่สุดในระยะยาว',
-  ];
-  return defaults[Math.floor(Math.random() * defaults.length)];
-} 
-  
 init();
 </script>
 </body>
