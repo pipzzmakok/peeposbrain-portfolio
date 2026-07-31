@@ -491,6 +491,7 @@ function renderDetail() {
 
     <div style="display:flex;gap:10px">
       <button class="btn-secondary" style="flex:1" onclick="editRecipe('${recipe.id}')">✏️ แก้ไขสูตร</button>
+<button class="btn-secondary" style="flex:1" onclick="copyRecipe('${recipe.id}')">📋 Copy สูตร</button>
     </div>
   `;
 }
@@ -704,7 +705,41 @@ async function saveIngredient() {
   await loadIngredients();
   switchTab('ingredients');
 }
+async function copyRecipe(id) {
+  const recipe = allRecipes.find(r=>r.id===id);
+  if(!recipe) return;
 
+  // Load ings + steps ของต้นฉบับ
+  const [{ data: ings }, { data: steps }] = await Promise.all([
+    db.from('recipe_ingredients').select('*').eq('recipe_id', id).order('created_at'),
+    db.from('recipe_steps').select('*').eq('recipe_id', id).order('step_order'),
+  ]);
+
+  // Insert recipe ใหม่ (เปลี่ยนชื่อ + clear id)
+  const { data: newRecipe } = await db.from('recipes').insert({
+    name: recipe.name + ' (Copy)',
+    category: recipe.category,
+    description: recipe.description,
+    yield_qty: recipe.yield_qty,
+    yield_unit: recipe.yield_unit,
+    image_url: recipe.image_url,
+    notes: recipe.notes,
+  }).select().single();
+
+  // Insert ings + steps ของ copy
+  if(ings?.length) await db.from('recipe_ingredients').insert(
+    ings.map(ri=>({ recipe_id:newRecipe.id, ingredient_id:ri.ingredient_id, amount:ri.amount, unit:ri.unit }))
+  );
+  if(steps?.length) await db.from('recipe_steps').insert(
+    steps.map(s=>({ recipe_id:newRecipe.id, step_order:s.step_order, description:s.description }))
+  );
+
+  showToast('✓ Copy แล้ว — กำลังเปิด Edit...');
+  await loadRecipes();
+  // เปิด edit form ของ copy ใหม่ทันที
+  setTimeout(()=>editRecipe(newRecipe.id), 500);
+}
+  
 // ── NAV ──
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
