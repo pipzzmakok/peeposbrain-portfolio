@@ -305,7 +305,8 @@ let recipeIngRows = [], recipeStepRows = [];
 
 // ── INIT ──
 async function init() {
-  await Promise.all([loadRecipes(), loadIngredients()]);
+  await loadIngredients();  // ต้องมี allIngredients ก่อน calcRecipeCost จะทำงานได้
+  await loadRecipes();
 }
 
 // ── RECIPES ──
@@ -313,6 +314,17 @@ async function loadRecipes() {
   const { data } = await db.from('recipes').select('*').order('created_at', {ascending:false});
   allRecipes = data || [];
   allCategories = new Set(allRecipes.map(r=>r.category).filter(Boolean));
+
+  // Preload all recipe_ingredients into cache so cost shows on list view
+  if(allRecipes.length) {
+    const { data: allIngs } = await db.from('recipe_ingredients').select('*');
+    window._recipeIngCache = {};
+    (allIngs||[]).forEach(ri => {
+      if(!window._recipeIngCache[ri.recipe_id]) window._recipeIngCache[ri.recipe_id] = [];
+      window._recipeIngCache[ri.recipe_id].push(ri);
+    });
+  }
+
   renderCategoryFilters();
   filterRecipes();
 }
