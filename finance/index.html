@@ -310,11 +310,12 @@ select.form-input option{background:var(--surface2)}
           <div class="loading"><div class="spinner"></div></div>
         </div>
       </div>
-<!-- Transaction by Account -->
+      <!-- Transfer Summary (mini) -->
       <div class="section-header" style="margin-top:8px">
-        <div class="section-title">Transaction by Account</div>
+        <div class="section-title">โอนเงินเดือนนี้</div>
+        <button class="btn btn-ghost btn-sm" onclick="showPanel('transfer',document.querySelector('[onclick*=transfer]'))">ดูทั้งหมด →</button>
       </div>
-      <div class="table-wrap" id="txnByAccount"></div>
+      <div id="txnByAccount"></div>
 
       <div class="dash-bottom-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px">
         <div>
@@ -333,6 +334,8 @@ select.form-input option{background:var(--surface2)}
         <span style="font-size:.72rem;color:var(--text3);font-family:'Space Mono',monospace" id="instSummaryLabel"></span>
       </div>
       <div class="table-wrap" id="instSummaryTable"></div>
+
+    </div>
 
     <!-- TRANSFER SUMMARY -->
     <div id="panel-transfer" class="panel">
@@ -859,6 +862,14 @@ async function loadDashboard(){
   renderInstSummary(monthDebts, debt.data||[]);
 
   // alloc by category
+  // Cache alloc by account for dashboard transfer summary
+  const dashAllocByAcc = {};
+  (alloc.data||[]).forEach(a=>{
+    if(!dashAllocByAcc[a.account_name]) dashAllocByAcc[a.account_name]=[];
+    dashAllocByAcc[a.account_name].push(a);
+  });
+  window._dashAllocByAcc = dashAllocByAcc;
+
   const byCat = {};
   (alloc.data||[]).forEach(a=>{ byCat[a.category_name]=(byCat[a.category_name]||0)+toNum(a.amount); });
   const catRows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
@@ -879,46 +890,45 @@ function renderTxnByAccount(monthDebts) {
   const el = document.getElementById('txnByAccount');
   if(!el) return;
 
-  // Group transactions by account (via source_name → allSources → account_name)
-  const byAcc = {};
-  monthDebts.forEach(t => {
-    const src = allSources.find(s => s.source_name === t.source_name);
-    const acc = src?.account_name || t.source_name || 'Unknown';
-    if(!byAcc[acc]) byAcc[acc] = { planned: 0, paid: 0, cards: {} };
-    byAcc[acc].planned += toNum(t.amount);
-    if(t.paid_flag) byAcc[acc].paid += toNum(t.amount);
-    // track per-card within account
-    if(!byAcc[acc].cards[t.source_name]) byAcc[acc].cards[t.source_name] = { planned: 0, paid: 0 };
-    byAcc[acc].cards[t.source_name].planned += toNum(t.amount);
-    if(t.paid_flag) byAcc[acc].cards[t.source_name].paid += toNum(t.amount);
+  const mk = monthKey(currentMonth);
+  const mStart = fmt(monthStart(currentMonth));
+
+  // Remaining unpaid debt by source_name
+  const debtBySource = {};
+  monthDebts.filter(t => !t.paid_flag).forEach(t => {
+    debtBySource[t.source_name] = (debtBySource[t.source_name]||0) + toNum(t.amount);
   });
 
-  if(!Object.keys(byAcc).length) {
-    el.innerHTML = '<table><tbody><tr><td colspan="3" style="text-align:center;color:var(--text3);padding:20px">No transactions this month</td></tr></tbody></table>';
+  // Allocations by account (use cached from loadDashboard)
+  const allocByAcc = window._dashAllocByAcc || {};
+
+  // Merge by account
+  const accounts = new Set([
+    ...Object.keys(allocByAcc),
+    ...allSources.map(s=>s.account_name).filter(Boolean)
+  ]);
+
+  const rows = [...accounts].filter(Boolean).map(acc => {
+    const srcCards = allSources.filter(s => s.account_name === acc);
+    const debtTotal = srcCards.reduce((s, src) => s + (debtBySource[src.source_name]||0), 0);
+    const allocTotal = (allocByAcc[acc]||[]).reduce((s,r) => s + toNum(r.amount), 0);
+    const total = allocTotal + debtTotal;
+    return { acc, allocTotal, debtTotal, total };
+  }).filter(r => r.total > 0).sort((a,b) => b.total - a.total);
+
+  if(!rows.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:.82rem;padding:12px 0">ไม่มีรายการเดือนนี้</div>';
     return;
   }
 
-  let html = '<table><thead><tr><th>Account / Card</th><th>Planned</th><th>Remaining</th></tr></thead><tbody>';
-  Object.entries(byAcc).sort((a,b) => b[1].planned - a[1].planned).forEach(([acc, v]) => {
-    const remaining = v.planned - v.paid;
-    const hasMultipleCards = Object.keys(v.cards).length > 1;
-    // Account row (header)
-    html += `<tr style="background:var(--surface2)">
-      <td style="font-weight:700;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--blue)">${acc}</td>
-      <td class="amount-positive" style="font-weight:700">${fmtBaht(v.planned)}</td>
-      <td class="${remaining > 0 ? 'amount-negative' : 'amount-positive'}" style="font-weight:700">${fmtBaht(remaining)}</td>
+  let html = '<table><thead><tr><th>บัญชี</th><th>Allocations</th><th>Debt (remaining)</th><th style="color:var(--blue)">รวมที่ต้องโอน</th></tr></thead><tbody>';
+  rows.forEach(r => {
+    html += `<tr>
+      <td style="font-weight:600;font-family:'Space Mono',monospace;font-size:.75rem">${r.acc}</td>
+      <td class="amount-positive">${r.allocTotal > 0 ? fmtBaht(r.allocTotal) : '—'}</td>
+      <td class="${r.debtTotal > 0 ? 'amount-negative' : ''}">${r.debtTotal > 0 ? fmtBaht(r.debtTotal) : '—'}</td>
+      <td style="font-family:'Space Mono',monospace;font-size:.82rem;font-weight:700;color:var(--blue)">฿${fmtBaht(r.total)}</td>
     </tr>`;
-    // Card sub-rows (only if account has multiple cards)
-    if(hasMultipleCards) {
-      Object.entries(v.cards).forEach(([card, cv]) => {
-        const cRemaining = cv.planned - cv.paid;
-        html += `<tr>
-          <td style="padding-left:24px;font-size:.8rem;color:var(--text2)">↳ ${card}</td>
-          <td class="amount-positive" style="font-size:.8rem">${fmtBaht(cv.planned)}</td>
-          <td class="${cRemaining > 0 ? 'amount-negative' : 'amount-positive'}" style="font-size:.8rem">${fmtBaht(cRemaining)}</td>
-        </tr>`;
-      });
-    }
   });
   html += '</tbody></table>';
   el.innerHTML = html;
