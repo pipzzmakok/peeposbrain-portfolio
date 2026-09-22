@@ -494,10 +494,7 @@ select.form-input option{background:var(--surface2)}
           </div>
           <div class="form-group">
             <label class="form-label">Type</label>
-            <select id="alloc_type" class="form-input">
-              <option value="Expenses">Expenses</option>
-              <option value="Saving">Saving</option>
-            </select>
+            <input id="alloc_type" class="form-input" placeholder="เลือก Category ก่อน" readonly style="background:var(--surface2);color:var(--text2);cursor:default">
           </div>
           <div class="form-group">
             <label class="form-label">Amount</label>
@@ -708,8 +705,22 @@ function populateSelects(){
   const allocCat = document.getElementById('alloc_category');
   allocCat.innerHTML = '<option value="">Select category...</option>';
   allCategories.forEach(c=>{ const o=document.createElement('option'); o.value=c.category_name; o.textContent=c.category_name+' ('+c.allocation_type_default+')'; allocCat.appendChild(o); });
+  allocCat.onchange = function(){ updateAddAllocType(this.value); };
 }
 
+
+
+function updateAddAllocType(catName) {
+  const cat = allCategories.find(c=>c.category_name===catName);
+  const el = document.getElementById('alloc_type');
+  if(el) el.value = cat?.allocation_type_default || '';
+}
+
+function updateEditAllocType(catName) {
+  const cat = allCategories.find(c=>c.category_name===catName);
+  const el = document.getElementById('m_type');
+  if(el) el.value = cat?.allocation_type_default || '';
+}
 
 // ── CYCLE HELPERS ──
 function computeDefaultCycle(m) {
@@ -1381,8 +1392,8 @@ function setBillingMonth(m,btn){
 }
 
 function clearTxnForm(){
-  ['txn_date','txn_source','txn_amount','txn_category','txn_desc'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('txn_date').value=fmt(new Date());
+  // Keep date, card (txn_source), category — only clear amount + desc
+  ['txn_amount','txn_desc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('billingWarn').innerHTML='';
   billingWarnMonth=null;
 }
@@ -1473,18 +1484,22 @@ async function editAlloc(id){
   if(!r) return;
   // Open modal pre-filled
   document.getElementById('modalTitle').textContent = 'Edit Allocation';
+  // Build account options with correct pre-select by value
+  const accOpts = allAccounts.map(a=>`<option value="${a.account_name}" ${a.account_name===r.account_name?'selected':''}>${a.account_name}</option>`).join('');
+  // Build category options
+  const catOpts = allCategories.map(c=>`<option value="${c.category_name}" ${c.category_name===r.category_name?'selected':''}>${c.category_name} (${c.allocation_type_default})</option>`).join('');
+  // Type is derived from selected category
+  const catObj = allCategories.find(c=>c.category_name===r.category_name);
+  const derivedType = catObj?.allocation_type_default || r.allocation_type;
   document.getElementById('modalBody').innerHTML = `
     <div class="form-group"><label class="form-label">Account</label>
-      <select id="m_acc" class="form-input">${allAccounts.map(a=>`<option ${a.account_name===r.account_name?'selected':''}>${a.account_name}</option>`).join('')}</select>
+      <select id="m_acc" class="form-input">${accOpts}</select>
     </div>
     <div class="form-group" style="margin-top:12px"><label class="form-label">Category</label>
-      <select id="m_cat" class="form-input">${allCategories.map(c=>`<option ${c.category_name===r.category_name?'selected':''}>${c.category_name}</option>`).join('')}</select>
+      <select id="m_cat" class="form-input" onchange="updateEditAllocType(this.value)">${catOpts}</select>
     </div>
     <div class="form-group" style="margin-top:12px"><label class="form-label">Type</label>
-      <select id="m_type" class="form-input">
-        <option ${r.allocation_type==='Expenses'?'selected':''}>Expenses</option>
-        <option ${r.allocation_type==='Saving'?'selected':''}>Saving</option>
-      </select>
+      <input id="m_type" class="form-input" value="${derivedType}" readonly style="background:var(--surface2);color:var(--text2);cursor:default">
     </div>
     <div class="form-group" style="margin-top:12px"><label class="form-label">Amount (฿)</label>
       <input type="number" id="m_amount" class="form-input" value="${r.amount}" placeholder="e.g. 2000">
