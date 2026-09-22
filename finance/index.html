@@ -310,7 +310,13 @@ select.form-input option{background:var(--surface2)}
           <div class="loading"><div class="spinner"></div></div>
         </div>
       </div>
-      <div class="dash-bottom-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<!-- Transaction by Account -->
+      <div class="section-header" style="margin-top:8px">
+        <div class="section-title">Transaction by Account</div>
+      </div>
+      <div class="table-wrap" id="txnByAccount"></div>
+
+      <div class="dash-bottom-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px">
         <div>
           <div class="section-header"><div class="section-title">Debt by Card</div></div>
           <div class="table-wrap" id="debtByCard"></div>
@@ -327,7 +333,6 @@ select.form-input option{background:var(--surface2)}
         <span style="font-size:.72rem;color:var(--text3);font-family:'Space Mono',monospace" id="instSummaryLabel"></span>
       </div>
       <div class="table-wrap" id="instSummaryTable"></div>
-    </div>
 
     <!-- TRANSFER SUMMARY -->
     <div id="panel-transfer" class="panel">
@@ -863,8 +868,60 @@ async function loadDashboard(){
   window._dashByCat = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   renderDashAllocTable('amount','desc');
 
+  // transaction by account
+  renderTxnByAccount(monthDebts);
+
   // trend chart
   await loadTrend(debt.data||[]);
+}
+
+function renderTxnByAccount(monthDebts) {
+  const el = document.getElementById('txnByAccount');
+  if(!el) return;
+
+  // Group transactions by account (via source_name → allSources → account_name)
+  const byAcc = {};
+  monthDebts.forEach(t => {
+    const src = allSources.find(s => s.source_name === t.source_name);
+    const acc = src?.account_name || t.source_name || 'Unknown';
+    if(!byAcc[acc]) byAcc[acc] = { planned: 0, paid: 0, cards: {} };
+    byAcc[acc].planned += toNum(t.amount);
+    if(t.paid_flag) byAcc[acc].paid += toNum(t.amount);
+    // track per-card within account
+    if(!byAcc[acc].cards[t.source_name]) byAcc[acc].cards[t.source_name] = { planned: 0, paid: 0 };
+    byAcc[acc].cards[t.source_name].planned += toNum(t.amount);
+    if(t.paid_flag) byAcc[acc].cards[t.source_name].paid += toNum(t.amount);
+  });
+
+  if(!Object.keys(byAcc).length) {
+    el.innerHTML = '<table><tbody><tr><td colspan="3" style="text-align:center;color:var(--text3);padding:20px">No transactions this month</td></tr></tbody></table>';
+    return;
+  }
+
+  let html = '<table><thead><tr><th>Account / Card</th><th>Planned</th><th>Remaining</th></tr></thead><tbody>';
+  Object.entries(byAcc).sort((a,b) => b[1].planned - a[1].planned).forEach(([acc, v]) => {
+    const remaining = v.planned - v.paid;
+    const hasMultipleCards = Object.keys(v.cards).length > 1;
+    // Account row (header)
+    html += `<tr style="background:var(--surface2)">
+      <td style="font-weight:700;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--blue)">${acc}</td>
+      <td class="amount-positive" style="font-weight:700">${fmtBaht(v.planned)}</td>
+      <td class="${remaining > 0 ? 'amount-negative' : 'amount-positive'}" style="font-weight:700">${fmtBaht(remaining)}</td>
+    </tr>`;
+    // Card sub-rows (only if account has multiple cards)
+    if(hasMultipleCards) {
+      Object.entries(v.cards).forEach(([card, cv]) => {
+        const cRemaining = cv.planned - cv.paid;
+        html += `<tr>
+          <td style="padding-left:24px;font-size:.8rem;color:var(--text2)">↳ ${card}</td>
+          <td class="amount-positive" style="font-size:.8rem">${fmtBaht(cv.planned)}</td>
+          <td class="${cRemaining > 0 ? 'amount-negative' : 'amount-positive'}" style="font-size:.8rem">${fmtBaht(cRemaining)}</td>
+        </tr>`;
+      });
+    }
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
 }
 
 async function loadTrend(allDebt){
