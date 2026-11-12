@@ -361,6 +361,9 @@ input[type=date]{min-width:0;max-width:100%}
   #instSummaryTable td:nth-child(5){grid-area:r;text-align:right;font-size:.85rem}
   #instSummaryTable td:nth-child(5)::before{content:'เหลือ ';color:var(--text3);font-size:.62rem;font-weight:400}
   #instSummaryTable td:nth-child(6){grid-area:e;justify-self:end}
+  #instSummaryTable tr.inst-total{grid-template-areas:"i i i" "m . r";background:var(--surface2)}
+  #instSummaryTable tr.inst-total td{background:none}
+  #instSummaryTable tr.inst-total td:nth-child(2),#instSummaryTable tr.inst-total td:nth-child(4),#instSummaryTable tr.inst-total td:nth-child(6){display:none}
 
   /* ── Transfer-by-account → stacked rows ── */
   #txnByAccount table,#txnByAccount thead,#txnByAccount tbody{display:block}
@@ -415,6 +418,10 @@ input[type=date]{min-width:0;max-width:100%}
   .modal{padding:20px}
   .toast{bottom:16px}
 }
+
+/* ── Active Installments: data-check line + total row ── */
+.inst-warn{font-size:.62rem;color:var(--yellow);font-weight:400;margin-top:3px;line-height:1.4}
+#instSummaryTable tr.inst-total td{background:var(--surface2);font-weight:700;color:var(--text)}
 </style>
 </head>
 <body>
@@ -1189,75 +1196,122 @@ function renderDashAllocTable(col, dir){
 
 
 // ── INSTALLMENT SUMMARY ──
+// Time-based: follows the selected month and does NOT depend on Paid flags.
+// An installment = rows named "name (k/N)". Installment #1 starts in the month of its first statement,
+// so for the selected month  k = (months since start) + 1   (k < 1 → upcoming, k > N → finished → hidden).
 function renderInstSummary(currentMonthDebts, allDebt) {
-  // Find all installment groups by parsing description pattern (x/y)
-  const instMap = {}; // key = base description
+  const ymOf  = s => { const [y,m] = String(s).split('-').map(Number); return y*12 + (m-1); };
+  const label = n => new Date(Math.floor(n/12), n%12, 1).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  const rowMonth = t => ymOf(computePaymentMonth(t.txn_date, t.source_name, t.payment_month_override));
+
+  // 1) candidate rows "name (k/N)", bucketed by name + card + N
+  const re = /^(.+)\s+\((\d+)\/(\d+)\)\s*$/;
+  const buckets = {};
   allDebt.forEach(t => {
-    const match = (t.description||'').match(/^(.+)\s+\((\d+)\/(\d+)\)$/);
-    if(!match) return;
-    const [, base, current, total] = match;
-    const key = `${base}__${t.source_name}__${total}`;
-    if(!instMap[key]) instMap[key] = {
-      base, source: t.source_name, total: parseInt(total),
-      amount_per: toNum(t.amount), transactions: []
-    };
-    instMap[key].transactions.push(t);
+    const m = (t.description||'').match(re);
+    if(!m) return;
+    const k = +m[2], n = +m[3];
+    if(n < 2 || k < 1 || k > n) return;
+    const base = m[1].trim();
+    (buckets[`${base}__${t.source_name}__${n}`] ||= { base, source:t.source_name, n, items:[] }).items.push({ t, k });
   });
 
-  const rows = Object.values(instMap);
-  if(!rows.length) {
+  // 2) split each bucket into series (same name bought twice → separate installments)
+  const groups = [];
+  Object.values(buckets).forEach(b => {
+    b.items.sort((a,c) => a.k - c.k || String(a.t.created_at||'').localeCompare(String(c.t.created_at||'')));
+    const series = [];
+    b.items.forEach(it => {
+      const amt = toNum(it.t.amount), free = s => !s.ks.has(it.k);
+      let s = series.find(s => free(s) && s.amount===amt && s.date===it.t.txn_date)
+           || series.find(s => free(s) && s.amount===amt)
+           || series.find(free);
+      if(!s){ s = { ks:new Set(), items:[], amount:amt, date:it.t.txn_date }; series.push(s); }
+      s.ks.add(it.k); s.items.push(it);
+    });
+    series.forEach(s => {
+      // a single hand-typed "(1/2)" is not an installment: need the Installment tag or at least 2 rows
+      if(!(s.items.some(x => x.t.expense_group === 'Installment') || s.items.length >= 2)) return;
+      const first = s.items[0];                                    // smallest k
+      const start = rowMonth(first.t) - (first.k - 1);             // month number of installment #1
+
+      // data check: rows made by the Installment form share one purchase date → start month should follow the billing-cycle rule
+      let warn = null;
+      const src = allSources.find(x => x.source_name === b.source);
+      const sameDate = s.items.every(x => x.t.txn_date === first.t.txn_date);
+      if(sameDate && s.items.some(x => x.t.payment_month_override) && src?.billing_day && first.t.txn_date){
+        const [yy,mm,dd] = first.t.txn_date.split('-').map(Number);
+        const expected = yy*12 + (mm-1) + (dd >= src.billing_day ? 1 : 0);
+        if(expected !== start) warn = { stored: label(start), expected: label(expected) };
+      }
+      groups.push({ base:b.base, source:b.source, total:b.n, amount_per:toNum(first.t.amount),
+                    transactions:s.items.map(x => x.t), start, warn });
+    });
+  });
+
+  // 3) position of the selected month inside each installment
+  const cur = ymOf(monthKey(currentMonth));
+  const active = [], upcoming = [];
+  groups.forEach(g => {
+    g.k = cur - g.start + 1;
+    if(g.k > g.total) return;                                      // finished → hidden
+    (g.k >= 1 ? active : upcoming).push(g);
+  });
+  active.sort((a,b) => (b.total-b.k) - (a.total-a.k) || a.base.localeCompare(b.base));
+  upcoming.sort((a,b) => a.start - b.start);
+  const rows = [...active, ...upcoming];
+  window._instRows = rows;                                         // indexes used by the ✏️ buttons
+
+  document.getElementById('instSummaryLabel').textContent =
+    rows.length ? `${active.length} active` + (upcoming.length ? ` · ${upcoming.length} upcoming` : '') : '';
+  if(!rows.length){
     document.getElementById('instSummaryTable').innerHTML =
-      '<div class="empty" style="padding:24px"><div class="empty-text">No active installments</div></div>';
-    document.getElementById('instSummaryLabel').textContent = '';
+      '<div class="empty" style="padding:24px"><div class="empty-text">ไม่มีรายการผ่อนในเดือนนี้</div></div>';
     return;
   }
 
-  // Sort: most remaining first
-  rows.sort((a,b) => {
-    const remA = a.total - a.transactions.filter(t=>t.paid_flag).length;
-    const remB = b.total - b.transactions.filter(t=>t.paid_flag).length;
-    return remB - remA;
-  });
-
-  const active = rows.filter(r => r.transactions.filter(t=>!t.paid_flag).length > 0);
-  document.getElementById('instSummaryLabel').textContent = active.length + ' active';
-
-  // Store installment data globally for edit access
-  window._instRows = rows;
+  const sumPer = active.reduce((s,g) => s + g.amount_per, 0);
+  const sumRem = active.reduce((s,g) => s + (g.total-g.k)*g.amount_per, 0);
 
   document.getElementById('instSummaryTable').innerHTML = `<table>
     <thead><tr>
       <th>Item</th><th>Card</th><th>Per Month</th>
-      <th>Progress</th><th>Remaining</th><th></th>
+      <th>Progress</th><th>Remaining (หลังงวดนี้)</th><th></th>
     </tr></thead>
     <tbody>
-    ${rows.map((r, idx) => {
-      const paid   = r.transactions.filter(t=>t.paid_flag).length;
-      const unpaid = r.transactions.filter(t=>!t.paid_flag).length;
-      const pct    = Math.round((paid/r.total)*100);
-      const remaining = unpaid * r.amount_per;
-      const isDone = unpaid === 0;
-      return `<tr style="opacity:${isDone?'0.45':'1'}">
-        <td style="font-weight:500;color:var(--text)">${r.base} ${isDone?'<span class="badge badge-paid" style="margin-left:6px">Done</span>':''}</td>
-        <td style="color:var(--text3)">${r.source}</td>
-        <td class="amount-positive">${fmtBaht(r.amount_per)}</td>
-        <td>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="flex:1;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;min-width:60px">
-              <div style="height:100%;border-radius:3px;background:${isDone?'var(--green)':'var(--blue)'};width:${pct}%;transition:width .5s"></div>
-            </div>
-            <span style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--text3);white-space:nowrap">${paid}/${r.total}</span>
-          </div>
-        </td>
-        <td style="font-family:'Space Mono',monospace;font-weight:600;color:${isDone?'var(--green)':'var(--orange)'}">
-          ${isDone ? '—' : fmtBaht(remaining)}
-          ${!isDone ? `<div style="font-size:.62rem;color:var(--text3);font-weight:400">${unpaid} งวด</div>` : ''}
+    ${rows.map((g, idx) => {
+      const up   = g.k < 1;
+      const left = up ? g.total : g.total - g.k;
+      const rem  = left * g.amount_per;
+      const last = !up && left === 0;
+      const pct  = up ? 0 : Math.round(g.k / g.total * 100);
+      return `<tr style="opacity:${up?'0.55':'1'}">
+        <td style="font-weight:500;color:var(--text)">${g.base} ${up?'<span class="badge badge-warn" style="margin-left:6px">Upcoming</span>':''}${g.warn?`<div class="inst-warn">⚠ เดือนเริ่มผ่อนที่เก็บไว้: ${g.warn.stored} · ตามกฎรอบบิลควรเป็น ${g.warn.expected}</div>`:''}</td>
+        <td style="color:var(--text3)">${g.source}</td>
+        <td class="amount-positive">${fmtBaht(g.amount_per)}</td>
+        <td>${up
+          ? `<span style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--text3)">เริ่ม ${label(g.start)}</span>`
+          : `<div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;min-width:60px">
+                <div style="height:100%;border-radius:3px;background:${last?'var(--green)':'var(--blue)'};width:${pct}%;transition:width .5s"></div>
+              </div>
+              <span style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--text3);white-space:nowrap">${g.k}/${g.total}</span>
+            </div>`}</td>
+        <td style="font-family:'Space Mono',monospace;font-weight:600;color:${last?'var(--green)':'var(--orange)'}">
+          ${last ? '—' : fmtBaht(rem)}
+          <div style="font-size:.62rem;color:var(--text3);font-weight:400">${last ? 'งวดสุดท้าย' : (up ? 'ทั้งหมด ' : 'อีก ') + left + ' งวด'}</div>
         </td>
         <td>
           <button class="btn btn-ghost btn-sm" onclick="openEditInstalment(${idx})" title="Edit installment">✏️</button>
         </td>
       </tr>`;
     }).join('')}
+    ${active.length ? `<tr class="inst-total">
+        <td>รวมเดือนนี้</td><td></td>
+        <td class="amount-positive">${fmtBaht(sumPer)}</td><td></td>
+        <td style="font-family:'Space Mono',monospace;color:var(--orange)">${fmtBaht(sumRem)}<div style="font-size:.62rem;color:var(--text3);font-weight:400">คงเหลือหลังงวดนี้</div></td>
+        <td></td>
+      </tr>` : ''}
     </tbody>
   </table>`;
 }
