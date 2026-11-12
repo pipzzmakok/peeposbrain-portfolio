@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Peepo Finance</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -227,20 +227,193 @@ select.form-input option{background:var(--surface2)}
 .bottom-nav-item .bnav-icon{font-size:1.3rem;line-height:1}
 .bottom-nav-item.active{color:var(--blue)}
 .bottom-nav-item .bnav-badge{position:absolute;top:2px;right:calc(50% - 20px);background:var(--red);color:white;font-size:.5rem;padding:1px 5px;border-radius:100px;min-width:14px;text-align:center}
-@media(max-width:768px){
-  .app{grid-template-columns:1fr;grid-template-rows:56px 1fr;padding-bottom:70px}
-  .col-hide-mobile{display:none!important}
-  .col-show-mobile{display:table-cell!important}
-  .sidebar{display:none!important}
-  .bottom-nav{display:block}
-  .main{padding:16px 16px 24px}
-  .cards-grid{grid-template-columns:1fr 1fr}
-  .form-grid{grid-template-columns:1fr}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — iPhone (≤767px) · iPad portrait (768–1024px) ·
+   landscape phones (height ≤500px) · safe-area · iOS touch rules
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  color-scheme:dark;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --bnav:64px;
+}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.app{height:100vh;height:100dvh;grid-template-rows:calc(56px + var(--safe-t)) 1fr}
+.topbar{padding-top:var(--safe-t);padding-left:max(24px,var(--safe-l));padding-right:max(24px,var(--safe-r))}
+.main{-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}          /* safety net: nothing is ever cut off */
+#txnByAccount{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.section-header{flex-wrap:wrap;gap:8px}
+button,a,select,input,.nav-item{touch-action:manipulation}
+.modal-overlay{padding:16px}
+.modal{max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.txn-popup{max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + var(--safe-b))}
+input[type=date]{min-width:0;max-width:100%}
+
+/* ── iOS: 16px inputs stop Safari from zooming the page on focus ── */
+@media (pointer:coarse), (max-width:767px){
+  input,select,textarea,.form-input{font-size:16px}
+  #debtCardFilter{font-size:16px!important}   /* has an inline .72rem */
+}
+/* ── Touch targets ≥ 40–44px ── */
+@media (pointer:coarse){
+  .btn{min-height:44px}
+  .btn-sm{min-height:40px;padding:6px 14px}
+  .btn-icon{width:40px;height:40px;min-height:40px}
+  .month-btn{min-width:40px;min-height:40px}
+  .back-link{display:inline-flex;align-items:center;min-height:40px;padding:0 6px}
+  .debt-tab{min-height:44px}
+  .filter-btn{min-height:40px;padding:6px 16px}
+  .billing-warn-btn{min-height:36px}
+  .form-input{min-height:44px}
+  .nav-item{min-height:44px}
+}
+
+/* ═══════════ PHONE PORTRAIT (iPhone 15 Pro = 393px) ═══════════ */
+@media (max-width:767px){
+  .app{grid-template-columns:1fr;grid-template-rows:calc(52px + var(--safe-t)) 1fr;padding-bottom:calc(var(--bnav) + var(--safe-b))}
+  .sidebar{display:none}
+  .topbar{padding-left:max(12px,var(--safe-l));padding-right:max(12px,var(--safe-r));gap:8px}
+  .brand{font-size:.8rem;gap:6px;white-space:nowrap;min-width:0}
+  .topbar-right{gap:8px;flex-shrink:0}
+  .month-selector{gap:2px}
+  .month-label{min-width:66px;font-size:.78rem;white-space:nowrap}
+  .back-link{font-size:.7rem;white-space:nowrap}
+  .main{padding:14px max(14px,var(--safe-r)) 24px max(14px,var(--safe-l))}
+
+  .bottom-nav{display:block;padding:6px var(--safe-r) calc(6px + var(--safe-b)) var(--safe-l)}
+  .bottom-nav-item{font-size:.62rem;min-height:52px;justify-content:center}
+  #moreMenu{bottom:calc(var(--bnav) + var(--safe-b))!important}
+  .toast{bottom:calc(var(--bnav) + var(--safe-b) + 12px);right:12px;left:12px;max-width:none}
+
+  .cards-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+  .cards-grid .card{padding:14px}
+  .cards-grid .card-value{font-size:1.25rem}
+  .cards-grid .card:last-child{grid-column:1/-1}                       /* Cycle Days card = full width */
+  .dash-bottom-grid,.income-grid{grid-template-columns:1fr!important}
   .transfer-grid{grid-template-columns:1fr}
-  .toast{bottom:80px;right:12px;left:12px;max-width:100%}
-  .dash-bottom-grid{grid-template-columns:1fr!important}
-  .income-grid{grid-template-columns:1fr!important}
   .settings-row-actions{flex-wrap:wrap;gap:4px!important}
+
+  /* forms: 2 columns instead of one long column */
+  .quick-add{padding:16px}
+  .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .form-grid .form-group{justify-content:flex-end;min-width:0}
+  .form-grid .form-input{min-width:0;width:100%;max-width:100%}
+  .form-group.full{grid-column:1/-1}
+  /* give the long dropdowns (card / category / account) more room */
+  #debtFormTxn .form-grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+  #panel-allocations .quick-add .form-group:nth-child(1),
+  #panel-allocations .quick-add .form-group:nth-child(2),
+  #panel-allocations .quick-add .form-group:nth-child(5){grid-column:1/-1}
+  .modal{padding:20px}
+  .modal .f-grid{grid-template-columns:1fr!important}
+  .debt-tabs{width:100%}
+  .debt-tab{flex:1;padding:10px 8px;white-space:nowrap}
+  #debtCardFilter{flex:1;min-width:130px}
+
+  .table-wrap th,.table-wrap td{padding:10px 12px}
+  .table-wrap thead th{white-space:nowrap}
+
+  /* ── Debt log → stacked rows ── */
+  #panel-debt .table-wrap table,#panel-debt .table-wrap tbody{display:block}
+  #panel-debt .table-wrap thead{display:block;background:var(--surface2);border-bottom:1px solid var(--border)}
+  #panel-debt .table-wrap thead tr{display:flex;align-items:center;gap:6px;padding:8px 12px}
+  #panel-debt .table-wrap thead tr::before,#allocTable thead tr::before{content:'Sort';font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-right:4px}
+  #panel-debt .table-wrap thead th{display:none;padding:7px 14px;border:1px solid var(--border);border-radius:100px;cursor:pointer}
+  #panel-debt .table-wrap thead th:nth-child(1),#panel-debt .table-wrap thead th:nth-child(3){display:block}
+  #debtTable tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"s s s a" "d c b x";align-items:center;gap:6px 10px;padding:10px 12px;border-bottom:1px solid var(--border)}
+  #debtTable td{display:block;padding:0;border:0;min-width:0}
+  #debtTable td:nth-child(1){grid-area:d;font-size:.68rem!important;color:var(--text3)}
+  #debtTable td:nth-child(2){grid-area:c;font-size:.74rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #debtTable td:nth-child(3){grid-area:a;text-align:right;font-size:1rem}
+  #debtTable td:nth-child(4),#debtTable td:nth-child(6){display:none}
+  #debtTable td:nth-child(5){grid-area:s;max-width:none!important;font-size:.9rem;color:var(--text)}
+  #debtTable td:nth-child(7){grid-area:b}
+  #debtTable td:nth-child(8){grid-area:x;display:flex!important;justify-content:flex-end}
+  #debtTable td[colspan]{grid-area:auto;grid-column:1/-1;text-align:center;padding:24px 0}
+
+  /* ── Allocations → compact rows ── */
+  #allocTable table,#allocTable tbody,#allocTable thead{display:block}
+  #allocTable thead{background:var(--surface2);border-bottom:1px solid var(--border)}
+  #allocTable thead tr{display:flex;align-items:center;gap:6px;padding:8px 12px}
+  #allocTable thead th{display:none;padding:7px 14px;border:1px solid var(--border);border-radius:100px;cursor:pointer;white-space:nowrap}
+  #allocTable thead th:nth-child(1),#allocTable thead th:nth-child(3){display:block}
+  #allocTable tbody tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+  #allocTable td{display:block;border:0;min-width:0}
+  #allocTable td:nth-child(2):not([colspan]){display:none}
+  #allocTable td:nth-child(3){text-align:right;padding-left:0;padding-right:0}
+  #allocTable td:nth-child(4):not([colspan]){display:flex!important;padding-left:0}
+  #allocTable td[colspan]{grid-column:1/-1;padding:0}
+
+  /* ── Active installments → stacked rows ── */
+  #instSummaryTable table,#instSummaryTable thead,#instSummaryTable tbody{display:block}
+  #instSummaryTable thead{display:none}
+  #instSummaryTable tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"i i e" "c m r" "p p p";gap:6px 12px;align-items:center;padding:12px;border-bottom:1px solid var(--border)}
+  #instSummaryTable td{display:block;padding:0;border:0;min-width:0}
+  #instSummaryTable td:nth-child(1){grid-area:i}
+  #instSummaryTable td:nth-child(2){grid-area:c;font-size:.74rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #instSummaryTable td:nth-child(3){grid-area:m;font-size:.8rem}
+  #instSummaryTable td:nth-child(3)::before{content:'/mo ';color:var(--text3);font-size:.6rem;font-weight:400}
+  #instSummaryTable td:nth-child(4){grid-area:p}
+  #instSummaryTable td:nth-child(5){grid-area:r;text-align:right;font-size:.85rem}
+  #instSummaryTable td:nth-child(5)::before{content:'เหลือ ';color:var(--text3);font-size:.62rem;font-weight:400}
+  #instSummaryTable td:nth-child(6){grid-area:e;justify-self:end}
+
+  /* ── Transfer-by-account → stacked rows ── */
+  #txnByAccount table,#txnByAccount thead,#txnByAccount tbody{display:block}
+  #txnByAccount thead{display:none}
+  #txnByAccount tr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"a t" "l d";gap:4px 12px;padding:12px;border-bottom:1px solid var(--border);align-items:baseline}
+  #txnByAccount td{display:block;padding:0;border:0}
+  #txnByAccount td:nth-child(1){grid-area:a}
+  #txnByAccount td:nth-child(2){grid-area:l;font-size:.78rem}
+  #txnByAccount td:nth-child(2)::before{content:'Alloc ';color:var(--text3);font-size:.62rem;font-weight:400}
+  #txnByAccount td:nth-child(3){grid-area:d;text-align:right;font-size:.78rem}
+  #txnByAccount td:nth-child(3)::before{content:'Debt ';color:var(--text3);font-size:.62rem;font-weight:400}
+  #txnByAccount td:nth-child(4){grid-area:t;text-align:right;font-size:1rem!important}
+}
+
+/* ═══════════ SIDE RAIL: iPad portrait + landscape phones ═══════════ */
+@media (min-width:768px) and (max-width:1024px), (orientation:landscape) and (max-height:500px){
+  .main{padding:22px max(24px,var(--safe-r)) 24px 24px}
+  .cards-grid{grid-template-columns:repeat(3,1fr);gap:12px}
+  .cards-grid .card:last-child{grid-column:1/-1}
+  .cards-grid .card-value{font-size:1.45rem}
+  .income-grid{grid-template-columns:1fr!important}
+  .table-wrap th,.table-wrap td{padding:11px 10px}
+  /* Debt log: Category + Pay Month live in the row-detail popup on narrow tables */
+  #panel-debt table th:nth-child(4),#panel-debt table th:nth-child(6),
+  #debtTable td:nth-child(4),#debtTable td:nth-child(6){display:none}
+  #debtTable td:nth-child(5){max-width:130px!important}
+  /* action cell: inline display:flex breaks the row border → keep it a real table cell */
+  #debtTable td:nth-child(8){display:table-cell!important;white-space:nowrap;text-align:right}
+  #debtTable td:nth-child(8) .btn+.btn{margin-left:6px}
+  .quick-add .form-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+/* iPad portrait → rail with labels */
+@media (min-width:768px) and (max-width:1024px){
+  .app{grid-template-columns:84px 1fr}
+  .sidebar{padding:12px 6px}
+  .nav-section{display:none}
+  .nav-item{flex-direction:column;justify-content:center;gap:3px;padding:8px 2px;text-align:center;font-size:.6rem;line-height:1.15;min-height:60px;position:relative;margin-bottom:2px}
+  .nav-item .icon{font-size:1.35rem;width:auto}
+  .nav-badge{position:absolute;top:4px;right:8px;margin:0;font-size:.55rem;padding:1px 5px;min-width:16px}
+}
+/* landscape phone → icon-only rail, compact chrome */
+@media (orientation:landscape) and (max-height:500px){
+  .app{grid-template-columns:calc(60px + var(--safe-l)) 1fr;grid-template-rows:calc(46px + var(--safe-t)) 1fr;padding-bottom:0}
+  .sidebar{display:block;padding:8px 6px 8px calc(6px + var(--safe-l))}
+  .bottom-nav{display:none}
+  .nav-section{display:none}
+  .nav-item{justify-content:center;font-size:0;gap:0;padding:0;min-height:44px;position:relative;margin-bottom:2px}
+  .nav-item .icon{font-size:1.25rem;width:auto}
+  .nav-badge{position:absolute;top:2px;right:4px;margin:0;font-size:.55rem;padding:1px 4px;min-width:14px}
+  .topbar{padding-left:max(16px,var(--safe-l));padding-right:max(16px,var(--safe-r))}
+  .main{padding:14px max(20px,var(--safe-r)) 20px 20px}
+  .modal{padding:20px}
+  .toast{bottom:16px}
 }
 </style>
 </head>
@@ -2127,6 +2300,12 @@ async function init(){
     loadDashboard();
   }
 }
+
+// ── a11y: icon-rail labels (iPad portrait / landscape phone) ──
+document.querySelectorAll('.sidebar .nav-item').forEach(b=>{
+  const t=[...b.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim();
+  if(t){ b.title=t; b.setAttribute('aria-label',t); }
+});
 
 init();
 </script>
